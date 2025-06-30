@@ -15,6 +15,7 @@ import {
   deleteDoc,
   orderBy,
   writeBatch,
+  type Timestamp
 } from 'firebase/firestore';
 
 // Type for a project
@@ -66,9 +67,25 @@ export const createProjectWithPrompts = async (
 
 // Function to get all projects for a user
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
-  const q = query(collection(db, 'projects'), where('userId', '==', userId), orderBy('createdAt', 'desc'));
+  // Removing orderBy to simplify the query and bypass the composite index requirement.
+  const q = query(collection(db, 'projects'), where('userId', '==', userId));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Project));
+  
+  const projects = querySnapshot.docs.map((doc) => {
+    const data = doc.data();
+    return { 
+      id: doc.id,
+      name: data.name,
+      idea: data.idea,
+      userId: data.userId,
+      // The `createdAt` field from Firestore is a Timestamp object. We convert it to a JS Date.
+      createdAt: (data.createdAt as Timestamp).toDate(),
+      stack: data.stack
+    } as Project;
+  });
+
+  // We now sort the projects by date here in the code instead of in the database query.
+  return projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 };
 
 // Function to get a single project's details
@@ -76,7 +93,12 @@ export const getProject = async (projectId: string): Promise<Project | null> => 
     const docRef = doc(db, 'projects', projectId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as Project;
+        const data = docSnap.data();
+        return { 
+            id: docSnap.id,
+            ...data,
+            createdAt: (data.createdAt as Timestamp).toDate(),
+         } as Project;
     }
     return null;
 }
