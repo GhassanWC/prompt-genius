@@ -8,12 +8,12 @@ import { useState, useEffect } from "react";
 import { PlatformIcon } from "./platform-icon";
 
 type PromptCardProps = {
-  step: string;
+  title: string;
   platform: string;
   prompt: string;
 };
 
-export function PromptCard({ step, platform, prompt }: PromptCardProps) {
+export function PromptCard({ title, platform, prompt }: PromptCardProps) {
   const { toast } = useToast();
   const [hasCopied, setHasCopied] = useState(false);
 
@@ -42,7 +42,7 @@ export function PromptCard({ step, platform, prompt }: PromptCardProps) {
           <PlatformIcon platform={platform} className="h-8 w-8 text-primary" />
         </div>
         <div className="flex-1">
-          <CardTitle className="text-lg font-headline">{step}</CardTitle>
+          <CardTitle className="text-lg font-headline">{title}</CardTitle>
           <CardDescription>Platform: {platform}</CardDescription>
         </div>
         <Button

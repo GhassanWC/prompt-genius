@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
   const [idea, setIdea] = useState("");
-  const [prompts, setPrompts] = useState<DecomposeIdeaOutput>([]);
+  const [plan, setPlan] = useState<DecomposeIdeaOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,11 +22,11 @@ export default function Home() {
 
     setIsLoading(true);
     setError(null);
-    setPrompts([]);
+    setPlan(null);
 
     try {
       const result = await decomposeIdea({ idea });
-      setPrompts(result);
+      setPlan(result);
     } catch (e: any) {
       setError(e.message || "An unexpected error occurred. Please try again.");
     } finally {
@@ -35,6 +35,9 @@ export default function Home() {
   };
   
   const exampleIdea = "An app where people can find, review, and favorite coffee shops in their city.";
+
+  const frontendSteps = plan?.steps.filter(p => p.phase === 'Frontend') || [];
+  const backendSteps = plan?.steps.filter(p => p.phase === 'Backend') || [];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -96,11 +99,34 @@ export default function Home() {
             </div>
           )}
 
-          {prompts.length > 0 && (
-            <div className="grid gap-6 md:grid-cols-2 animate-in fade-in-0 slide-in-from-bottom-8 duration-500">
-              {prompts.map((prompt, index) => (
-                <PromptCard key={index} {...prompt} />
-              ))}
+          {plan && (
+            <div className="space-y-10 animate-in fade-in-0 slide-in-from-bottom-8 duration-500">
+              <div className="text-center p-6 rounded-lg bg-secondary/30">
+                <p className="text-sm font-medium text-muted-foreground tracking-wider uppercase">Recommended Stack</p>
+                <h2 className="mt-2 text-3xl font-bold font-headline text-primary">{plan.stack}</h2>
+              </div>
+              
+              {frontendSteps.length > 0 && (
+                <div className="space-y-6">
+                  <h3 className="text-2xl font-bold font-headline text-center">Frontend Phase</h3>
+                  <div className="grid gap-6 md:grid-cols-2">
+                      {frontendSteps.map((prompt, index) => (
+                          <PromptCard key={`frontend-${index}`} {...prompt} />
+                      ))}
+                  </div>
+                </div>
+              )}
+              
+              {backendSteps.length > 0 && (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-bold font-headline text-center">Backend Phase</h3>
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {backendSteps.map((prompt, index) => (
+                            <PromptCard key={`backend-${index}`} {...prompt} />
+                        ))}
+                    </div>
+                  </div>
+              )}
             </div>
           )}
         </div>

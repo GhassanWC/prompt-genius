@@ -1,4 +1,4 @@
-import { Flame, Heart, Database, FileCode, CodeSquare } from "lucide-react";
+import { Flame, Heart, Database, FileCode, CodeSquare, Bot, Workflow } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 
 type PlatformIconProps = {
@@ -17,6 +17,10 @@ export function PlatformIcon({ platform, ...props }: PlatformIconProps) {
       return <Heart {...props} />;
     case "blob":
       return <Database {...props} />;
+    case "n8n":
+      return <Workflow {...props} />;
+    case "chatgpt":
+      return <Bot {...props} />;
     default:
       return <FileCode {...props} />;
   }
