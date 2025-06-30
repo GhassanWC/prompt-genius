@@ -35,6 +35,7 @@ export interface Prompt {
     title: string;
     prompt: string;
     order: number;
+    userId: string;
 }
 
 
@@ -45,8 +46,14 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ) => {
-  // Step 1: Create the main project document FIRST and wait for it to complete.
-  const projectRef = await addDoc(collection(db, 'projects'), {
+  // Create a reference to a new project document.
+  const projectRef = doc(collection(db, 'projects'));
+
+  // Use a batch to perform an atomic write.
+  const batch = writeBatch(db);
+
+  // 1. Set the data for the main project document in the batch.
+  batch.set(projectRef, {
     name: projectName,
     idea: idea,
     userId: userId,
@@ -54,17 +61,20 @@ export const createProjectWithPrompts = async (
     createdAt: new Date(),
   });
 
-  // Step 2: Sequentially add each prompt document to the new project's subcollection.
-  // This avoids race conditions with security rules by ensuring the project document
-  // is fully created before we try to write to its subcollection.
+  // 2. Add each prompt to the batch, including the userId for secure rule validation.
   if (plan.steps && plan.steps.length > 0) {
-    for (const [index, step] of plan.steps.entries()) {
-      await addDoc(collection(db, 'projects', projectRef.id, 'prompts'), {
-        ...step,
-        order: index,
-      });
-    }
+    plan.steps.forEach((step, index) => {
+        const promptDocRef = doc(collection(db, 'projects', projectRef.id, 'prompts'));
+        batch.set(promptDocRef, {
+            ...step,
+            order: index,
+            userId: userId, // Add userId to each prompt to fix the security rule race condition.
+        });
+    });
   }
+
+  // 3. Commit the batch. This will either succeed or fail entirely.
+  await batch.commit();
 
   return projectRef.id;
 };
@@ -74,10 +84,10 @@ export const createProjectWithPrompts = async (
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   const projects: Project[] = [];
   try {
-    const q = query(collection(db, 'projects'), where('userId', '==', userId));
+    const q = query(collection(db, 'projects'), where('userId', '==', userId), orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
     
-    querySnapshot.docs.forEach((doc) => {
+    querySnapshot.forEach((doc) => {
       const data = doc.data();
       projects.push({ 
         id: doc.id,
@@ -90,12 +100,10 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
     });
   } catch (error) {
      console.error("Error fetching projects: ", error);
-     return []; // Return an empty array in case of error
+     // This handles cases where the collection doesn't exist or permissions/indexes are wrong.
+     return [];
   }
-
-
-  // We now sort the projects by date here in the code instead of in the database query.
-  return projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  return projects;
 };
 
 // Function to get a single project's details
