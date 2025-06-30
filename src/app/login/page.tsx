@@ -41,7 +41,19 @@ export default function LoginPage() {
             await signUpWithEmail(email, password);
             router.push('/');
         } catch (err: any) {
-            setError(err.message);
+            switch (err.code) {
+                case 'auth/email-already-in-use':
+                    setError('An account with this email already exists. Try signing in instead.');
+                    break;
+                case 'auth/weak-password':
+                    setError('Password must be at least 6 characters long.');
+                    break;
+                case 'auth/invalid-email':
+                    setError('Please enter a valid email address.');
+                    break;
+                default:
+                    setError('Something went wrong. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
@@ -55,7 +67,15 @@ export default function LoginPage() {
             await signInWithEmail(email, password);
             router.push('/');
         } catch (err: any) {
-            setError(err.message);
+            switch (err.code) {
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential':
+                    setError('Invalid email or password. Please try again.');
+                    break;
+                default:
+                    setError('Something went wrong. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
@@ -72,9 +92,9 @@ export default function LoginPage() {
             }
         } catch (err: any) {
             if (err.code === 'auth/account-exists-with-different-credential') {
-                setError('An account with this email already exists. Please sign in with the method you originally used.');
+                setError('This email is already linked to another account. Please sign in with the method you used originally.');
             } else {
-                setError(err.message || 'An unexpected error occurred.');
+                setError('Something went wrong. Please try again.');
             }
         } finally {
             setLoading(false);
@@ -101,7 +121,7 @@ export default function LoginPage() {
                 {error && (
                     <Alert variant="destructive" className="mt-4">
                         <AlertTriangle className="h-4 w-4" />
-                        <AlertTitle>Authentication Error</AlertTitle>
+                        <AlertTitle>Login Failed</AlertTitle>
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 )}
