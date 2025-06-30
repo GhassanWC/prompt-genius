@@ -54,15 +54,18 @@ export const createProjectWithPrompts = async (
     createdAt: new Date(),
   });
 
-  // Step 2: Create a batch to add all the prompt documents to the new project.
-  // This now works because the project document exists.
+  // Step 2: Use a batch to add all prompt documents to the new project's subcollection.
+  // This is more efficient than individual writes.
   const promptsBatch = writeBatch(db);
-  plan.steps.forEach((step, index) => {
-    const promptRef = doc(collection(db, 'projects', projectRef.id, 'prompts'));
-    promptsBatch.set(promptRef, { ...step, order: index });
-  });
+  if (plan.steps && plan.steps.length > 0) {
+    plan.steps.forEach((step, index) => {
+      // Correctly reference the 'prompts' subcollection for the new project
+      const promptDocRef = doc(collection(db, 'projects', projectRef.id, 'prompts'));
+      promptsBatch.set(promptDocRef, { ...step, order: index });
+    });
+  }
 
-  // Step 3: Commit the batch of prompts.
+  // Step 3: Commit the batch of prompts. This will now work because the project doc exists.
   await promptsBatch.commit();
 
   return projectRef.id;
