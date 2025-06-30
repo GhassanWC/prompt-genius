@@ -45,21 +45,25 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ) => {
+  // Step 1: Create the main project document FIRST and get its ID.
   const projectRef = await addDoc(collection(db, 'projects'), {
     name: projectName,
     idea: idea,
     userId: userId,
     stack: plan.stack,
-    createdAt: new Date(), // Using client-side date to avoid potential security rule issue
+    createdAt: new Date(),
   });
 
-  const batch = writeBatch(db);
+  // Step 2: Create a batch to add all the prompt documents to the new project.
+  // This now works because the project document exists.
+  const promptsBatch = writeBatch(db);
   plan.steps.forEach((step, index) => {
     const promptRef = doc(collection(db, 'projects', projectRef.id, 'prompts'));
-    batch.set(promptRef, { ...step, order: index });
+    promptsBatch.set(promptRef, { ...step, order: index });
   });
 
-  await batch.commit();
+  // Step 3: Commit the batch of prompts.
+  await promptsBatch.commit();
 
   return projectRef.id;
 };
