@@ -72,7 +72,19 @@ const generatePlatformPromptsFlow = ai.defineFlow(
     outputSchema: GeneratePlatformPromptsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const response = await prompt(input);
+    const output = response.output;
+    
+    if (!output) {
+      console.error('AI prompt failed to generate platform prompts.', {
+        finishReason: response.finishReason,
+        finishMessage: response.finishMessage,
+      });
+      throw new Error(
+        `The AI failed to generate platform prompts. This could be due to a configuration issue (like a missing API key), a content safety block, or another error. Finish reason: ${response.finishReason}`
+      );
+    }
+    
+    return output;
   }
 );

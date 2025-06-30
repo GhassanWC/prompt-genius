@@ -1,4 +1,3 @@
-// src/ai/flows/decompose-idea.ts
 'use server';
 /**
  * @fileOverview Decomposes a project idea into a sequential development plan with a recommended stack.
@@ -71,7 +70,19 @@ const decomposeIdeaFlow = ai.defineFlow(
     outputSchema: DecomposeIdeaOutputSchema,
   },
   async input => {
-    const {output} = await decomposeIdeaPrompt(input);
-    return output!;
+    const response = await decomposeIdeaPrompt(input);
+    const output = response.output;
+
+    if (!output) {
+      console.error('AI prompt failed to generate a plan.', {
+        finishReason: response.finishReason,
+        finishMessage: response.finishMessage,
+      });
+      throw new Error(
+        `The AI failed to generate a project plan. This could be due to a configuration issue (like a missing API key), a content safety block, or another error. Finish reason: ${response.finishReason}`
+      );
+    }
+
+    return output;
   }
 );
