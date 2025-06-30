@@ -45,7 +45,7 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ) => {
-  // Step 1: Create the main project document FIRST and get its ID.
+  // Step 1: Create the main project document FIRST and wait for it to complete.
   const projectRef = await addDoc(collection(db, 'projects'), {
     name: projectName,
     idea: idea,
@@ -54,41 +54,45 @@ export const createProjectWithPrompts = async (
     createdAt: new Date(),
   });
 
-  // Step 2: Use a batch to add all prompt documents to the new project's subcollection.
-  // This is more efficient than individual writes.
-  const promptsBatch = writeBatch(db);
+  // Step 2: Sequentially add each prompt document to the new project's subcollection.
+  // This avoids race conditions with security rules by ensuring the project document
+  // is fully created before we try to write to its subcollection.
   if (plan.steps && plan.steps.length > 0) {
-    plan.steps.forEach((step, index) => {
-      // Correctly reference the 'prompts' subcollection for the new project
-      const promptDocRef = doc(collection(db, 'projects', projectRef.id, 'prompts'));
-      promptsBatch.set(promptDocRef, { ...step, order: index });
-    });
+    for (const [index, step] of plan.steps.entries()) {
+      await addDoc(collection(db, 'projects', projectRef.id, 'prompts'), {
+        ...step,
+        order: index,
+      });
+    }
   }
-
-  // Step 3: Commit the batch of prompts. This will now work because the project doc exists.
-  await promptsBatch.commit();
 
   return projectRef.id;
 };
 
+
 // Function to get all projects for a user
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
-  // Removing orderBy to simplify the query and bypass the composite index requirement.
-  const q = query(collection(db, 'projects'), where('userId', '==', userId));
-  const querySnapshot = await getDocs(q);
-  
-  const projects = querySnapshot.docs.map((doc) => {
-    const data = doc.data();
-    return { 
-      id: doc.id,
-      name: data.name,
-      idea: data.idea,
-      userId: data.userId,
-      // The `createdAt` field from Firestore is a Timestamp object. We convert it to a JS Date.
-      createdAt: (data.createdAt as Timestamp).toDate(),
-      stack: data.stack
-    } as Project;
-  });
+  const projects: Project[] = [];
+  try {
+    const q = query(collection(db, 'projects'), where('userId', '==', userId));
+    const querySnapshot = await getDocs(q);
+    
+    querySnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      projects.push({ 
+        id: doc.id,
+        name: data.name,
+        idea: data.idea,
+        userId: data.userId,
+        createdAt: (data.createdAt as Timestamp).toDate(),
+        stack: data.stack
+      } as Project);
+    });
+  } catch (error) {
+     console.error("Error fetching projects: ", error);
+     return []; // Return an empty array in case of error
+  }
+
 
   // We now sort the projects by date here in the code instead of in the database query.
   return projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
