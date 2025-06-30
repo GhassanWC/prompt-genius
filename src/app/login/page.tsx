@@ -60,6 +60,26 @@ export default function LoginPage() {
             setLoading(false);
         }
     };
+    
+    const handleProviderSignIn = async (provider: 'google' | 'github') => {
+        setLoading(true);
+        setError(null);
+        try {
+            if (provider === 'google') {
+                await signInWithGoogle();
+            } else {
+                await signInWithGithub();
+            }
+        } catch (err: any) {
+            if (err.code === 'auth/account-exists-with-different-credential') {
+                setError('An account with this email already exists. Please sign in with the method you originally used.');
+            } else {
+                setError(err.message || 'An unexpected error occurred.');
+            }
+        } finally {
+            setLoading(false);
+        }
+    }
 
 
     return (
@@ -114,8 +134,8 @@ export default function LoginPage() {
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                <Button variant="outline" onClick={signInWithGoogle}><GoogleIcon /> <span className="ml-2">Google</span></Button>
-                                <Button variant="outline" onClick={signInWithGithub}><Github className="mr-2 h-5 w-5" />GitHub</Button>
+                                <Button variant="outline" onClick={() => handleProviderSignIn('google')} disabled={loading}><GoogleIcon /> <span className="ml-2">Google</span></Button>
+                                <Button variant="outline" onClick={() => handleProviderSignIn('github')} disabled={loading}><Github className="mr-2 h-5 w-5" />GitHub</Button>
                             </div>
                         </CardContent>
                     </Card>
@@ -149,8 +169,8 @@ export default function LoginPage() {
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                <Button variant="outline" onClick={signInWithGoogle}><GoogleIcon /> <span className="ml-2">Google</span></Button>
-                                <Button variant="outline" onClick={signInWithGithub}><Github className="mr-2 h-5 w-5" />GitHub</Button>
+                                <Button variant="outline" onClick={() => handleProviderSignIn('google')} disabled={loading}><GoogleIcon /> <span className="ml-2">Google</span></Button>
+                                <Button variant="outline" onClick={() => handleProviderSignIn('github')} disabled={loading}><Github className="mr-2 h-5 w-5" />GitHub</Button>
                             </div>
                         </CardContent>
                     </Card>
