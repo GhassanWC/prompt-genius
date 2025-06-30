@@ -46,34 +46,37 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ) => {
-  // Create a reference to a new project document.
-  const projectRef = doc(collection(db, 'projects'));
-
-  // Use a batch to perform an atomic write.
   const batch = writeBatch(db);
 
-  // 1. Set the data for the main project document in the batch.
-  batch.set(projectRef, {
+  // 1. Define the main project document
+  const projectRef = doc(collection(db, 'projects'));
+  const projectData = {
     name: projectName,
     idea: idea,
-    userId: userId,
+    userId: userId, // Explicitly included
     stack: plan.stack,
     createdAt: new Date(),
-  });
+  };
+  batch.set(projectRef, projectData);
 
-  // 2. Add each prompt to the batch, including the userId for secure rule validation.
+  // 2. Define and add each prompt document to the batch
   if (plan.steps && plan.steps.length > 0) {
     plan.steps.forEach((step, index) => {
-        const promptDocRef = doc(collection(db, 'projects', projectRef.id, 'prompts'));
-        batch.set(promptDocRef, {
-            ...step,
-            order: index,
-            userId: userId, // Add userId to each prompt to fix the security rule race condition.
-        });
+      const promptDocRef = doc(collection(db, 'projects', projectRef.id, 'prompts'));
+      // Creating the prompt data object explicitly, without spread operator.
+      const promptData = {
+        phase: step.phase,
+        platform: step.platform,
+        title: step.title,
+        prompt: step.prompt,
+        order: index,
+        userId: userId, // Explicitly included
+      };
+      batch.set(promptDocRef, promptData);
     });
   }
 
-  // 3. Commit the batch. This will either succeed or fail entirely.
+  // 3. Commit the entire batch atomically
   await batch.commit();
 
   return projectRef.id;
