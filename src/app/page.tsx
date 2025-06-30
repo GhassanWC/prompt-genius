@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { Loader2, AlertTriangle, Sparkles } from "lucide-react";
 import { decomposeIdea, type DecomposeIdeaOutput } from "@/ai/flows/decompose-idea";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,24 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PromptCard } from "@/components/prompt-card";
 import { Logo } from "@/components/logo";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/context/auth-context";
+import { useRouter } from "next/navigation";
+import { UserNav } from "@/components/user-nav";
 
 export default function Home() {
   const [idea, setIdea] = useState("");
   const [plan, setPlan] = useState<DecomposeIdeaOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -38,10 +50,21 @@ export default function Home() {
 
   const frontendSteps = plan?.steps.filter(p => p.phase === 'Frontend') || [];
   const backendSteps = plan?.steps.filter(p => p.phase === 'Backend') || [];
+  
+  if (authLoading || !user) {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <main className="container mx-auto px-4 py-8 md:py-16">
+      <header className="container mx-auto px-4 py-4 flex justify-end items-center">
+        <UserNav />
+      </header>
+      <main className="container mx-auto px-4 pb-8 md:pb-16">
         <div className="max-w-3xl mx-auto flex flex-col items-center text-center">
           <Logo className="h-16 w-16 mb-4 text-primary" />
           <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight">
