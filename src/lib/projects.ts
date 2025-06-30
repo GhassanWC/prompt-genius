@@ -34,6 +34,7 @@ export interface Prompt {
     platform: string;
     title: string;
     prompt: string;
+    order: number;
 }
 
 
@@ -53,9 +54,9 @@ export const createProjectWithPrompts = async (
   });
 
   const batch = writeBatch(db);
-  plan.steps.forEach((step) => {
+  plan.steps.forEach((step, index) => {
     const promptRef = doc(collection(db, 'projects', projectRef.id, 'prompts'));
-    batch.set(promptRef, step);
+    batch.set(promptRef, { ...step, order: index });
   });
 
   await batch.commit();
@@ -82,7 +83,7 @@ export const getProject = async (projectId: string): Promise<Project | null> => 
 
 // Function to get all prompts for a project
 export const getPromptsForProject = async (projectId: string): Promise<Prompt[]> => {
-    const q = query(collection(db, 'projects', projectId, 'prompts'));
+    const q = query(collection(db, 'projects', projectId, 'prompts'), orderBy('order'));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Prompt));
 }
