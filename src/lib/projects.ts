@@ -5,7 +5,6 @@ import { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
 import {
   collection,
   addDoc,
-  serverTimestamp,
   query,
   where,
   getDocs,
@@ -51,7 +50,7 @@ export const createProjectWithPrompts = async (
     idea: idea,
     userId: userId,
     stack: plan.stack,
-    createdAt: serverTimestamp(),
+    createdAt: new Date(), // Using client-side date to avoid potential security rule issue
   });
 
   const batch = writeBatch(db);
