@@ -28,9 +28,17 @@ export default function DashboardPage() {
     if (user) {
       const fetchProjects = async () => {
         setLoadingProjects(true);
-        const userProjects = await getProjectsForUser(user.uid);
-        setProjects(userProjects);
-        setLoadingProjects(false);
+        try {
+          const userProjects = await getProjectsForUser(user.uid);
+          setProjects(userProjects);
+        } catch (error) {
+          console.error("Failed to fetch projects:", error);
+          // If fetching fails, assume no projects exist. This handles cases
+          // where the collection hasn't been created yet.
+          setProjects([]);
+        } finally {
+          setLoadingProjects(false);
+        }
       };
       fetchProjects();
     }
