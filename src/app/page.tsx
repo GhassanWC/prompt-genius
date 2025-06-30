@@ -1,26 +1,22 @@
-"use client";
+'use client';
 
-import { useState, type FormEvent, useEffect } from "react";
-import { Loader2, AlertTriangle, Sparkles } from "lucide-react";
-import { decomposeIdea, type DecomposeIdeaOutput } from "@/ai/flows/decompose-idea";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PromptCard } from "@/components/prompt-card";
-import { Logo } from "@/components/logo";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/context/auth-context";
-import { useRouter } from "next/navigation";
-import { UserNav } from "@/components/user-nav";
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
+import { getProjectsForUser, type Project } from '@/lib/projects';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Loader2, PlusCircle, FolderOpen } from 'lucide-react';
+import { UserNav } from '@/components/user-nav';
+import { Logo } from '@/components/logo';
+import Link from 'next/link';
+import { formatDistanceToNow } from 'date-fns';
 
-export default function Home() {
-  const [idea, setIdea] = useState("");
-  const [plan, setPlan] = useState<DecomposeIdeaOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
+export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -28,135 +24,86 @@ export default function Home() {
     }
   }, [user, authLoading, router]);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!idea.trim() || isLoading) return;
-
-    setIsLoading(true);
-    setError(null);
-    setPlan(null);
-
-    try {
-      const result = await decomposeIdea({ idea });
-      setPlan(result);
-    } catch (e: any) {
-      setError(e.message || "An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    if (user) {
+      const fetchProjects = async () => {
+        setLoadingProjects(true);
+        const userProjects = await getProjectsForUser(user.uid);
+        setProjects(userProjects);
+        setLoadingProjects(false);
+      };
+      fetchProjects();
     }
-  };
-  
-  const exampleIdea = "An app where people can find, review, and favorite coffee shops in their city.";
+  }, [user]);
 
-  const frontendSteps = plan?.steps.filter(p => p.phase === 'Frontend') || [];
-  const backendSteps = plan?.steps.filter(p => p.phase === 'Backend') || [];
-  
   if (authLoading || !user) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="container mx-auto px-4 py-4 flex justify-end items-center">
+      <header className="container mx-auto px-4 py-4 flex justify-between items-center border-b">
+         <Link href="/" className="flex items-center gap-2">
+            <Logo className="h-8 w-8 text-primary" />
+             <h1 className="font-headline text-xl font-bold tracking-tight hidden sm:block">
+                PromptForge AI
+            </h1>
+         </Link>
         <UserNav />
       </header>
-      <main className="container mx-auto px-4 pb-8 md:pb-16">
-        <div className="max-w-3xl mx-auto flex flex-col items-center text-center">
-          <Logo className="h-16 w-16 mb-4 text-primary" />
-          <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight">
-            PromptForge AI
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Turn your complex project ideas into clear, actionable prompts for your favorite platforms.
-          </p>
-        </div>
-
-        <div className="max-w-2xl mx-auto mt-10">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Textarea
-              value={idea}
-              onChange={(e) => setIdea(e.target.value)}
-              placeholder={`e.g., "${exampleIdea}"`}
-              className="min-h-[120px] text-base resize-none p-4"
-              disabled={isLoading}
-            />
-            <Button 
-              type="submit" 
-              className="w-full text-lg py-6"
-              size="lg"
-              disabled={isLoading || !idea.trim()}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-5 w-5" />
-                  Generate Prompts
-                </>
-              )}
+      <main className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-bold font-headline">My Projects</h2>
+          <Link href="/projects/new">
+            <Button>
+              <PlusCircle className="mr-2 h-5 w-5" />
+              New Project
             </Button>
-          </form>
+          </Link>
         </div>
 
-        <div className="max-w-4xl mx-auto mt-12">
-          {error && (
-            <Alert variant="destructive" className="max-w-2xl mx-auto">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {isLoading && (
-            <div className="grid gap-6 md:grid-cols-2">
-              <Skeleton className="h-[250px] rounded-lg" />
-              <Skeleton className="h-[250px] rounded-lg" />
-              <Skeleton className="h-[250px] rounded-lg md:col-span-2" />
-            </div>
-          )}
-
-          {plan && (
-            <div className="space-y-10 animate-in fade-in-0 slide-in-from-bottom-8 duration-500">
-              <div className="text-center p-6 rounded-lg bg-secondary/30">
-                <p className="text-sm font-medium text-muted-foreground tracking-wider uppercase">Recommended Stack</p>
-                <h2 className="mt-2 text-3xl font-bold font-headline text-primary">{plan.stack}</h2>
-              </div>
-              
-              {frontendSteps.length > 0 && (
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-bold font-headline text-center">Frontend Phase</h3>
-                  <div className="grid gap-6 md:grid-cols-2">
-                      {frontendSteps.map((prompt, index) => (
-                          <PromptCard key={`frontend-${index}`} {...prompt} />
-                      ))}
-                  </div>
-                </div>
-              )}
-              
-              {backendSteps.length > 0 && (
-                  <div className="space-y-6">
-                    <h3 className="text-2xl font-bold font-headline text-center">Backend Phase</h3>
-                    <div className="grid gap-6 md:grid-cols-2">
-                        {backendSteps.map((prompt, index) => (
-                            <PromptCard key={`backend-${index}`} {...prompt} />
-                        ))}
-                    </div>
-                  </div>
-              )}
-            </div>
-          )}
-        </div>
+        {loadingProjects ? (
+           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <Card><CardHeader><div className="h-5 w-3/4 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/2 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
+              <Card><CardHeader><div className="h-5 w-2/3 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/3 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
+              <Card><CardHeader><div className="h-5 w-3/5 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/2 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
+           </div>
+        ) : projects.length === 0 ? (
+          <div className="text-center py-16 border-2 border-dashed rounded-lg">
+            <FolderOpen className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-xl font-medium">No projects yet</h3>
+            <p className="mt-2 text-muted-foreground">Get started by creating your first project.</p>
+            <Link href="/projects/new" className="mt-6 inline-block">
+                <Button>
+                    <PlusCircle className="mr-2 h-5 w-5" />
+                    Create Project
+                </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <Link href={`/projects/${project.id}`} key={project.id} className="block">
+                <Card className="h-full hover:shadow-lg hover:border-primary/50 transition-all">
+                  <CardHeader>
+                    <CardTitle className="font-headline">{project.name}</CardTitle>
+                    <CardDescription>
+                      Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{project.idea}</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
       </main>
-      <footer className="text-center py-6 border-t">
-        <p className="text-sm text-muted-foreground">Built with Firebase and Genkit</p>
-      </footer>
     </div>
   );
 }
