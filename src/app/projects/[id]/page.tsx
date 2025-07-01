@@ -11,6 +11,8 @@ import { Logo } from '@/components/logo';
 import { PromptCard } from '@/components/prompt-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 export default function ProjectPage({ params }: { params: { id: string } }) {
   const { user, loading: authLoading } = useAuth();

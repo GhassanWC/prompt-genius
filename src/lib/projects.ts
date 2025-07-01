@@ -14,6 +14,7 @@ import {
   deleteDoc,
   orderBy,
   writeBatch,
+  setDoc,
   type Timestamp
 } from 'firebase/firestore';
 
@@ -46,40 +47,36 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ) => {
-  const batch = writeBatch(db);
-
+    console.log("hello are you there")
+  
   // 1. Define the main project document
-  const projectRef = doc(collection(db, 'projects'));
-  const projectData = {
+  const projectDoc = await addDoc(collection(db, 'projects'), {
     name: projectName,
     idea: idea,
-    userId: userId, // Explicitly included
+    userId: userId,
     stack: plan.stack,
     createdAt: new Date(),
-  };
-  batch.set(projectRef, projectData);
+  });
 
-  // 2. Define and add each prompt document to the batch
+  // 2. Add prompts in a batch under /projects/{projectId}/prompts
+  const batch = writeBatch(db);
   if (plan.steps && plan.steps.length > 0) {
     plan.steps.forEach((step, index) => {
-      const promptDocRef = doc(collection(db, 'projects', projectRef.id, 'prompts'));
-      // Creating the prompt data object explicitly, without spread operator.
-      const promptData = {
+      const promptRef = doc(collection(db, 'projects', projectDoc.id, 'prompts'));
+      batch.set(promptRef, {
         phase: step.phase,
         platform: step.platform,
         title: step.title,
         prompt: step.prompt,
         order: index,
-        userId: userId, // Explicitly included
-      };
-      batch.set(promptDocRef, promptData);
+        userId: userId,
+      });
     });
   }
 
-  // 3. Commit the entire batch atomically
   await batch.commit();
 
-  return projectRef.id;
+  return projectDoc.id;
 };
 
 
