@@ -92,7 +92,7 @@ export default function LoginPage() {
             }
         } catch (err: any) {
             if (err.code === 'auth/account-exists-with-different-credential') {
-                setError('This email is already linked to another account. Please sign in with the method you used originally.');
+                setError('This email is already in use. Please sign in with the method you used to create your account.');
             } else {
                 setError('Something went wrong. Please try again.');
             }
