@@ -69,20 +69,27 @@ const decomposeIdeaFlow = ai.defineFlow(
     inputSchema: DecomposeIdeaInputSchema,
     outputSchema: DecomposeIdeaOutputSchema,
   },
-  async input => {
-    const response = await decomposeIdeaPrompt(input);
-    const output = response.output;
+  async (input) => {
+    try {
+      const response = await decomposeIdeaPrompt(input);
+      const output = response.output;
 
-    if (!output) {
-      console.error('AI prompt failed to generate a plan.', {
-        finishReason: response.finishReason,
-        finishMessage: response.finishMessage,
-      });
+      if (!output) {
+        console.error('AI prompt failed to generate a plan.', {
+          finishReason: response.finishReason,
+          finishMessage: response.finishMessage,
+        });
+        throw new Error(
+          `The AI failed to generate a project plan. This could be due to a content safety block or other model error. Finish reason: ${response.finishReason}`
+        );
+      }
+      return output;
+    } catch (e: any) {
+      console.error('Error in decomposeIdeaFlow:', e);
+      // Re-throw a more user-friendly error. This will be caught by the client component.
       throw new Error(
-        `The AI failed to generate a project plan. This could be due to a configuration issue (like a missing API key), a content safety block, or another error. Finish reason: ${response.finishReason}`
+        `Failed to generate project plan. This is often due to a missing API key or network issue. Please check your configuration.`
       );
     }
-
-    return output;
   }
 );
