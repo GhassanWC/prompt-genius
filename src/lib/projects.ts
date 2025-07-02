@@ -1,5 +1,3 @@
-'use server';
-
 import { db } from '@/lib/firebase';
 import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
 import {
@@ -30,7 +28,6 @@ export interface Project {
 export interface Prompt {
     id: string;
     projectId: string; // Link to the project
-    userId: string; // Denormalized for security rules
     phase: string;
     platform: string;
     title: string;
@@ -49,7 +46,7 @@ const getProjectById = async (projectId: string): Promise<Project | null> => {
             id: docSnap.id,
             name: data.name || 'Untitled Project',
             idea: data.idea || '',
-            createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(0),
+            createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
             stack: data.stack || 'Unknown Stack',
             userId: data.userId,
          };
@@ -73,11 +70,8 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ): Promise<string> => {
-  const batch = writeBatch(db);
-  const projectCollectionRef = collection(db, 'projects');
-  const projectDocRef = doc(projectCollectionRef);
-
-  batch.set(projectDocRef, {
+  // Step 1: Create the project first
+  const projectDocRef = await addDoc(collection(db, 'projects'), {
     name: projectName,
     idea: idea,
     stack: plan.stack,
@@ -85,13 +79,15 @@ export const createProjectWithPrompts = async (
     userId: userId,
   });
 
+  // Step 2: Create the related prompts
   if (plan.steps && plan.steps.length > 0) {
+    const batch = writeBatch(db);
     const promptsCollectionRef = collection(db, 'prompts');
+
     plan.steps.forEach((step, index) => {
       const promptDocRef = doc(promptsCollectionRef);
       batch.set(promptDocRef, {
         projectId: projectDocRef.id,
-        userId: userId,
         phase: step.phase,
         platform: step.platform,
         title: step.title,
@@ -99,12 +95,13 @@ export const createProjectWithPrompts = async (
         order: index,
       });
     });
-  }
 
-  await batch.commit();
+    await batch.commit();
+  }
 
   return projectDocRef.id;
 };
+
 
 // Function to get all projects for a user
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
@@ -121,20 +118,22 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         id: doc.id,
         name: data.name || 'Untitled Project',
         idea: data.idea || '',
-        createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(0),
+        createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
         stack: data.stack || 'Unknown Stack',
         userId: data.userId
       });
     });
 
+    // Sort in code instead of in the query to avoid needing a composite index
     projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     return projects;
   } catch (err: any) {
      console.error("Error fetching projects:", err);
      if (err.code === 'permission-denied') {
-        throw new Error("Permission Denied: Your security rules are blocking access. Please ensure your Firestore rules allow you to read your own projects.");
+        throw new Error("Permission Denied: Your security rules are blocking access. Please ensure they allow you to read your own projects.");
      } else if (err.code === 'failed-precondition') {
+        // This should not happen anymore with client-side sorting, but leaving it for safety.
         throw new Error("Database Index Required: This query requires an index. Please check your browser's developer console for a link to create it.");
      } else {
        throw new Error(err.message || "An unknown error occurred while fetching projects.");
@@ -162,7 +161,7 @@ export const getPromptsForProject = async (userId: string, projectId: string): P
       prompts.push({ id: doc.id, ...doc.data() } as Prompt)
     });
 
-    prompts.sort((a, b) => a.order - b.order);
+    prompts.sort((a, b) => (a.order || 0) - (b.order || 0));
     return prompts;
 }
 
@@ -181,13 +180,12 @@ export const deletePrompt = async (userId: string, projectId: string, promptId: 
 }
 
 // Function to add a new prompt to a project
-export const addPrompt = async (userId: string, projectId: string, promptData: Omit<Prompt, 'id' | 'projectId' | 'userId'>): Promise<string> => {
+export const addPrompt = async (userId: string, projectId: string, promptData: Omit<Prompt, 'id' | 'projectId'>): Promise<string> => {
     await verifyProjectOwner(userId, projectId);
     const promptsCollectionRef = collection(db, 'prompts');
     const newPromptRef = await addDoc(promptsCollectionRef, {
         ...promptData,
         projectId: projectId,
-        userId: userId,
     });
     return newPromptRef.id;
 }
