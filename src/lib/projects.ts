@@ -6,7 +6,6 @@ import {
   collection,
   addDoc,
   query,
-  where,
   getDocs,
   doc,
   getDoc,
@@ -14,7 +13,6 @@ import {
   deleteDoc,
   orderBy,
   writeBatch,
-  setDoc,
   type Timestamp
 } from 'firebase/firestore';
 
@@ -23,7 +21,6 @@ export interface Project {
   id: string;
   name: string;
   idea: string;
-  userId: string;
   createdAt: Date;
   stack: string;
 }
@@ -36,7 +33,6 @@ export interface Prompt {
     title: string;
     prompt: string;
     order: number;
-    userId: string;
 }
 
 
@@ -47,8 +43,8 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ) => {
-  // 1. Define the main project document
-  const projectDocRef = doc(collection(db, 'projects'));
+  // 1. Define the main project document within the user's subcollection
+  const projectDocRef = doc(collection(db, 'users', userId, 'projects'));
 
   // 2. Create a batch write
   const batch = writeBatch(db);
@@ -57,7 +53,7 @@ export const createProjectWithPrompts = async (
   batch.set(projectDocRef, {
     name: projectName,
     idea: idea,
-    userId: userId,
+    // userId is now implicitly part of the path, no longer needed in the doc
     stack: plan.stack,
     createdAt: new Date(),
   });
@@ -65,9 +61,8 @@ export const createProjectWithPrompts = async (
   // 4. Add prompts to the batch
   if (plan.steps && plan.steps.length > 0) {
     plan.steps.forEach((step, index) => {
-      const promptRef = doc(collection(db, 'projects', projectDocRef.id, 'prompts'));
+      const promptRef = doc(collection(db, 'users', userId, 'projects', projectDocRef.id, 'prompts'));
       batch.set(promptRef, {
-        userId: userId, // Ensure userId is included for security rules
         phase: step.phase,
         platform: step.platform,
         title: step.title,
@@ -88,8 +83,10 @@ export const createProjectWithPrompts = async (
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
     const projects: Project[] = [];
-    // A simpler query without ordering that doesn't require a composite index.
-    const q = query(collection(db, 'projects'), where('userId', '==', userId));
+    // Query the user's specific projects subcollection
+    const projectsCollectionRef = collection(db, 'users', userId, 'projects');
+    const q = query(projectsCollectionRef, orderBy('createdAt', 'desc'));
+    
     const querySnapshot = await getDocs(q);
     
     querySnapshot.forEach((doc) => {
@@ -99,27 +96,21 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         id: doc.id,
         name: data.name || 'Untitled Project',
         idea: data.idea || '',
-        userId: data.userId,
         createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(0),
         stack: data.stack || 'Unknown Stack'
       });
     });
 
-    // Sort the projects by date in the code, instead of in the query.
-    projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-
     return projects;
   } catch (error) {
      console.error("Error fetching projects: ", error);
-     // Re-throw the error so the client can handle it.
-     // This will help surface issues like missing Firestore indexes.
-     throw new Error("Failed to fetch projects. This might be due to a missing database index or permissions. Please check the server logs.");
+     throw new Error("Failed to fetch projects. Please check your Firestore security rules and database indexes.");
   }
 };
 
 // Function to get a single project's details
-export const getProject = async (projectId: string): Promise<Project | null> => {
-    const docRef = doc(db, 'projects', projectId);
+export const getProject = async (userId: string, projectId: string): Promise<Project | null> => {
+    const docRef = doc(db, 'users', userId, 'projects', projectId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         const data = docSnap.data();
@@ -128,7 +119,6 @@ export const getProject = async (projectId: string): Promise<Project | null> => 
             id: docSnap.id,
             name: data.name || 'Untitled Project',
             idea: data.idea || '',
-            userId: data.userId,
             createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(0),
             stack: data.stack || 'Unknown Stack'
          };
@@ -137,8 +127,9 @@ export const getProject = async (projectId: string): Promise<Project | null> => 
 }
 
 // Function to get all prompts for a project
-export const getPromptsForProject = async (projectId: string): Promise<Prompt[]> => {
-    const q = query(collection(db, 'projects', projectId, 'prompts'), orderBy('order'));
+export const getPromptsForProject = async (userId: string, projectId: string): Promise<Prompt[]> => {
+    const promptsCollectionRef = collection(db, 'users', userId, 'projects', projectId, 'prompts');
+    const q = query(promptsCollectionRef, orderBy('order'));
     const querySnapshot = await getDocs(q);
     const prompts: Prompt[] = [];
     querySnapshot.forEach((doc) => {
@@ -148,19 +139,20 @@ export const getPromptsForProject = async (projectId: string): Promise<Prompt[]>
 }
 
 // Function to update a prompt
-export const updatePrompt = async (projectId: string, promptId: string, newPrompt: string): Promise<void> => {
-    const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
+export const updatePrompt = async (userId: string, projectId: string, promptId: string, newPrompt: string): Promise<void> => {
+    const promptRef = doc(db, 'users', userId, 'projects', projectId, 'prompts', promptId);
     await updateDoc(promptRef, { prompt: newPrompt });
 }
 
 // Function to delete a prompt
-export const deletePrompt = async (projectId:string, promptId: string): Promise<void> => {
-    const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
+export const deletePrompt = async (userId: string, projectId:string, promptId: string): Promise<void> => {
+    const promptRef = doc(db, 'users', userId, 'projects', projectId, 'prompts', promptId);
     await deleteDoc(promptRef);
 }
 
 // Function to add a new prompt to a project
-export const addPrompt = async (projectId: string, promptData: Omit<Prompt, 'id'>): Promise<string> => {
-    const newPromptRef = await addDoc(collection(db, 'projects', projectId, 'prompts'), promptData);
+export const addPrompt = async (userId: string, projectId: string, promptData: Omit<Prompt, 'id'>): Promise<string> => {
+    const promptsCollectionRef = collection(db, 'users', userId, 'projects', projectId, 'prompts');
+    const newPromptRef = await addDoc(promptsCollectionRef, promptData);
     return newPromptRef.id;
 }

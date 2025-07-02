@@ -22,6 +22,7 @@ import { PlatformIcon } from "./platform-icon";
 import { updatePrompt, deletePrompt } from "@/lib/projects";
 
 type PromptCardProps = {
+  userId: string;
   projectId: string;
   promptId: string;
   title: string;
@@ -30,7 +31,7 @@ type PromptCardProps = {
   onPromptUpdate: () => void;
 };
 
-export function PromptCard({ projectId, promptId, title, platform, prompt: initialPrompt, onPromptUpdate }: PromptCardProps) {
+export function PromptCard({ userId, projectId, promptId, title, platform, prompt: initialPrompt, onPromptUpdate }: PromptCardProps) {
   const { toast } = useToast();
   const [hasCopied, setHasCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -69,7 +70,7 @@ export function PromptCard({ projectId, promptId, title, platform, prompt: initi
     if (isSaving) return;
     setIsSaving(true);
     try {
-      await updatePrompt(projectId, promptId, prompt);
+      await updatePrompt(userId, projectId, promptId, prompt);
       setIsEditing(false);
       onPromptUpdate(); // Refresh parent state
       toast({
@@ -91,7 +92,7 @@ export function PromptCard({ projectId, promptId, title, platform, prompt: initi
     if (isDeleting) return;
     setIsDeleting(true);
     try {
-        await deletePrompt(projectId, promptId);
+        await deletePrompt(userId, projectId, promptId);
         onPromptUpdate(); // No need to call this if component unmounts
         toast({
             title: "Prompt Deleted",

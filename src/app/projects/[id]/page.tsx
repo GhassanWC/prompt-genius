@@ -27,24 +27,24 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   const projectId = params.id;
 
   const fetchProjectData = useCallback(async () => {
-    if (!projectId) return;
+    if (!projectId || !user) return;
     setError(null);
     try {
-      const projectData = await getProject(projectId);
+      const projectData = await getProject(user.uid, projectId);
       if (!projectData) {
         setError("Project not found or you don't have permission to view it.");
         return;
       }
       setProject(projectData);
 
-      const promptsData = await getPromptsForProject(projectId);
+      const promptsData = await getPromptsForProject(user.uid, projectId);
       setPrompts(promptsData);
 
     } catch (e: any) {
       console.error("Error fetching project data:", e);
       setError(e.message || "Failed to load project data. Please try again later.");
     }
-  }, [projectId]);
+  }, [projectId, user]);
 
 
   useEffect(() => {
@@ -131,6 +131,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
                       {frontendSteps.map((prompt) => (
                           <PromptCard 
                             key={prompt.id} 
+                            userId={user.uid}
                             projectId={projectId}
                             promptId={prompt.id}
                             onPromptUpdate={handlePromptUpdate}
@@ -148,6 +149,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
                         {backendSteps.map((prompt) => (
                             <PromptCard 
                                 key={prompt.id} 
+                                userId={user.uid}
                                 projectId={projectId}
                                 promptId={prompt.id}
                                 onPromptUpdate={handlePromptUpdate}
