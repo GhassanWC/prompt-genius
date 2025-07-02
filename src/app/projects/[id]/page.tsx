@@ -27,10 +27,12 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   const projectId = params.id;
 
   const fetchProjectData = useCallback(async () => {
+    if (!projectId) return;
+    setError(null);
     try {
       const projectData = await getProject(projectId);
       if (!projectData) {
-        setError("Project not found.");
+        setError("Project not found or you don't have permission to view it.");
         return;
       }
       setProject(projectData);
@@ -39,7 +41,8 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
       setPrompts(promptsData);
 
     } catch (e: any) {
-      setError("Failed to load project data.");
+      console.error("Error fetching project data:", e);
+      setError(e.message || "Failed to load project data. Please try again later.");
     }
   }, [projectId]);
 

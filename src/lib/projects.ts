@@ -66,7 +66,6 @@ export const createProjectWithPrompts = async (
   if (plan.steps && plan.steps.length > 0) {
     plan.steps.forEach((step, index) => {
       const promptRef = doc(collection(db, 'projects', projectDocRef.id, 'prompts'));
-      // This is more robust than using the spread operator.
       batch.set(promptRef, {
         phase: step.phase,
         platform: step.platform,
@@ -94,13 +93,15 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
     
     querySnapshot.forEach((doc) => {
       const data = doc.data();
+      const createdAtTimestamp = data.createdAt as Timestamp;
       projects.push({ 
         id: doc.id,
-        name: data.name,
-        idea: data.idea,
+        name: data.name || 'Untitled Project',
+        idea: data.idea || '',
         userId: data.userId,
-        createdAt: (data.createdAt as Timestamp).toDate(),
-        stack: data.stack
+        // Safely handle cases where createdAt might not exist
+        createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(0),
+        stack: data.stack || 'Unknown Stack'
       } as Project);
     });
     return projects;
@@ -118,10 +119,14 @@ export const getProject = async (projectId: string): Promise<Project | null> => 
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         const data = docSnap.data();
-        return { 
+        const createdAtTimestamp = data.createdAt as Timestamp;
+        return {
             id: docSnap.id,
-            ...data,
-            createdAt: (data.createdAt as Timestamp).toDate(),
+            name: data.name || 'Untitled Project',
+            idea: data.idea || '',
+            userId: data.userId,
+            createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(0),
+            stack: data.stack || 'Unknown Stack'
          } as Project;
     }
     return null;
