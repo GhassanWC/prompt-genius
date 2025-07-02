@@ -179,6 +179,26 @@ export const deletePrompt = async (userId: string, projectId: string, promptId: 
     await deleteDoc(promptRef);
 }
 
+// Function to delete a project and all its associated prompts
+export const deleteProject = async (userId: string, projectId: string): Promise<void> => {
+    await verifyProjectOwner(userId, projectId);
+    const batch = writeBatch(db);
+
+    // Delete the project document
+    const projectRef = doc(db, 'projects', projectId);
+    batch.delete(projectRef);
+
+    // Find and delete all associated prompts for the project
+    const promptsCollectionRef = collection(db, 'prompts');
+    const q = query(promptsCollectionRef, where("projectId", "==", projectId));
+    const promptsSnapshot = await getDocs(q);
+    promptsSnapshot.forEach((promptDoc) => {
+        batch.delete(promptDoc.ref);
+    });
+
+    await batch.commit();
+};
+
 // Function to add a new prompt to a project
 export const addPrompt = async (userId: string, projectId: string, promptData: Omit<Prompt, 'id' | 'projectId'>): Promise<string> => {
     await verifyProjectOwner(userId, projectId);

@@ -1,24 +1,57 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { getProjectsForUser, type Project } from '@/lib/projects';
+import { getProjectsForUser, deleteProject, type Project } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Loader2, PlusCircle, FolderOpen, AlertTriangle } from 'lucide-react';
+import { Loader2, PlusCircle, FolderOpen, AlertTriangle, MoreVertical, Trash2 } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
+  
   const [projects, setProjects] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+
+
+  const fetchProjects = useCallback(async () => {
+    if (!user) return;
+    setLoadingProjects(true);
+    setError(null);
+    try {
+      const userProjects = await getProjectsForUser(user.uid);
+      setProjects(userProjects);
+    } catch (err: any) {
+      console.error("Failed to fetch projects:", err);
+      if (err.code === 'permission-denied') {
+         setError("Permission Denied: Your security rules are blocking access. Please ensure your Firestore rules allow you to read your own projects.");
+      } else if (err.code === 'failed-precondition') {
+         setError("Database Index Required: This query requires a Firestore index. Please find the error message in your browser's developer console for a direct link to create the required index in the Firebase Console.");
+      } else {
+        setError(err.message || "An unknown error occurred while fetching projects.");
+      }
+      setProjects([]);
+    } finally {
+      setLoadingProjects(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -28,29 +61,38 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      const fetchProjects = async () => {
-        setLoadingProjects(true);
-        setError(null);
-        try {
-          const userProjects = await getProjectsForUser(user.uid);
-          setProjects(userProjects);
-        } catch (err: any) {
-          console.error("Failed to fetch projects:", err);
-          if (err.code === 'permission-denied') {
-             setError("Permission Denied: Your security rules are blocking access. Please ensure your Firestore rules allow you to read your own projects.");
-          } else if (err.code === 'failed-precondition') {
-             setError("Database Index Required: This query requires a Firestore index. Please find the error message in your browser's developer console for a direct link to create the required index in the Firebase Console.");
-          } else {
-            setError(err.message || "An unknown error occurred while fetching projects.");
-          }
-          setProjects([]);
-        } finally {
-          setLoadingProjects(false);
-        }
-      };
       fetchProjects();
     }
-  }, [user]);
+  }, [user, fetchProjects]);
+
+  const openDeleteDialog = (project: Project, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setProjectToDelete(project);
+    setDialogOpen(true);
+  }
+
+  const handleDeleteProject = async () => {
+    if (!projectToDelete || !user) return;
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      await deleteProject(user.uid, projectToDelete.id);
+      toast({
+        title: "Project Deleted",
+        description: `"${projectToDelete.name}" has been removed.`,
+      });
+      fetchProjects(); // Refresh the list
+    } catch (err: any) {
+      console.error("Failed to delete project:", err);
+      setError(err.message || "An unknown error occurred while deleting the project.");
+    } finally {
+      setIsDeleting(false);
+      setDialogOpen(false);
+      setProjectToDelete(null);
+    }
+  };
 
   if (authLoading || !user) {
     return (
@@ -113,23 +155,68 @@ export default function DashboardPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <Link href={`/projects/${project.id}`} key={project.id} className="block">
-                <Card className="h-full hover:shadow-lg hover:border-primary/50 transition-all">
-                  <CardHeader>
-                    <CardTitle className="font-headline">{project.name}</CardTitle>
-                    <CardDescription>
-                      Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-2">{project.idea}</p>
-                  </CardContent>
-                </Card>
-              </Link>
+              <div key={project.id} className="relative">
+                <Link href={`/projects/${project.id}`} className="block group h-full">
+                  <Card className="h-full hover:shadow-lg hover:border-primary/50 transition-all">
+                    <CardHeader>
+                      <CardTitle className="font-headline">{project.name}</CardTitle>
+                      <CardDescription>
+                        Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{project.idea}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+                <div className="absolute top-3 right-3">
+                   <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                              <MoreVertical className="h-5 w-5" />
+                              <span className="sr-only">Project options</span>
+                          </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                          <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={(e) => openDeleteDialog(project, e)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Delete</span>
+                          </DropdownMenuItem>
+                      </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
             ))}
           </div>
         )}
       </main>
+
+      <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the project <span className="font-bold">"{projectToDelete?.name}"</span> and all of its associated prompts.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProject}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : "Delete Project"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
