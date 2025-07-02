@@ -69,11 +69,6 @@ export default function ProjectPage() {
     }
   }, [user, authLoading, router, fetchProjectData]);
 
-  const handlePromptUpdate = () => {
-    toast({ title: "Refreshing prompts..."});
-    fetchProjectData();
-  }
-
   const handleCopyMagic = (text: string, type: 'frontend' | 'backend') => {
     navigator.clipboard.writeText(text);
     if (type === 'frontend') {
@@ -193,10 +188,6 @@ export default function ProjectPage() {
                       {frontendSteps.map((prompt) => (
                           <PromptCard 
                             key={prompt.id} 
-                            userId={user.uid}
-                            projectId={projectId}
-                            promptId={prompt.id}
-                            onPromptUpdate={handlePromptUpdate}
                             {...prompt} 
                           />
                       ))}
@@ -233,10 +224,6 @@ export default function ProjectPage() {
                         {backendSteps.map((prompt) => (
                             <PromptCard 
                                 key={prompt.id} 
-                                userId={user.uid}
-                                projectId={projectId}
-                                promptId={prompt.id}
-                                onPromptUpdate={handlePromptUpdate}
                                 {...prompt} 
                             />
                         ))}
