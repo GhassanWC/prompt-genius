@@ -11,7 +11,6 @@ import {
   getDoc,
   updateDoc,
   deleteDoc,
-  orderBy,
   writeBatch,
   type Timestamp
 } from 'firebase/firestore';
@@ -53,7 +52,6 @@ export const createProjectWithPrompts = async (
   batch.set(projectDocRef, {
     name: projectName,
     idea: idea,
-    // userId is now implicitly part of the path, no longer needed in the doc
     stack: plan.stack,
     createdAt: new Date(),
   });
@@ -82,13 +80,12 @@ export const createProjectWithPrompts = async (
 // Function to get all projects for a user
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
-    const projects: Project[] = [];
-    // Query the user's specific projects subcollection
     const projectsCollectionRef = collection(db, 'users', userId, 'projects');
-    const q = query(projectsCollectionRef, orderBy('createdAt', 'desc'));
-    
+    // We fetch without ordering to avoid needing a specific index.
+    const q = query(projectsCollectionRef);
     const querySnapshot = await getDocs(q);
     
+    const projects: Project[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
       const createdAtTimestamp = data.createdAt as Timestamp;
@@ -101,10 +98,13 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
       });
     });
 
+    // Sort the projects by date in memory.
+    projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
     return projects;
   } catch (error) {
      console.error("Error fetching projects: ", error);
-     throw new Error("Failed to fetch projects. Please check your Firestore security rules and database indexes.");
+     throw new Error("Failed to fetch projects. Please check your Firestore security rules and network connection.");
   }
 };
 
@@ -129,12 +129,14 @@ export const getProject = async (userId: string, projectId: string): Promise<Pro
 // Function to get all prompts for a project
 export const getPromptsForProject = async (userId: string, projectId: string): Promise<Prompt[]> => {
     const promptsCollectionRef = collection(db, 'users', userId, 'projects', projectId, 'prompts');
-    const q = query(promptsCollectionRef, orderBy('order'));
+    const q = query(promptsCollectionRef);
     const querySnapshot = await getDocs(q);
     const prompts: Prompt[] = [];
     querySnapshot.forEach((doc) => {
       prompts.push({ id: doc.id, ...doc.data() } as Prompt)
     });
+    // Sort prompts by their order in memory.
+    prompts.sort((a, b) => a.order - b.order);
     return prompts;
 }
 
