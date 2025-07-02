@@ -67,12 +67,12 @@ export const createProjectWithPrompts = async (
     plan.steps.forEach((step, index) => {
       const promptRef = doc(collection(db, 'projects', projectDocRef.id, 'prompts'));
       batch.set(promptRef, {
+        userId: userId, // Ensure userId is included for security rules
         phase: step.phase,
         platform: step.platform,
         title: step.title,
         prompt: step.prompt,
         order: index,
-        userId: userId, // Ensure userId is included for security rules
       });
     });
   }
@@ -88,7 +88,8 @@ export const createProjectWithPrompts = async (
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
     const projects: Project[] = [];
-    const q = query(collection(db, 'projects'), where('userId', '==', userId), orderBy('createdAt', 'desc'));
+    // A simpler query without ordering that doesn't require a composite index.
+    const q = query(collection(db, 'projects'), where('userId', '==', userId));
     const querySnapshot = await getDocs(q);
     
     querySnapshot.forEach((doc) => {
@@ -99,11 +100,14 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         name: data.name || 'Untitled Project',
         idea: data.idea || '',
         userId: data.userId,
-        // Safely handle cases where createdAt might not exist
         createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(0),
         stack: data.stack || 'Unknown Stack'
-      } as Project);
+      });
     });
+
+    // Sort the projects by date in the code, instead of in the query.
+    projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
     return projects;
   } catch (error) {
      console.error("Error fetching projects: ", error);
@@ -127,7 +131,7 @@ export const getProject = async (projectId: string): Promise<Project | null> => 
             userId: data.userId,
             createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(0),
             stack: data.stack || 'Unknown Stack'
-         } as Project;
+         };
     }
     return null;
 }
@@ -136,7 +140,11 @@ export const getProject = async (projectId: string): Promise<Project | null> => 
 export const getPromptsForProject = async (projectId: string): Promise<Prompt[]> => {
     const q = query(collection(db, 'projects', projectId, 'prompts'), orderBy('order'));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Prompt));
+    const prompts: Prompt[] = [];
+    querySnapshot.forEach((doc) => {
+      prompts.push({ id: doc.id, ...doc.data() } as Prompt)
+    });
+    return prompts;
 }
 
 // Function to update a prompt
@@ -146,7 +154,7 @@ export const updatePrompt = async (projectId: string, promptId: string, newPromp
 }
 
 // Function to delete a prompt
-export const deletePrompt = async (projectId: string, promptId: string): Promise<void> => {
+export const deletePrompt = async (projectId:string, promptId: string): Promise<void> => {
     const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
     await deleteDoc(promptRef);
 }
