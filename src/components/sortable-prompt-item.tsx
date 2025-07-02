@@ -33,13 +33,16 @@ export function SortablePromptItem({ prompt, onEdit, onDelete }: SortablePromptI
   return (
     <div ref={setNodeRef} style={style} {...attributes} className="relative">
       <Card className="mb-2 bg-secondary/50">
-        <CardContent className="p-2 flex items-center gap-2">
+        <CardContent className="p-3 flex items-center gap-2">
           <Button variant="ghost" size="icon" className="cursor-grab touch-none" {...listeners}>
             <GripVertical className="h-5 w-5 text-muted-foreground" />
           </Button>
-          <div className="flex-grow text-left">
+          <div className="flex-grow text-left overflow-hidden">
             <p className="font-medium">{prompt.title}</p>
             <p className="text-sm text-muted-foreground">Platform: {prompt.platform}</p>
+            <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+              {prompt.prompt}
+            </p>
           </div>
           <Button variant="ghost" size="icon" onClick={() => onEdit(prompt)}>
             <Pencil className="h-4 w-4" />
