@@ -47,10 +47,14 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ) => {
-    console.log("hello are you there")
-  
   // 1. Define the main project document
-  const projectDoc = await addDoc(collection(db, 'projects'), {
+  const projectDocRef = doc(collection(db, 'projects'));
+
+  // 2. Create a batch write
+  const batch = writeBatch(db);
+
+  // 3. Set the project document in the batch
+  batch.set(projectDocRef, {
     name: projectName,
     idea: idea,
     userId: userId,
@@ -58,32 +62,33 @@ export const createProjectWithPrompts = async (
     createdAt: new Date(),
   });
 
-  // 2. Add prompts in a batch under /projects/{projectId}/prompts
-  const batch = writeBatch(db);
+  // 4. Add prompts to the batch
   if (plan.steps && plan.steps.length > 0) {
     plan.steps.forEach((step, index) => {
-      const promptRef = doc(collection(db, 'projects', projectDoc.id, 'prompts'));
+      const promptRef = doc(collection(db, 'projects', projectDocRef.id, 'prompts'));
+      // This is more robust than using the spread operator.
       batch.set(promptRef, {
         phase: step.phase,
         platform: step.platform,
         title: step.title,
         prompt: step.prompt,
         order: index,
-        userId: userId,
+        userId: userId, // Ensure userId is included for security rules
       });
     });
   }
 
+  // 5. Commit the batch
   await batch.commit();
 
-  return projectDoc.id;
+  return projectDocRef.id;
 };
 
 
 // Function to get all projects for a user
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
-  const projects: Project[] = [];
   try {
+    const projects: Project[] = [];
     const q = query(collection(db, 'projects'), where('userId', '==', userId), orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
     
@@ -98,12 +103,13 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         stack: data.stack
       } as Project);
     });
+    return projects;
   } catch (error) {
      console.error("Error fetching projects: ", error);
-     // This handles cases where the collection doesn't exist or permissions/indexes are wrong.
-     return [];
+     // Re-throw the error so the client can handle it.
+     // This will help surface issues like missing Firestore indexes.
+     throw new Error("Failed to fetch projects. This might be due to a missing database index or permissions. Please check the server logs.");
   }
-  return projects;
 };
 
 // Function to get a single project's details

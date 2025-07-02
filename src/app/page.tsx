@@ -6,17 +6,19 @@ import { useRouter } from 'next/navigation';
 import { getProjectsForUser, type Project } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Loader2, PlusCircle, FolderOpen } from 'lucide-react';
+import { Loader2, PlusCircle, FolderOpen, AlertTriangle } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -28,13 +30,13 @@ export default function DashboardPage() {
     if (user) {
       const fetchProjects = async () => {
         setLoadingProjects(true);
+        setError(null);
         try {
           const userProjects = await getProjectsForUser(user.uid);
           setProjects(userProjects);
-        } catch (error) {
-          console.error("Failed to fetch projects:", error);
-          // If fetching fails, assume no projects exist. This handles cases
-          // where the collection hasn't been created yet.
+        } catch (err: any) {
+          console.error("Failed to fetch projects:", err);
+          setError(err.message || "An unknown error occurred while fetching projects.");
           setProjects([]);
         } finally {
           setLoadingProjects(false);
@@ -74,13 +76,24 @@ export default function DashboardPage() {
           </Link>
         </div>
 
+        {error && (
+            <Alert variant="destructive" className="mb-6">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Could not load projects</AlertTitle>
+                <AlertDescription>
+                    <p>{error}</p>
+                    <p className="mt-2 text-xs">This can happen if the required database index is not set up. Please ensure you have created the index in your Firestore settings.</p>
+                </AlertDescription>
+            </Alert>
+        )}
+
         {loadingProjects ? (
            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               <Card><CardHeader><div className="h-5 w-3/4 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/2 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
               <Card><CardHeader><div className="h-5 w-2/3 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/3 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
               <Card><CardHeader><div className="h-5 w-3/5 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/2 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
            </div>
-        ) : projects.length === 0 ? (
+        ) : projects.length === 0 && !error ? (
           <div className="text-center py-16 border-2 border-dashed rounded-lg">
             <FolderOpen className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-xl font-medium">No projects yet</h3>

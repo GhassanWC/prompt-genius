@@ -40,7 +40,7 @@ export default function NewProjectPage() {
       const plan = await decomposeIdea({ idea });
       console.log("USER ID:", user.uid);
       console.log("PROJECT DATA:", projectName);
-      console.log("PROMPT DATA:", idea);
+      console.log("PROMPT DATA:", plan);
       const projectId = await createProjectWithPrompts(user.uid, projectName, idea, plan);
       router.push(`/projects/${projectId}`);
     } catch (e: any) {
