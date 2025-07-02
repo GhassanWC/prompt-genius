@@ -38,10 +38,7 @@ export default function NewProjectPage() {
 
     try {
       const plan = await decomposeIdea({ idea });
-      console.log("USER ID:", user.uid);
-      console.log("PROJECT DATA:", projectName);
-      console.log("PROMPT DATA:", plan);
-      const projectId = await createProjectWithPrompts(user.uid, projectName, idea, plan);
+      const projectId = await createProjectWithPrompts(user.uid, projectName, plan.enhancedIdea, plan);
       router.push(`/projects/${projectId}`);
     } catch (e: any) {
       setError(e.message || "An unexpected error occurred. Please try again.");

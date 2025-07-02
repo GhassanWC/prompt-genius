@@ -16,6 +16,7 @@ const DecomposeIdeaInputSchema = z.object({
 export type DecomposeIdeaInput = z.infer<typeof DecomposeIdeaInputSchema>;
 
 const DecomposeIdeaOutputSchema = z.object({
+  enhancedIdea: z.string().describe('An improved and more detailed version of the original user idea, suitable for generating a development plan.'),
   stack: z
     .string()
     .describe(
@@ -44,23 +45,28 @@ const decomposeIdeaPrompt = ai.definePrompt({
   name: 'decomposeIdeaPrompt',
   input: {schema: DecomposeIdeaInputSchema},
   output: {schema: DecomposeIdeaOutputSchema},
-  prompt: `You are an expert project manager and software architect. Your task is to take a user's project idea and break it down into a structured, sequential, and complete development plan.
+  prompt: `You are an expert project manager and software architect. Your task is to take a user's project idea, refine it, and then break it down into a structured, sequential, and complete development plan.
 
-1.  **Analyze the Idea**: Understand the core features and requirements of the user's idea.
-2.  **Recommend a Stack**: Based on the idea, recommend a suitable development stack. Your options are:
+**Part 1: Enhance the User's Idea**
+First, analyze the user's idea. If it is vague, incomplete, or could be improved, enhance it. Flesh out the concept, consider potential edge cases, and clarify the core features. The goal is to create a more robust and well-defined project description. The enhanced idea should be a clear, actionable summary that can be used to generate the development plan. Set this improved description in the 'enhancedIdea' field of your response.
+
+**Part 2: Generate the Development Plan (Based on the Enhanced Idea)**
+Using the 'enhancedIdea' you just created, generate a complete development plan.
+
+1.  **Recommend a Stack**: Based on the enhanced idea, recommend a suitable development stack. Your options are:
     *   "Lovable + n8n": For projects that can be split into a distinct frontend (built with a UI builder) and a backend (built with a workflow automation tool).
     *   "Firebase Studio (Full-stack)": For full-stack web applications that can leverage Firebase services.
     *   "Replit (Full-stack)": For rapid prototyping of full-stack applications in a cloud IDE.
     Choose the most appropriate stack and set it in the 'stack' field.
-3.  **Decompose into Phases**: Divide the project into a 'Frontend' phase and a 'Backend' phase. The steps must be strictly sequential. Generate all frontend steps first, then all backend steps.
-4.  **Create a Complete and Logical Story**: Generate a comprehensive list of actionable steps that tell a full development story from start to finish. Do not skip obvious prerequisites. For example, if a user profile page is needed, you must first generate steps for user registration and login. Think through the entire user journey and application logic.
-5.  **Define Actionable Steps**: For each step within a phase, provide:
+2.  **Decompose into Phases**: Divide the project into a 'Frontend' phase and a 'Backend' phase. The steps must be strictly sequential. Generate all frontend steps first, then all backend steps.
+3.  **Create a Complete and Logical Story**: Generate a comprehensive list of actionable steps that tell a full development story from start to finish. Do not skip obvious prerequisites. For example, if a user profile page is needed, you must first generate steps for user registration and login. Think through the entire user journey and application logic.
+4.  **Define Actionable Steps**: For each step within a phase, provide:
     *   'phase': "Frontend" or "Backend".
     *   'platform': The specific tool for that step (e.g., "Lovable", "n8n", "ChatGPT", "Firebase", "Replit"). The platform should align with the chosen stack. For "Lovable + n8n", use "Lovable" for frontend and "n8n" or "ChatGPT" for backend. For "Firebase Studio" or "Replit", use "Firebase" or "Replit" respectively for most steps.
     *   'title': A short, descriptive title for the task (e.g., "Design the Landing Page", "Create Login Form", "Set up User Authentication API").
     *   'prompt': A detailed, copy-paste ready prompt that the user can directly use on the specified platform to accomplish the task.
 
-Here's the user's idea: {{{idea}}}`,
+Here's the user's original idea to start with: {{{idea}}}`,
 });
 
 const decomposeIdeaFlow = ai.defineFlow(
