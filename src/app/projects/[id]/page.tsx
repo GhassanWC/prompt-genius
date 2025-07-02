@@ -5,7 +5,7 @@ import { useAuth } from '@/context/auth-context';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getProject, getPromptsForProject, type Project, type Prompt as PromptType } from '@/lib/projects';
-import { Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, Pencil } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import { PromptCard } from '@/components/prompt-card';
@@ -43,7 +43,13 @@ export default function ProjectPage() {
 
     } catch (e: any) {
       console.error("Error fetching project data:", e);
-      setError(e.message || "Failed to load project data. Please try again later.");
+      if (e.code === 'permission-denied') {
+        setError("Permission Denied: Your security rules are blocking access.");
+      } else if (e.code === 'failed-precondition') {
+        setError("Database Index Required: This query requires a Firestore index. Check the developer console for a link to create it.");
+      } else {
+        setError(e.message || "Failed to load project data. Please try again later.");
+      }
     }
   }, [projectId, user]);
 
@@ -103,10 +109,16 @@ export default function ProjectPage() {
       </header>
 
       <main className="container mx-auto px-4 pb-8 md:pb-16">
-        <div className="my-6">
+        <div className="my-6 flex justify-between items-center">
             <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to All Projects
+            </Link>
+            <Link href={`/projects/${projectId}/edit`}>
+              <Button variant="outline">
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit Project
+              </Button>
             </Link>
         </div>
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center">

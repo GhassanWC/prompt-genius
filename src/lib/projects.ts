@@ -124,7 +124,7 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
       });
     });
 
-    // Sort in code instead of in the query to avoid needing a composite index
+    // Sort in code to avoid needing a composite index
     projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     return projects;
@@ -133,7 +133,6 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
      if (err.code === 'permission-denied') {
         throw new Error("Permission Denied: Your security rules are blocking access. Please ensure they allow you to read your own projects.");
      } else if (err.code === 'failed-precondition') {
-        // This should not happen anymore with client-side sorting, but leaving it for safety.
         throw new Error("Database Index Required: This query requires an index. Please check your browser's developer console for a link to create it.");
      } else {
        throw new Error(err.message || "An unknown error occurred while fetching projects.");
@@ -166,10 +165,10 @@ export const getPromptsForProject = async (userId: string, projectId: string): P
 }
 
 // Function to update a prompt
-export const updatePrompt = async (userId: string, projectId: string, promptId: string, newPrompt: string): Promise<void> => {
+export const updatePrompt = async (userId: string, projectId: string, promptId: string, data: Partial<Omit<Prompt, 'id' | 'projectId'>>): Promise<void> => {
     await verifyProjectOwner(userId, projectId);
     const promptRef = doc(db, 'prompts', promptId);
-    await updateDoc(promptRef, { prompt: newPrompt });
+    await updateDoc(promptRef, data);
 }
 
 // Function to delete a prompt
@@ -200,12 +199,31 @@ export const deleteProject = async (userId: string, projectId: string): Promise<
 };
 
 // Function to add a new prompt to a project
-export const addPrompt = async (userId: string, projectId: string, promptData: Omit<Prompt, 'id' | 'projectId'>): Promise<string> => {
+export const addPrompt = async (userId: string, projectId: string, promptData: Omit<Prompt, 'id' | 'projectId' | 'order'>): Promise<string> => {
     await verifyProjectOwner(userId, projectId);
+    
+    // Get current prompts in the same phase to determine the new order
     const promptsCollectionRef = collection(db, 'prompts');
-    const newPromptRef = await addDoc(promptsCollectionRef, {
+    const q = query(promptsCollectionRef, where("projectId", "==", projectId), where("phase", "==", promptData.phase));
+    const phasePromptsSnapshot = await getDocs(q);
+    const newOrder = phasePromptsSnapshot.docs.length;
+
+    const newPromptRef = await addDoc(collection(db, 'prompts'), {
         ...promptData,
         projectId: projectId,
+        order: newOrder,
     });
     return newPromptRef.id;
 }
+
+
+// Function to update the order of prompts
+export const updatePromptsOrder = async (userId: string, projectId: string, prompts: { id: string; order: number }[]): Promise<void> => {
+    await verifyProjectOwner(userId, projectId);
+    const batch = writeBatch(db);
+    prompts.forEach(prompt => {
+        const promptRef = doc(db, 'prompts', prompt.id);
+        batch.update(promptRef, { order: prompt.order });
+    });
+    await batch.commit();
+};
