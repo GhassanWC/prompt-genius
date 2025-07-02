@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getProject, getPromptsForProject, type Project, type Prompt as PromptType } from '@/lib/projects';
 import { Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
@@ -14,17 +14,18 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
-export default function ProjectPage({ params }: { params: { id: string } }) {
+export default function ProjectPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const params = useParams();
   
   const [project, setProject] = useState<Project | null>(null);
   const [prompts, setPrompts] = useState<PromptType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const projectId = params.id;
+  const projectId = params.id as string;
 
   const fetchProjectData = useCallback(async () => {
     if (!projectId || !user) return;
