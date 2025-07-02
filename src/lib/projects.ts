@@ -104,7 +104,8 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
     return projects;
   } catch (error) {
      console.error("Error fetching projects: ", error);
-     throw new Error("Failed to fetch projects. Please check your Firestore security rules and network connection.");
+     // Re-throw the original error so the client can get more details
+     throw error;
   }
 };
 
@@ -147,7 +148,7 @@ export const updatePrompt = async (userId: string, projectId: string, promptId: 
 }
 
 // Function to delete a prompt
-export const deletePrompt = async (userId: string, projectId:string, promptId: string): Promise<void> => {
+export const deletePrompt = async (userId:string, projectId: string): Promise<void> => {
     const promptRef = doc(db, 'users', userId, 'projects', projectId, 'prompts', promptId);
     await deleteDoc(promptRef);
 }

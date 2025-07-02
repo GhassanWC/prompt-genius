@@ -36,7 +36,13 @@ export default function DashboardPage() {
           setProjects(userProjects);
         } catch (err: any) {
           console.error("Failed to fetch projects:", err);
-          setError(err.message || "An unknown error occurred while fetching projects.");
+          if (err.code === 'permission-denied') {
+             setError("Permission Denied: Your security rules are blocking access. Please ensure your Firestore rules allow you to read your own projects.");
+          } else if (err.code === 'failed-precondition') {
+             setError("Database Index Required: This query requires a Firestore index. Please find the error message in your browser's developer console for a direct link to create the required index in the Firebase Console.");
+          } else {
+            setError(err.message || "An unknown error occurred while fetching projects.");
+          }
           setProjects([]);
         } finally {
           setLoadingProjects(false);
@@ -82,7 +88,6 @@ export default function DashboardPage() {
                 <AlertTitle>Could not load projects</AlertTitle>
                 <AlertDescription>
                     <p>{error}</p>
-                    <p className="mt-2 text-xs">This can happen if the required database index is not set up. Please ensure you have created the index in your Firestore settings.</p>
                 </AlertDescription>
             </Alert>
         )}
