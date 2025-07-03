@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      router.push('/');
+      router.push('/dashboard');
     } catch (error) {
       console.error("Error signing in with Google", error);
       throw error;
@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GithubAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      router.push('/');
+      router.push('/dashboard');
     } catch (error) {
       console.error("Error signing in with Github", error);
       throw error;

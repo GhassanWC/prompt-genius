@@ -12,6 +12,7 @@ import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
 
 function GoogleIcon() {
     return (
@@ -39,7 +40,7 @@ export default function LoginPage() {
         setError(null);
         try {
             await signUpWithEmail(email, password);
-            router.push('/');
+            router.push('/dashboard');
         } catch (err: any) {
             switch (err.code) {
                 case 'auth/email-already-in-use':
@@ -65,7 +66,7 @@ export default function LoginPage() {
         setError(null);
         try {
             await signInWithEmail(email, password);
-            router.push('/');
+            router.push('/dashboard');
         } catch (err: any) {
             switch (err.code) {
                 case 'auth/user-not-found':
@@ -106,7 +107,9 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
             <Tabs defaultValue="signin" className="w-full max-w-md">
                 <div className="flex flex-col items-center mb-6 text-center">
-                    <Logo className="h-12 w-12 mb-3 text-primary" />
+                    <Link href="/" className="mb-3">
+                        <Logo className="h-12 w-12 text-primary" />
+                    </Link>
                      <h1 className="font-headline text-3xl font-bold tracking-tight">
                         PromptForge AI
                     </h1>

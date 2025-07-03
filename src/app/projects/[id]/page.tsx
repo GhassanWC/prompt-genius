@@ -111,8 +111,8 @@ export default function ProjectPage() {
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
-            <Link href="/" className="mt-4">
-                <Button variant="outline">Back to Projects</Button>
+            <Link href="/dashboard" className="mt-4">
+                <Button variant="outline">Back to Dashboard</Button>
             </Link>
         </div>
      );
@@ -132,9 +132,9 @@ export default function ProjectPage() {
 
       <main className="container mx-auto px-4 pb-8 md:pb-16">
         <div className="my-6 flex justify-between items-center">
-            <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to All Projects
+                Back to Dashboard
             </Link>
             <Link href={`/projects/${projectId}/edit`}>
               <Button variant="outline">

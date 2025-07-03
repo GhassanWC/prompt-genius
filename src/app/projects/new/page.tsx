@@ -60,9 +60,9 @@ export default function NewProjectPage() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Projects
+            Back to Dashboard
           </Link>
         </div>
         <div className="text-center mb-8">
