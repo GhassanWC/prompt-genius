@@ -32,6 +32,7 @@ const DecomposeIdeaOutputSchema = z.object({
         ),
       title: z.string().describe('A short title for the step.'),
       prompt: z.string().describe('A copy-paste ready prompt for the platform.'),
+      mapFlow: z.string().describe('A brief, high-level explanation of the logic behind this prompt and how it fits into the overall plan.'),
     })
   ),
 });
@@ -65,6 +66,7 @@ Using the 'enhancedIdea' you just created, generate a complete development plan.
     *   'platform': The specific tool for that step (e.g., "Lovable", "n8n", "ChatGPT", "Firebase", "Replit"). The platform should align with the chosen stack. For "Lovable + n8n", use "Lovable" for frontend and "n8n" or "ChatGPT" for backend. For "Firebase Studio" or "Replit", use "Firebase" or "Replit" respectively for most steps.
     *   'title': A short, descriptive title for the task (e.g., "Design the Landing Page", "Create Login Form", "Set up User Authentication API").
     *   'prompt': A detailed, copy-paste ready prompt that the user can directly use on the specified platform to accomplish the task.
+    *   'mapFlow': A brief, high-level explanation of the logic behind this prompt and how it fits into the overall plan.
 
 Here's the user's original idea to start with: {{{idea}}}`,
 });

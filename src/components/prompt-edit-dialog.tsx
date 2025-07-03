@@ -9,7 +9,7 @@ import type { Prompt } from "@/lib/projects";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-type PromptData = Partial<Omit<Prompt, 'id'>> & { id?: string };
+type PromptData = Partial<Omit<Prompt, 'id' | 'order'>> & { id?: string, order?: number };
 
 interface PromptEditDialogProps {
   prompt: PromptData | null;
@@ -22,17 +22,20 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [platform, setPlatform] = useState('');
+  const [mapFlow, setMapFlow] = useState('');
   const [promptText, setPromptText] = useState('');
   
   useEffect(() => {
     if (open && prompt) {
       setTitle(prompt.title || '');
       setPlatform(prompt.platform || '');
+      setMapFlow(prompt.mapFlow || '');
       setPromptText(prompt.prompt || '');
     } else if (!open) {
       // Reset form when dialog is closed
       setTitle('');
       setPlatform('');
+      setMapFlow('');
       setPromptText('');
     }
   }, [prompt, open]);
@@ -51,6 +54,7 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
       ...prompt,
       title,
       platform,
+      mapFlow,
       prompt: promptText
     });
     onOpenChange(false);
@@ -70,6 +74,10 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="platform" className="text-right">Platform</Label>
             <Input id="platform" value={platform} onChange={(e) => setPlatform(e.target.value)} className="col-span-3" placeholder="e.g., Firebase, Lovable" />
+          </div>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="mapflow-text" className="text-right pt-2">Logic Map</Label>
+            <Textarea id="mapflow-text" value={mapFlow} onChange={(e) => setMapFlow(e.target.value)} className="col-span-3 min-h-[100px]" placeholder="Explain the logic behind this prompt..." />
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label htmlFor="prompt-text" className="text-right pt-2">Prompt</Label>

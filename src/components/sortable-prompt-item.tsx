@@ -40,7 +40,12 @@ export function SortablePromptItem({ prompt, onEdit, onDelete }: SortablePromptI
           <div className="flex-grow text-left overflow-hidden">
             <p className="font-medium">{prompt.title}</p>
             <p className="text-sm text-muted-foreground">Platform: {prompt.platform}</p>
-            <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+            {prompt.mapFlow && (
+              <p className="text-xs text-muted-foreground mt-2 italic line-clamp-2">
+                {prompt.mapFlow}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
               {prompt.prompt}
             </p>
           </div>

@@ -33,6 +33,7 @@ export interface Prompt {
     title: string;
     prompt: string;
     order: number;
+    mapFlow: string;
 }
 
 // Internal function to get a project by ID without checking ownership
@@ -92,6 +93,7 @@ export const createProjectWithPrompts = async (
         platform: step.platform,
         title: step.title,
         prompt: step.prompt,
+        mapFlow: step.mapFlow,
         order: index,
       });
     });

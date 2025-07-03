@@ -11,9 +11,10 @@ type PromptCardProps = {
   title: string;
   platform: string;
   prompt: string;
+  mapFlow: string;
 };
 
-export function PromptCard({ title, platform, prompt }: PromptCardProps) {
+export function PromptCard({ title, platform, prompt, mapFlow }: PromptCardProps) {
   const { toast } = useToast();
   const [hasCopied, setHasCopied] = useState(false);
 
@@ -55,8 +56,14 @@ export function PromptCard({ title, platform, prompt }: PromptCardProps) {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-4 flex-1">
-        <div className="bg-muted text-muted-foreground rounded-md p-3 h-full">
+      <CardContent className="p-4 flex-1 flex flex-col gap-4">
+        {mapFlow && (
+            <div className="text-sm text-muted-foreground italic border-l-2 border-primary/50 pl-3 py-1">
+              <p className="font-semibold text-foreground/90 not-italic mb-1">Logic Map:</p>
+              {mapFlow}
+            </div>
+        )}
+        <div className="bg-muted text-muted-foreground rounded-md p-3 h-full flex-grow">
           <pre className="whitespace-pre-wrap break-words font-code text-sm">
             <code>{prompt}</code>
           </pre>
