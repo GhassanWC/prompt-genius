@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAuth } from '@/context/auth-context';
@@ -11,12 +12,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, MessageSquare } from 'lucide-react';
+import { LogOut, MessageSquare, User as UserIcon } from 'lucide-react';
 import { useState } from 'react';
 import { FeedbackDialog } from './feedback-dialog';
+import { useRouter } from 'next/navigation';
 
 export function UserNav() {
   const { user, signOut } = useAuth();
+  const router = useRouter();
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 
   if (!user) {
@@ -50,6 +53,10 @@ export function UserNav() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+           <DropdownMenuItem onClick={() => router.push('/profile')}>
+            <UserIcon className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </DropdownMenuItem>
            <DropdownMenuItem onClick={() => setIsFeedbackDialogOpen(true)}>
             <MessageSquare className="mr-2 h-4 w-4" />
             <span>Feedback</span>
