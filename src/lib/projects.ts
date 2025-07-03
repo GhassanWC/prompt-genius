@@ -1,5 +1,6 @@
 import { db } from '@/lib/firebase';
 import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
+import { generateImage } from '@/ai/flows/generate-image';
 import {
   collection,
   addDoc,
@@ -19,6 +20,7 @@ export interface Project {
   id: string;
   name: string;
   idea: string;
+  imageUrl?: string;
   createdAt: Date;
   userId: string; // userId for ownership
 }
@@ -45,6 +47,7 @@ const getProjectById = async (projectId: string): Promise<Project | null> => {
             id: docSnap.id,
             name: data.name || 'Untitled Project',
             idea: data.idea || '',
+            imageUrl: data.imageUrl,
             createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
             userId: data.userId,
          };
@@ -68,10 +71,20 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ): Promise<string> => {
+  let imageUrl: string | null = null;
+  try {
+    const imageResult = await generateImage({ idea: plan.enhancedIdea });
+    imageUrl = imageResult.imageUrl;
+  } catch (err) {
+    console.error("Image generation failed, continuing without an image.", err);
+    // imageUrl remains null, which is fine
+  }
+
   // Step 1: Create the project first
   const projectDocRef = await addDoc(collection(db, 'projects'), {
     name: projectName,
     idea: idea,
+    imageUrl: imageUrl,
     createdAt: new Date(),
     userId: userId,
   });
@@ -115,6 +128,7 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         id: doc.id,
         name: data.name || 'Untitled Project',
         idea: data.idea || '',
+        imageUrl: data.imageUrl,
         createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
         userId: data.userId
       });

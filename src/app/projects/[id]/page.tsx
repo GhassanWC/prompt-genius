@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getProject, getPromptsForProject, type Project, type Prompt as PromptType } from '@/lib/projects';
 import { Loader2, ArrowLeft, AlertTriangle, Pencil, Copy, Check } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
@@ -143,7 +144,17 @@ export default function ProjectPage() {
               </Button>
             </Link>
         </div>
-        <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
+        <div className="max-w-4xl mx-auto flex flex-col items-center text-center mt-6">
+          {project?.imageUrl && (
+            <div className="relative w-full h-64 md:h-80 mb-8 rounded-xl overflow-hidden shadow-lg">
+              <Image
+                src={project.imageUrl}
+                alt={project.name ?? 'Project image'}
+                fill
+                className="object-cover"
+              />
+            </div>
+          )}
           <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight">
             {project?.name}
           </h1>

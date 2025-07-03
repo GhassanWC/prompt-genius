@@ -10,6 +10,7 @@ import { Loader2, PlusCircle, FolderOpen, AlertTriangle, MoreVertical, Trash2 } 
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
+import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -157,17 +158,29 @@ export default function DashboardPage() {
             {projects.map((project) => (
               <div key={project.id} className="relative">
                 <Link href={`/projects/${project.id}`} className="block group h-full">
-                  <Card className="h-full hover:shadow-lg hover:border-primary/50 transition-all">
-                    <CardHeader>
-                      <CardTitle className="font-headline">{project.name}</CardTitle>
-                      <CardDescription>
-                        Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{project.idea}</p>
-                    </CardContent>
-                  </Card>
+                    <Card className="h-full hover:shadow-lg hover:border-primary/50 transition-all flex flex-col overflow-hidden">
+                      {project.imageUrl ? (
+                        <div className="relative w-full h-40">
+                          <Image
+                            src={project.imageUrl}
+                            alt={project.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-40 w-full bg-secondary rounded-t-lg flex items-center justify-center">
+                            <Logo className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex flex-col flex-grow p-6">
+                          <CardTitle className="font-headline">{project.name}</CardTitle>
+                          <CardDescription className="mt-1">
+                            Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
+                          </CardDescription>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mt-4 flex-grow">{project.idea}</p>
+                      </div>
+                    </Card>
                 </Link>
                 <div className="absolute top-3 right-3">
                    <DropdownMenu>

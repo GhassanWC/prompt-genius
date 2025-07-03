@@ -138,7 +138,7 @@ export default function LandingPage() {
                   width={1200}
                   height={800}
                   className="relative rounded-xl border shadow-2xl transform-gpu lg:-rotate-3 transition-transform duration-300 ease-in-out hover:rotate-0"
-                  data-ai-hint="abstract ui"
+                  data-ai-hint="idea flowchart"
                 />
               </div>
             </div>
