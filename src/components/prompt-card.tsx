@@ -2,19 +2,17 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, Check } from "lucide-react";
 import { useState, useEffect } from "react";
-import { PlatformIcon } from "./platform-icon";
 
 type PromptCardProps = {
   title: string;
-  platform: string;
   prompt: string;
   mapFlow: string;
 };
 
-export function PromptCard({ title, platform, prompt, mapFlow }: PromptCardProps) {
+export function PromptCard({ title, prompt, mapFlow }: PromptCardProps) {
   const { toast } = useToast();
   const [hasCopied, setHasCopied] = useState(false);
 
@@ -23,7 +21,7 @@ export function PromptCard({ title, platform, prompt, mapFlow }: PromptCardProps
     setHasCopied(true);
     toast({
       title: "Prompt Copied!",
-      description: `The prompt for ${platform} is on your clipboard.`,
+      description: `The prompt for "${title}" is on your clipboard.`,
     });
   };
 
@@ -37,12 +35,8 @@ export function PromptCard({ title, platform, prompt, mapFlow }: PromptCardProps
   return (
     <Card className="flex flex-col overflow-hidden transition-all hover:shadow-lg">
       <CardHeader className="flex flex-row items-start gap-4 space-y-0 bg-secondary/30">
-        <div className="flex-shrink-0">
-          <PlatformIcon platform={platform} className="h-8 w-8 text-primary" />
-        </div>
         <div className="flex-1">
           <CardTitle className="text-lg font-headline">{title}</CardTitle>
-          <CardDescription>Platform: {platform}</CardDescription>
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -64,7 +58,7 @@ export function PromptCard({ title, platform, prompt, mapFlow }: PromptCardProps
             </div>
         )}
         <div className="bg-muted text-muted-foreground rounded-md p-3 h-full flex-grow">
-          <pre className="whitespace-pre-wrap break-words font-code text-sm">
+          <pre className="whitespace-pre-wrap font-code text-sm">
             <code>{prompt}</code>
           </pre>
         </div>

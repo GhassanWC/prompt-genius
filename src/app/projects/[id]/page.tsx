@@ -154,10 +154,6 @@ export default function ProjectPage() {
         
         <div className="max-w-4xl mx-auto mt-12">
             <div className="space-y-10">
-              <div className="text-center p-6 rounded-lg bg-secondary/30">
-                <p className="text-sm font-medium text-muted-foreground tracking-wider uppercase">Recommended Stack</p>
-                <h2 className="mt-2 text-3xl font-bold font-headline text-primary">{project?.stack}</h2>
-              </div>
               
               {frontendSteps.length > 0 && (
                 <div className="space-y-6">
@@ -188,7 +184,9 @@ export default function ProjectPage() {
                       {frontendSteps.map((prompt) => (
                           <PromptCard 
                             key={prompt.id} 
-                            {...prompt} 
+                            title={prompt.title}
+                            prompt={prompt.prompt}
+                            mapFlow={prompt.mapFlow}
                           />
                       ))}
                   </div>
@@ -224,7 +222,9 @@ export default function ProjectPage() {
                         {backendSteps.map((prompt) => (
                             <PromptCard 
                                 key={prompt.id} 
-                                {...prompt} 
+                                title={prompt.title}
+                                prompt={prompt.prompt}
+                                mapFlow={prompt.mapFlow}
                             />
                         ))}
                     </div>

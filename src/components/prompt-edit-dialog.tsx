@@ -21,27 +21,24 @@ interface PromptEditDialogProps {
 export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptEditDialogProps) {
   const { toast } = useToast();
   const [title, setTitle] = useState('');
-  const [platform, setPlatform] = useState('');
   const [mapFlow, setMapFlow] = useState('');
   const [promptText, setPromptText] = useState('');
   
   useEffect(() => {
     if (open && prompt) {
       setTitle(prompt.title || '');
-      setPlatform(prompt.platform || '');
       setMapFlow(prompt.mapFlow || '');
       setPromptText(prompt.prompt || '');
     } else if (!open) {
       // Reset form when dialog is closed
       setTitle('');
-      setPlatform('');
       setMapFlow('');
       setPromptText('');
     }
   }, [prompt, open]);
 
   const handleSave = () => {
-    if (!title.trim() || !platform.trim() || !promptText.trim()) {
+    if (!title.trim() || !promptText.trim()) {
       toast({
         variant: "destructive",
         title: "Validation Error",
@@ -53,7 +50,6 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
     onSave({
       ...prompt,
       title,
-      platform,
       mapFlow,
       prompt: promptText
     });
@@ -70,10 +66,6 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="title" className="text-right">Title</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" placeholder="e.g., Create Login Form" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="platform" className="text-right">Platform</Label>
-            <Input id="platform" value={platform} onChange={(e) => setPlatform(e.target.value)} className="col-span-3" placeholder="e.g., Firebase, Lovable" />
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label htmlFor="mapflow-text" className="text-right pt-2">Logic Map</Label>

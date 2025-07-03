@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Decomposes a project idea into a sequential development plan with a recommended stack.
+ * @fileOverview Decomposes a project idea into a sequential development plan.
  *
  * - generatePlatformPrompts - A function that generates a sequential development plan.
  * - GeneratePlatformPromptsInput - The input type for the generatePlatformPrompts function.
@@ -17,21 +17,11 @@ export type GeneratePlatformPromptsInput = z.infer<typeof GeneratePlatformPrompt
 
 const GeneratePlatformPromptsOutputSchema = z.object({
   enhancedIdea: z.string().describe('An improved and more detailed version of the original user idea, suitable for generating a development plan.'),
-  stack: z
-    .string()
-    .describe(
-      'The recommended development stack for the project, e.g., "Lovable + n8n", "Firebase Studio (Full-stack)", "Replit (Full-stack)".'
-    ),
   steps: z.array(
     z.object({
       phase: z.string().describe('The development phase, either "Frontend" or "Backend".'),
-      platform: z
-        .string()
-        .describe(
-          'The platform best suited for this step (e.g., Lovable, n8n, ChatGPT, Firebase, Replit).'
-        ),
       title: z.string().describe('A short title for the step.'),
-      prompt: z.string().describe('A copy-paste ready prompt for the platform.'),
+      prompt: z.string().describe('A copy-paste ready, platform-agnostic prompt.'),
     })
   ),
 });
@@ -47,26 +37,20 @@ const prompt = ai.definePrompt({
   name: 'generatePlatformPromptsPrompt',
   input: {schema: GeneratePlatformPromptsInputSchema},
   output: {schema: GeneratePlatformPromptsOutputSchema},
-  prompt: `You are an expert project manager and software architect. Your task is to take a user's project idea, refine it, and then break it down into a structured, sequential, and complete development plan.
+  prompt: `You are an expert project manager and software architect. Your task is to take a user's project idea, refine it, and then break it down into a structured, sequential, and complete development plan. The prompts you generate should be platform-agnostic.
 
 **Part 1: Enhance the User's Idea**
 First, analyze the user's idea. If it is vague, incomplete, or could be improved, enhance it. Flesh out the concept, consider potential edge cases, and clarify the core features. The goal is to create a more robust and well-defined project description. The enhanced idea should be a clear, actionable summary that can be used to generate the development plan. Set this improved description in the 'enhancedIdea' field of your response.
 
 **Part 2: Generate the Development Plan (Based on the Enhanced Idea)**
-Using the 'enhancedIdea' you just created, generate a complete development plan.
+Using the 'enhancedIdea' you just created, generate a complete, platform-agnostic development plan.
 
-1.  **Recommend a Stack**: Based on the enhanced idea, recommend a suitable development stack. Your options are:
-    *   "Lovable + n8n": For projects that can be split into a distinct frontend (built with a UI builder) and a backend (built with a workflow automation tool).
-    *   "Firebase Studio (Full-stack)": For full-stack web applications that can leverage Firebase services.
-    *   "Replit (Full-stack)": For rapid prototyping of full-stack applications in a cloud IDE.
-    Choose the most appropriate stack and set it in the 'stack' field.
-2.  **Decompose into Phases**: Divide the project into a 'Frontend' phase and a 'Backend' phase. The steps must be strictly sequential. Generate all frontend steps first, then all backend steps.
-3.  **Create a Complete and Logical Story**: Generate a comprehensive list of actionable steps that tell a full development story from start to finish. Do not skip obvious prerequisites. For example, if a user profile page is needed, you must first generate steps for user registration and login. Think through the entire user journey and application logic.
-4.  **Define Actionable Steps**: For each step within a phase, provide:
+1.  **Decompose into Phases**: Divide the project into a 'Frontend' phase and a 'Backend' phase. The steps must be strictly sequential. Generate all frontend steps first, then all backend steps.
+2.  **Create a Complete and Logical Story**: Generate a comprehensive list of actionable steps that tell a full development story from start to finish. Do not skip obvious prerequisites. For example, if a user profile page is needed, you must first generate steps for user registration and login. Think through the entire user journey and application logic.
+3.  **Define Actionable Steps**: For each step within a phase, provide:
     *   'phase': "Frontend" or "Backend".
-    *   'platform': The specific tool for that step (e.g., "Lovable", "n8n", "ChatGPT", "Firebase", "Replit"). The platform should align with the chosen stack. For "Lovable + n8n", use "Lovable" for frontend and "n8n" or "ChatGPT" for backend. For "Firebase Studio" or "Replit", use "Firebase" or "Replit" respectively for most steps.
     *   'title': A short, descriptive title for the task (e.g., "Design the Landing Page", "Create Login Form", "Set up User Authentication API").
-    *   'prompt': A detailed, copy-paste ready prompt that the user can directly use on the specified platform to accomplish the task.
+    *   'prompt': A detailed, copy-paste ready, and **platform-agnostic** prompt that a developer can use to accomplish the task. The prompt should clearly state the goal without assuming a specific technology or platform.
 
 Here's the user's original idea to start with: {{{idea}}}`,
 });

@@ -20,7 +20,6 @@ export interface Project {
   name: string;
   idea: string;
   createdAt: Date;
-  stack: string;
   userId: string; // userId for ownership
 }
 
@@ -29,7 +28,6 @@ export interface Prompt {
     id: string;
     projectId: string; // Link to the project
     phase: string;
-    platform: string;
     title: string;
     prompt: string;
     order: number;
@@ -48,7 +46,6 @@ const getProjectById = async (projectId: string): Promise<Project | null> => {
             name: data.name || 'Untitled Project',
             idea: data.idea || '',
             createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
-            stack: data.stack || 'Unknown Stack',
             userId: data.userId,
          };
     }
@@ -75,7 +72,6 @@ export const createProjectWithPrompts = async (
   const projectDocRef = await addDoc(collection(db, 'projects'), {
     name: projectName,
     idea: idea,
-    stack: plan.stack,
     createdAt: new Date(),
     userId: userId,
   });
@@ -90,7 +86,6 @@ export const createProjectWithPrompts = async (
       batch.set(promptDocRef, {
         projectId: projectDocRef.id,
         phase: step.phase,
-        platform: step.platform,
         title: step.title,
         prompt: step.prompt,
         mapFlow: step.mapFlow,
@@ -121,7 +116,6 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         name: data.name || 'Untitled Project',
         idea: data.idea || '',
         createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
-        stack: data.stack || 'Unknown Stack',
         userId: data.userId
       });
     });
