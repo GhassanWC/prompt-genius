@@ -11,10 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut } from 'lucide-react';
+import { LogOut, MessageSquare } from 'lucide-react';
+import { useState } from 'react';
+import { FeedbackDialog } from './feedback-dialog';
 
 export function UserNav() {
   const { user, signOut } = useAuth();
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 
   if (!user) {
     return null;
@@ -27,30 +30,38 @@ export function UserNav() {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
-            <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={signOut}>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
+              <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
+              <p className="text-xs leading-none text-muted-foreground">
+                {user.email}
+              </p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+           <DropdownMenuItem onClick={() => setIsFeedbackDialogOpen(true)}>
+            <MessageSquare className="mr-2 h-4 w-4" />
+            <span>Feedback</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={signOut}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <FeedbackDialog open={isFeedbackDialogOpen} onOpenChange={setIsFeedbackDialogOpen} />
+    </>
   );
 }
