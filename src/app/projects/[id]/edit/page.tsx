@@ -6,21 +6,19 @@ import { useAuth } from '@/context/auth-context';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getProject, getPromptsForProject, type Project, type Prompt, updatePromptsOrder, addPrompt, updatePrompt, deletePrompt, updateProject } from '@/lib/projects';
-import { Loader2, ArrowLeft, AlertTriangle, PlusCircle, Save } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, PlusCircle, Save, Edit } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { DndContext, closestCenter, type DragEndEvent, useSensor, useSensors, PointerSensor, KeyboardSensor } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortablePromptItem } from '@/components/sortable-prompt-item';
 import { PromptEditDialog } from '@/components/prompt-edit-dialog';
+import { ProjectEditDialog } from '@/components/project-edit-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 
 export default function EditProjectPage() {
   const { user, loading: authLoading } = useAuth();
@@ -34,18 +32,13 @@ export default function EditProjectPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // State for project details form
-  const [projectName, setProjectName] = useState('');
-  const [projectIdea, setProjectIdea] = useState('');
-  const [isSavingProjectDetails, setIsSavingProjectDetails] = useState(false);
-  const [isProjectDetailsDirty, setIsProjectDetailsDirty] = useState(false);
-  
-  // State for prompt reordering
   const [isPromptsOrderDirty, setIsPromptsOrderDirty] = useState(false);
   const [isSavingPromptsOrder, setIsSavingPromptsOrder] = useState(false);
 
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState<Partial<Prompt> | null>(null);
+
+  const [isProjectDetailsDialogOpen, setIsProjectDetailsDialogOpen] = useState(false);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [promptToDelete, setPromptToDelete] = useState<string | null>(null);
@@ -68,8 +61,6 @@ export default function EditProjectPage() {
         return;
       }
       setProject(projectData);
-      setProjectName(projectData.name);
-      setProjectIdea(projectData.idea);
 
       const promptsData = await getPromptsForProject(user.uid, projectId);
       setFrontendPrompts(promptsData.filter(p => p.phase === 'Frontend'));
@@ -80,7 +71,6 @@ export default function EditProjectPage() {
     } finally {
       setLoading(false);
       setIsPromptsOrderDirty(false);
-      setIsProjectDetailsDirty(false);
     }
   }, [projectId, user]);
 
@@ -138,9 +128,9 @@ export default function EditProjectPage() {
     }
   };
   
-  const handleOpenDialog = (prompt: Partial<Prompt> | null, phase?: 'Frontend' | 'Backend') => {
+  const handleOpenPromptDialog = (prompt: Partial<Prompt> | null, phase?: 'Frontend' | 'Backend') => {
     setCurrentPrompt(prompt ? prompt : { phase });
-    setDialogOpen(true);
+    setIsPromptDialogOpen(true);
   };
 
   const handleSavePrompt = async (promptData: Partial<Prompt>) => {
@@ -179,19 +169,16 @@ export default function EditProjectPage() {
     }
   };
 
-  const handleSaveProjectDetails = async () => {
+  const handleSaveProjectDetails = async (data: { name: string, idea: string }) => {
     if (!user || !project) return;
-    setIsSavingProjectDetails(true);
     setError(null);
     try {
-      await updateProject(user.uid, projectId, { name: projectName, idea: projectIdea });
+      await updateProject(user.uid, projectId, { name: data.name, idea: data.idea });
       toast({ title: "Project Updated", description: "Your project details have been saved." });
-      setProject(prev => prev ? { ...prev, name: projectName, idea: projectIdea } : null);
-      setIsProjectDetailsDirty(false);
+      fetchProjectData(); // Refreshes the project data on the page
     } catch (e: any) {
       setError(e.message || "Failed to update project details.");
-    } finally {
-      setIsSavingProjectDetails(false);
+      throw e; // Re-throw to allow dialog to handle its loading state
     }
   };
 
@@ -220,37 +207,21 @@ export default function EditProjectPage() {
         <div className="my-6">
             <Link href={`/projects/${projectId}`} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft className="mr-2 h-4 w-4" />Back to Project</Link>
         </div>
-        <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-          <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight">Edit Project</h1>
-          <p className="mt-2 text-lg text-muted-foreground">{project?.name}</p>
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
+          <div>
+            <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight">Edit Project</h1>
+            <p className="mt-2 text-lg text-muted-foreground">{project?.name}</p>
+          </div>
+          <Button variant="outline" onClick={() => setIsProjectDetailsDialogOpen(true)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Details
+          </Button>
         </div>
 
         <div className="max-w-4xl mx-auto mt-12 space-y-12">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Project Details</CardTitle>
-                    <CardDescription>Update your project's name and original idea.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="project-name">Project Name</Label>
-                        <Input id="project-name" value={projectName} onChange={(e) => {setProjectName(e.target.value); setIsProjectDetailsDirty(true);}} disabled={isSavingProjectDetails}/>
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="project-idea">Project Idea</Label>
-                        <Textarea id="project-idea" value={projectIdea} onChange={(e) => {setProjectIdea(e.target.value); setIsProjectDetailsDirty(true);}} className="min-h-[240px]" disabled={isSavingProjectDetails}/>
-                    </div>
-                </CardContent>
-                <CardFooter>
-                    <Button onClick={handleSaveProjectDetails} disabled={isSavingProjectDetails || !isProjectDetailsDirty}>
-                        {isSavingProjectDetails ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Project Details'}
-                    </Button>
-                </CardFooter>
-            </Card>
-        
             <div>
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold font-headline text-center">Prompts</h2>
+                    <h2 className="text-2xl font-bold font-headline">Prompts</h2>
                     {isPromptsOrderDirty && <Button onClick={handleSaveOrder} disabled={isSavingPromptsOrder}><Save className="mr-2 h-4 w-4" />{isSavingPromptsOrder ? 'Saving...' : 'Save Prompt Order'}</Button>}
                 </div>
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -260,22 +231,22 @@ export default function EditProjectPage() {
                             <Card className="p-4">
                                 <SortableContext items={frontendPrompts} strategy={verticalListSortingStrategy}>
                                     {frontendPrompts.length > 0 ? frontendPrompts.map(p => (
-                                        <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenDialog(p)} onDelete={handleOpenDeleteDialog} />
+                                        <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog} />
                                     )) : <p className="text-muted-foreground text-center p-4">No frontend prompts yet.</p>}
                                 </SortableContext>
                             </Card>
-                            <Button variant="outline" className="w-full" onClick={() => handleOpenDialog(null, 'Frontend')}><PlusCircle className="mr-2 h-4 w-4" />Add Frontend Prompt</Button>
+                            <Button variant="outline" className="w-full" onClick={() => handleOpenPromptDialog(null, 'Frontend')}><PlusCircle className="mr-2 h-4 w-4" />Add Frontend Prompt</Button>
                         </div>
                         <div className="space-y-4">
                             <h3 className="text-xl font-bold font-headline text-center">Backend Phase</h3>
                             <Card className="p-4">
                                <SortableContext items={backendPrompts} strategy={verticalListSortingStrategy}>
                                     {backendPrompts.length > 0 ? backendPrompts.map(p => (
-                                        <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenDialog(p)} onDelete={handleOpenDeleteDialog}/>
+                                        <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog}/>
                                     )) : <p className="text-muted-foreground text-center p-4">No backend prompts yet.</p>}
                                 </SortableContext>
                             </Card>
-                            <Button variant="outline" className="w-full" onClick={() => handleOpenDialog(null, 'Backend')}><PlusCircle className="mr-2 h-4 w-4" />Add Backend Prompt</Button>
+                            <Button variant="outline" className="w-full" onClick={() => handleOpenPromptDialog(null, 'Backend')}><PlusCircle className="mr-2 h-4 w-4" />Add Backend Prompt</Button>
                         </div>
                     </div>
                 </DndContext>
@@ -283,7 +254,14 @@ export default function EditProjectPage() {
         </div>
       </main>
 
-      <PromptEditDialog open={dialogOpen} onOpenChange={setDialogOpen} prompt={currentPrompt} onSave={handleSavePrompt} />
+      <ProjectEditDialog 
+        open={isProjectDetailsDialogOpen} 
+        onOpenChange={setIsProjectDetailsDialogOpen} 
+        project={project} 
+        onSave={handleSaveProjectDetails} 
+      />
+
+      <PromptEditDialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen} prompt={currentPrompt} onSave={handleSavePrompt} />
       
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
