@@ -1,6 +1,7 @@
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
 import { generateImage } from '@/ai/flows/generate-image';
+import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage';
 import {
   collection,
   addDoc,
@@ -71,17 +72,25 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ): Promise<string> => {
+  const batch = writeBatch(db);
+  const projectDocRef = doc(collection(db, 'projects'));
   let imageUrl: string | null = null;
+
   try {
     const imageResult = await generateImage({ idea: plan.enhancedIdea });
-    imageUrl = imageResult.imageUrl;
+    const dataUri = imageResult.imageUrl;
+    // Upload to Firebase Storage
+    const imagePath = `project-images/${projectDocRef.id}`;
+    const imageRef = storageRef(storage, imagePath);
+    await uploadString(imageRef, dataUri, 'data_url');
+    imageUrl = await getDownloadURL(imageRef);
   } catch (err) {
-    console.error("Image generation failed, continuing without an image.", err);
+    console.error("Image generation or upload failed, continuing without an image.", err);
     // imageUrl remains null, which is fine
   }
 
-  // Step 1: Create the project first
-  const projectDocRef = await addDoc(collection(db, 'projects'), {
+  // Add project creation to batch
+  batch.set(projectDocRef, {
     name: projectName,
     idea: idea,
     imageUrl: imageUrl,
@@ -89,11 +98,9 @@ export const createProjectWithPrompts = async (
     userId: userId,
   });
 
-  // Step 2: Create the related prompts
+  // Add prompts creation to batch
   if (plan.steps && plan.steps.length > 0) {
-    const batch = writeBatch(db);
     const promptsCollectionRef = collection(db, 'prompts');
-
     plan.steps.forEach((step, index) => {
       const promptDocRef = doc(promptsCollectionRef);
       batch.set(promptDocRef, {
@@ -105,9 +112,9 @@ export const createProjectWithPrompts = async (
         order: index,
       });
     });
-
-    await batch.commit();
   }
+
+  await batch.commit();
 
   return projectDocRef.id;
 };
