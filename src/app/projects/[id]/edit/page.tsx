@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
+import { DndContext, closestCenter, type DragEndEvent, useSensor, useSensors, PointerSensor, KeyboardSensor } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortablePromptItem } from '@/components/sortable-prompt-item';
 import { PromptEditDialog } from '@/components/prompt-edit-dialog';
@@ -39,6 +39,11 @@ export default function EditProjectPage() {
   const [promptToDelete, setPromptToDelete] = useState<string | null>(null);
 
   const projectId = params.id as string;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor)
+  );
 
   const fetchProjectData = useCallback(async () => {
     if (!projectId || !user) return;
@@ -82,16 +87,20 @@ export default function EditProjectPage() {
     const isBackend = backendPrompts.some(p => p.id === active.id);
 
     if (isFrontend) {
+      const overIsFrontend = frontendPrompts.some(p => p.id === over.id);
+      if (!overIsFrontend) return;
       setFrontendPrompts((items) => {
         const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over.id);
+        const newIndex = items.findIndex(item => item.id === over!.id);
         return arrayMove(items, oldIndex, newIndex);
       });
       setIsDirty(true);
     } else if (isBackend) {
+      const overIsBackend = backendPrompts.some(p => p.id === over.id);
+      if (!overIsBackend) return;
       setBackendPrompts((items) => {
         const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over.id);
+        const newIndex = items.findIndex(item => item.id === over!.id);
         return arrayMove(items, oldIndex, newIndex);
       });
       setIsDirty(true);
@@ -185,7 +194,7 @@ export default function EditProjectPage() {
           <p className="mt-2 text-lg text-muted-foreground">{project?.name}</p>
         </div>
         
-        <DndContext sensors={[]} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <div className="max-w-4xl mx-auto mt-12 grid md:grid-cols-2 gap-8 items-start">
                 <div className="space-y-4">
                     <h3 className="text-2xl font-bold font-headline text-center">Frontend Phase</h3>
