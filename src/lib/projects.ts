@@ -159,6 +159,13 @@ export const getProject = async (userId: string, projectId: string): Promise<Pro
     return null;
 }
 
+// Function to update a project's details
+export const updateProject = async (userId: string, projectId: string, data: Partial<Omit<Project, 'id' | 'userId' | 'createdAt'>>): Promise<void> => {
+    await verifyProjectOwner(userId, projectId);
+    const projectRef = doc(db, 'projects', projectId);
+    await updateDoc(projectRef, data);
+};
+
 // Function to get all prompts for a project
 export const getPromptsForProject = async (userId: string, projectId: string): Promise<Prompt[]> => {
     await verifyProjectOwner(userId, projectId);
