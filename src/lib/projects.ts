@@ -72,11 +72,8 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ): Promise<string> => {
-  const batch = writeBatch(db);
-  const projectDocRef = doc(collection(db, 'projects'));
-
-  // Add project creation to batch. Image URL is null initially.
-  batch.set(projectDocRef, {
+  // Step 1: Create the project document first to get its ID
+  const projectDocRef = await addDoc(collection(db, 'projects'), {
     name: projectName,
     idea: idea,
     imageUrl: null,
@@ -84,13 +81,17 @@ export const createProjectWithPrompts = async (
     userId: userId,
   });
 
-  // Add prompts creation to batch
+  const projectId = projectDocRef.id;
+
+  // Step 2: Now that the project exists, create the prompts in a batch.
+  // The security rules for prompts can now verify ownership via get().
   if (plan.steps && plan.steps.length > 0) {
+    const batch = writeBatch(db);
     const promptsCollectionRef = collection(db, 'prompts');
     plan.steps.forEach((step, index) => {
       const promptDocRef = doc(promptsCollectionRef);
       batch.set(promptDocRef, {
-        projectId: projectDocRef.id,
+        projectId: projectId,
         phase: step.phase,
         title: step.title,
         prompt: step.prompt,
@@ -98,11 +99,10 @@ export const createProjectWithPrompts = async (
         order: index,
       });
     });
+    await batch.commit();
   }
 
-  await batch.commit();
-
-  return projectDocRef.id;
+  return projectId;
 };
 
 // Function to generate and save the project image asynchronously.
