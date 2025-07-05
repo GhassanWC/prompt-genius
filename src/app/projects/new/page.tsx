@@ -2,8 +2,8 @@
 
 import { useState, type FormEvent, useEffect } from "react";
 import { Loader2, Sparkles, AlertTriangle } from "lucide-react";
-import { decomposeIdea, type DecomposeIdeaOutput } from "@/ai/flows/decompose-idea";
-import { createProjectWithPrompts } from "@/lib/projects";
+import { decomposeIdea } from "@/ai/flows/decompose-idea";
+import { createProjectWithPrompts, generateAndSaveProjectImage } from "@/lib/projects";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,12 +37,26 @@ export default function NewProjectPage() {
     setError(null);
 
     try {
+      // Generate the plan first
       const plan = await decomposeIdea({ idea });
+      
+      // Create the project and prompts (this is now much faster)
       const projectId = await createProjectWithPrompts(user.uid, projectName, plan.enhancedIdea, plan);
+
+      // Fire-and-forget the image generation. Do not `await` it.
+      // The user is redirected immediately while this runs in the background.
+      generateAndSaveProjectImage(user.uid, projectId, plan.enhancedIdea).catch(err => {
+        // Log error to console. The user won't see this, which is fine,
+        // as this is a non-critical background task.
+        console.error("Failed to generate project image in the background:", err);
+      });
+      
+      // Redirect immediately to the new project page
       router.push(`/projects/${projectId}`);
+
     } catch (e: any) {
       setError(e.message || "An unexpected error occurred. Please try again.");
-      setIsLoading(false);
+      setIsLoading(false); // Only set loading false on error; on success, we navigate away.
     }
   };
 

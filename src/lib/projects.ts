@@ -74,26 +74,12 @@ export const createProjectWithPrompts = async (
 ): Promise<string> => {
   const batch = writeBatch(db);
   const projectDocRef = doc(collection(db, 'projects'));
-  let imageUrl: string | null = null;
 
-  try {
-    const imageResult = await generateImage({ idea: plan.enhancedIdea });
-    const dataUri = imageResult.imageUrl;
-    // Upload to Firebase Storage
-    const imagePath = `project-images/${projectDocRef.id}`;
-    const imageRef = storageRef(storage, imagePath);
-    await uploadString(imageRef, dataUri, 'data_url');
-    imageUrl = await getDownloadURL(imageRef);
-  } catch (err) {
-    console.error("Image generation or upload failed, continuing without an image.", err);
-    // imageUrl remains null, which is fine
-  }
-
-  // Add project creation to batch
+  // Add project creation to batch. Image URL is null initially.
   batch.set(projectDocRef, {
     name: projectName,
     idea: idea,
-    imageUrl: imageUrl,
+    imageUrl: null,
     createdAt: new Date(),
     userId: userId,
   });
@@ -118,6 +104,35 @@ export const createProjectWithPrompts = async (
 
   return projectDocRef.id;
 };
+
+// Function to generate and save the project image asynchronously.
+export const generateAndSaveProjectImage = async (
+  userId: string,
+  projectId: string,
+  idea: string
+): Promise<void> => {
+    try {
+        await verifyProjectOwner(userId, projectId);
+        
+        const imageResult = await generateImage({ idea });
+        const dataUri = imageResult.imageUrl;
+        
+        // Upload to Firebase Storage
+        const imagePath = `project-images/${projectId}`;
+        const imageRef = storageRef(storage, imagePath);
+        await uploadString(imageRef, dataUri, 'data_url');
+        const imageUrl = await getDownloadURL(imageRef);
+
+        // Update the project document with the new image URL
+        const projectRef = doc(db, 'projects', projectId);
+        await updateDoc(projectRef, { imageUrl });
+
+    } catch (err) {
+        console.error("Background image generation and save failed:", err);
+        // We throw here so the .catch() on the caller side can see it if it wants to.
+        throw err;
+    }
+}
 
 
 // Function to get all projects for a user
