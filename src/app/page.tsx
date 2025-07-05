@@ -143,12 +143,11 @@ export default function LandingPage() {
               <div className="relative">
                 <div className="absolute -inset-2 md:-inset-4 bg-primary/10 rounded-full blur-3xl opacity-50"></div>
                 <Image
-                  src="https://placehold.co/1200x800.png"
-                  alt="App Screenshot showing a generated plan"
+                  src="/hero-image.png"
+                  alt="An abstract visual of an idea bulb connected to a development flowchart."
                   width={1200}
                   height={800}
                   className="relative rounded-xl border shadow-2xl transform-gpu lg:-rotate-3 transition-transform duration-300 ease-in-out hover:rotate-0"
-                  data-ai-hint="idea flowchart"
                 />
               </div>
             </div>
