@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -96,15 +97,15 @@ export default function LandingPage() {
 
       <main className="flex-grow">
         <section id="hero" className="container mx-auto px-4 py-20 sm:py-28">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="text-center lg:text-left">
+          <div className="grid grid-cols-1 gap-12 items-center">
+            <div className="text-center">
               <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight">
                 Turn Your Vague Idea Into a Concrete Plan
               </h1>
-              <p className="mt-6 max-w-xl mx-auto lg:mx-0 text-lg text-muted-foreground">
+              <p className="mt-6 max-w-xl mx-auto text-lg text-muted-foreground">
                 Stop wondering where to start. PromptForge AI decomposes your biggest ideas into a clear, sequential development plan with actionable prompts for every step.
               </p>
-              <div className="mt-8 flex justify-center lg:justify-start gap-4">
+              <div className="mt-8 flex justify-center gap-4">
                 <Button asChild size="lg">
                   <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>Start Forging</Link>
                 </Button>
@@ -112,7 +113,7 @@ export default function LandingPage() {
                   <Link href="#features">Learn More</Link>
                 </Button>
               </div>
-              <div className="mt-10 flex items-center justify-center lg:justify-start gap-4">
+              <div className="mt-10 flex items-center justify-center gap-4">
                 <div className="flex -space-x-2 overflow-hidden">
                     <Avatar className="border-2 border-background h-10 w-10">
                         <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person" />
@@ -128,7 +129,7 @@ export default function LandingPage() {
                     </Avatar>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                    <div className="flex items-center gap-0.5">
+                    <div className="flex items-center justify-center gap-0.5">
                       <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                       <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                       <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
@@ -137,18 +138,6 @@ export default function LandingPage() {
                     </div>
                     <p className="mt-1">Loved by <strong>1,000+</strong> developers & founders</p>
                 </div>
-              </div>
-            </div>
-            <div className="hidden lg:block">
-              <div className="relative">
-                <div className="absolute -inset-2 md:-inset-4 bg-primary/10 rounded-full blur-3xl opacity-50"></div>
-                <Image
-                  src="/hero-image.png"
-                  alt="An abstract visual of an idea bulb connected to a development flowchart."
-                  width={1200}
-                  height={800}
-                  className="relative rounded-xl border shadow-2xl transform-gpu lg:-rotate-3 transition-transform duration-300 ease-in-out hover:rotate-0"
-                />
               </div>
             </div>
           </div>
