@@ -8,6 +8,8 @@ import { Logo } from '@/components/logo';
 import { Star, CheckCircle, Sparkles, ClipboardCheck, Code } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserNav } from '@/components/user-nav';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
@@ -76,10 +78,18 @@ export default function LandingPage() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            {!loading && !user && <Button asChild variant="ghost"><Link href="/login">Sign In</Link></Button>}
-            <Button asChild>
-              <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>Get Started</Link>
-            </Button>
+            {loading ? (
+              <Skeleton className="h-9 w-9 rounded-full" />
+            ) : user ? (
+              <UserNav />
+            ) : (
+              <>
+                <Button asChild variant="ghost"><Link href="/login">Sign In</Link></Button>
+                <Button asChild>
+                  <Link href="/login">Get Started</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
