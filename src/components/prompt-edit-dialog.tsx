@@ -58,7 +58,7 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{prompt?.id ? 'Edit Prompt' : 'Add New Prompt'}</DialogTitle>
         </DialogHeader>
