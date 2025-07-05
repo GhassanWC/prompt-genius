@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -237,7 +238,7 @@ export default function EditProjectPage() {
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="project-idea">Project Idea</Label>
-                        <Textarea id="project-idea" value={projectIdea} onChange={(e) => {setProjectIdea(e.target.value); setIsProjectDetailsDirty(true);}} className="min-h-[120px]" disabled={isSavingProjectDetails}/>
+                        <Textarea id="project-idea" value={projectIdea} onChange={(e) => {setProjectIdea(e.target.value); setIsProjectDetailsDirty(true);}} className="min-h-[240px]" disabled={isSavingProjectDetails}/>
                     </div>
                 </CardContent>
                 <CardFooter>
