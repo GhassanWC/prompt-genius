@@ -54,8 +54,8 @@ GOOGLE_API_KEY=...
 
         {!areAiKeysConfigured && (
            <div className="space-y-2">
-            <p className="text-lg font-medium">AI Provider API Keys (At least one is required)</p>
-            <p className="text-sm text-muted-foreground">This is needed for the AI-powered prompt generation features. Add keys for the models you wish to use.</p>
+            <p className="text-lg font-medium">Google AI API Key (Required)</p>
+            <p className="text-sm text-muted-foreground">This key is required for all AI features, including generating plans with models like Gemini Pro and Gemini Flash. You can create a free key in Google AI Studio.</p>
             <div className="bg-muted p-4 rounded-md text-sm font-code overflow-x-auto">
               <pre><code>{aiVars}</code></pre>
             </div>
