@@ -1,16 +1,14 @@
-import { config } from 'dotenv';
-config();
 
 import {genkit, type GenkitPlugin} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
-const plugins: GenkitPlugin[] = [];
-
-// Conditionally add plugins only if their API key is available in the environment.
-// This allows developers to use only the providers they need without the app crashing.
-if (process.env.GOOGLE_API_KEY) {
-  plugins.push(googleAI());
-}
+// The application's main layout file (src/app/layout.tsx) already ensures
+// that the necessary API keys are present in the environment before rendering
+// the app. Therefore, we can unconditionally initialize the plugins here,
+// making the setup more robust.
+const plugins: GenkitPlugin[] = [
+  googleAI(),
+];
 
 export const ai = genkit({
   plugins,
