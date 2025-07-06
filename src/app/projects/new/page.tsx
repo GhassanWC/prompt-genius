@@ -44,9 +44,6 @@ export default function NewProjectPage() {
         try {
             const models = await getAvailableModels();
             setAvailableModels(models);
-            if (models.length > 0) {
-                setSelectedModel(models[0].id); // Default to the first available model
-            }
         } catch (error) {
             console.error("Failed to fetch available models:", error);
             setError("Could not load AI models. Please check your API key and configuration.");
