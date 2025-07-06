@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -138,11 +137,12 @@ export default function EditProjectPage() {
     if (!user) return;
     try {
       if (promptData.id) { // Editing existing prompt
-        const { id, projectId, ...updateData } = promptData;
-        await updatePrompt(user.uid, projectId!, id, updateData);
+        const { id, ...updateData } = promptData; // projectId removed from promptData
+        await updatePrompt(user.uid, projectId, id, updateData); // Use projectId from page scope
         toast({ title: "Prompt Updated" });
       } else { // Adding new prompt
-        await addPrompt(user.uid, projectId, promptData as Omit<Prompt, 'id' | 'projectId' | 'order'>);
+        // Cast to the correct type for `addPrompt`, which no longer needs projectId in data
+        await addPrompt(user.uid, projectId, promptData as Omit<Prompt, 'id' | 'order'>);
         toast({ title: "Prompt Added" });
       }
       fetchProjectData();

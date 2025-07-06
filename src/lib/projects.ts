@@ -31,7 +31,7 @@ export interface Project {
 // Type for a prompt
 export interface Prompt {
     id: string;
-    projectId: string; // Link to the project
+    // projectId is now implicit via subcollection path
     phase: string;
     title: string;
     prompt: string;
@@ -79,7 +79,6 @@ export const createProjectWithPrompts = async (
   idea: string,
   plan: DecomposeIdeaOutput
 ): Promise<string> => {
-  // Step 1: Create the project document first to get its ID
   const projectDocRef = await addDoc(collection(db, 'projects'), {
     name: projectName,
     idea: idea,
@@ -90,16 +89,14 @@ export const createProjectWithPrompts = async (
 
   const projectId = projectDocRef.id;
 
-  // Step 2: Now that the project exists, create the prompts in a batch.
-  // The security rules for prompts can now verify ownership via get().
   if (plan.developmentPlan && plan.developmentPlan.length > 0) {
     const batch = writeBatch(db);
-    const promptsCollectionRef = collection(db, 'prompts');
+    // Prompts are now a subcollection of the project
+    const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
     plan.developmentPlan.forEach((step, index) => {
-      const promptDocRef = doc(promptsCollectionRef);
+      const promptDocRef = doc(promptsCollectionRef); // Auto-generate ID in subcollection
       batch.set(promptDocRef, {
         ...step,
-        projectId: projectId,
         order: index,
       });
     });
@@ -121,19 +118,16 @@ export const generateAndSaveProjectImage = async (
         const imageResult = await generateImage({ idea });
         const dataUri = imageResult.imageUrl;
         
-        // Upload to Firebase Storage
         const imagePath = `project-images/${projectId}`;
         const imageRef = storageRef(storage, imagePath);
         await uploadString(imageRef, dataUri, 'data_url');
         const imageUrl = await getDownloadURL(imageRef);
 
-        // Update the project document with the new image URL
         const projectRef = doc(db, 'projects', projectId);
         await updateDoc(projectRef, { imageUrl });
 
     } catch (err) {
         console.error("Background image generation and save failed:", err);
-        // We throw here so the .catch() on the caller side can see it if it wants to.
         throw err;
     }
 }
@@ -146,16 +140,16 @@ export const updateProject = async (userId: string, projectId: string, data: Par
 };
 
 // Function to update a prompt
-export const updatePrompt = async (userId: string, projectId: string, promptId: string, data: Partial<Omit<Prompt, 'id' | 'projectId'>>): Promise<void> => {
+export const updatePrompt = async (userId: string, projectId: string, promptId: string, data: Partial<Omit<Prompt, 'id'>>): Promise<void> => {
     await verifyProjectOwner(userId, projectId);
-    const promptRef = doc(db, 'prompts', promptId);
+    const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
     await updateDoc(promptRef, data);
 }
 
 // Function to delete a prompt
 export const deletePrompt = async (userId: string, projectId: string, promptId: string): Promise<void> => {
     await verifyProjectOwner(userId, projectId);
-    const promptRef = doc(db, 'prompts', promptId);
+    const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
     await deleteDoc(promptRef);
 }
 
@@ -164,14 +158,12 @@ export const deleteProject = async (userId: string, projectId: string): Promise<
     await verifyProjectOwner(userId, projectId);
     const batch = writeBatch(db);
 
-    // Delete the project document
     const projectRef = doc(db, 'projects', projectId);
     batch.delete(projectRef);
 
-    // Find and delete all associated prompts for the project
-    const promptsCollectionRef = collection(db, 'prompts');
-    const q = query(promptsCollectionRef, where("projectId", "==", projectId));
-    const promptsSnapshot = await getDocs(q);
+    // Find and delete all associated prompts from the subcollection
+    const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
+    const promptsSnapshot = await getDocs(promptsCollectionRef);
     promptsSnapshot.forEach((promptDoc) => {
         batch.delete(promptDoc.ref);
     });
@@ -180,30 +172,27 @@ export const deleteProject = async (userId: string, projectId: string): Promise<
 };
 
 // Function to add a new prompt to a project
-export const addPrompt = async (userId: string, projectId: string, promptData: Omit<Prompt, 'id' | 'projectId' | 'order'>): Promise<string> => {
+export const addPrompt = async (userId: string, projectId: string, promptData: Omit<Prompt, 'id' | 'order'>): Promise<string> => {
     await verifyProjectOwner(userId, projectId);
     
-    // Get current prompts in the same phase to determine the new order
-    const promptsCollectionRef = collection(db, 'prompts');
-    const q = query(promptsCollectionRef, where("projectId", "==", projectId), where("phase", "==", promptData.phase));
+    const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
+    const q = query(promptsCollectionRef, where("phase", "==", promptData.phase));
     const phasePromptsSnapshot = await getDocs(q);
     const newOrder = phasePromptsSnapshot.docs.length;
 
-    const newPromptRef = await addDoc(collection(db, 'prompts'), {
+    const newPromptRef = await addDoc(promptsCollectionRef, {
         ...promptData,
-        projectId: projectId,
         order: newOrder,
     });
     return newPromptRef.id;
 }
-
 
 // Function to update the order of prompts
 export const updatePromptsOrder = async (userId: string, projectId: string, prompts: { id: string; order: number }[]): Promise<void> => {
     await verifyProjectOwner(userId, projectId);
     const batch = writeBatch(db);
     prompts.forEach(prompt => {
-        const promptRef = doc(db, 'prompts', prompt.id);
+        const promptRef = doc(db, 'projects', projectId, 'prompts', prompt.id);
         batch.update(promptRef, { order: prompt.order });
     });
     await batch.commit();

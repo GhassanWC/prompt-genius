@@ -83,11 +83,13 @@ export const getPromptsForProject = async (userId: string, projectId: string): P
         throw new Error("Permission denied or project not found.");
     }
     
-    const promptsCollectionRef = collection(db, 'prompts');
-    const q = query(promptsCollectionRef, where("projectId", "==", projectId));
-    const querySnapshot = await getDocs(q);
+    // Prompts are now a subcollection of projects
+    const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
+    // We don't need to query by projectId anymore since we are in the subcollection.
+    const querySnapshot = await getDocs(promptsCollectionRef);
     const prompts: Prompt[] = [];
     querySnapshot.forEach((doc) => {
+      // The returned prompt will not have projectId, which matches our updated Prompt interface.
       prompts.push({ id: doc.id, ...doc.data() } as Prompt)
     });
 
