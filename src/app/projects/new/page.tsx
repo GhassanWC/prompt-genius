@@ -13,7 +13,6 @@ import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getAvailableModels } from "@/ai/flows/get-available-models";
 
 
 export default function NewProjectPage() {
@@ -24,16 +23,7 @@ export default function NewProjectPage() {
   const [idea, setIdea] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isModelAvailable, setIsModelAvailable] = useState(false);
-
-  useEffect(() => {
-    async function checkModels() {
-      const models = await getAvailableModels();
-      setIsModelAvailable(models.length > 0);
-    }
-    checkModels();
-  }, []);
-
+  
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
@@ -48,7 +38,7 @@ export default function NewProjectPage() {
     setError(null);
 
     try {
-      // Generate the plan first
+      // Generate the plan first. The flow will use the default model.
       const plan = await decomposeIdea({ idea });
       
       // Create the project and prompts (this is now much faster)
@@ -126,21 +116,11 @@ export default function NewProjectPage() {
             />
           </div>
           
-          {!isModelAvailable && (
-             <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>No AI Models Configured</AlertTitle>
-                <AlertDescription>
-                    Please add an API key for Google AI in your <code>.env</code> file to enable project generation.
-                </AlertDescription>
-            </Alert>
-          )}
-
           <Button 
             type="submit" 
             className="w-full text-lg py-6"
             size="lg"
-            disabled={isLoading || !idea.trim() || !projectName.trim() || !isModelAvailable}
+            disabled={isLoading || !idea.trim() || !projectName.trim()}
           >
             {isLoading ? (
               <>

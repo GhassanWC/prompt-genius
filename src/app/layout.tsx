@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 
 function MissingEnvVarsError() {
   const isFirebaseConfigured = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-  const isAiKeyConfigured = !!process.env.GOOGLE_API_KEY;
+  const areAiKeysConfigured = !!process.env.GOOGLE_API_KEY;
+
 
   const firebaseVars = `
 # Found in Firebase Console > Project settings > General
@@ -51,10 +52,10 @@ GOOGLE_API_KEY=...
           </div>
         )}
 
-        {!isAiKeyConfigured && (
+        {!areAiKeysConfigured && (
            <div className="space-y-2">
-            <p className="text-lg font-medium">Google AI API Key (Required)</p>
-            <p className="text-sm text-muted-foreground">This is needed for the AI-powered prompt generation features.</p>
+            <p className="text-lg font-medium">AI Provider API Keys (At least one is required)</p>
+            <p className="text-sm text-muted-foreground">This is needed for the AI-powered prompt generation features. Add keys for the models you wish to use.</p>
             <div className="bg-muted p-4 rounded-md text-sm font-code overflow-x-auto">
               <pre><code>{aiVars}</code></pre>
             </div>
@@ -72,7 +73,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const isConfigured = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !!process.env.GOOGLE_API_KEY;
+  const isFirebaseConfigured = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  const areAiKeysConfigured = !!process.env.GOOGLE_API_KEY;
+  const isConfigured = isFirebaseConfigured && areAiKeysConfigured;
+
 
   return (
     <html lang="en" className="dark" style={{scrollBehavior: 'smooth'}}>
