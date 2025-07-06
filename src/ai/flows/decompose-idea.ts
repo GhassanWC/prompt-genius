@@ -85,7 +85,7 @@ const decomposeIdeaFlow = ai.defineFlow(
       console.error('Error in decomposeIdeaFlow:', e);
       // Re-throw a more user-friendly error. This will be caught by the client component.
       throw new Error(
-        `Failed to generate project plan. This is often due to a missing API key or network issue. Please check your configuration.`
+        `Failed to generate project plan. This is often due to a missing API key or network issue. Please check your configuration. Original error: ${e.message}`
       );
     }
   }
