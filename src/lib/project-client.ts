@@ -1,3 +1,4 @@
+
 // This file contains functions that are safe to run on the client side.
 // They handle reading project data and do not involve sensitive operations or AI flows.
 
