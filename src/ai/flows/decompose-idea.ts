@@ -51,7 +51,7 @@ Using the 'enhancedIdea' you just created, generate a complete, platform-agnosti
 3.  **Define Actionable Steps**: For each step within a phase, provide:
     *   'phase': "Frontend" or "Backend".
     *   'title': A short, descriptive title for the task (e.g., "Design the Landing Page", "Create Login Form", "Set up User Authentication API").
-    *   'prompt': A detailed, copy-paste ready, and **platform-agnostic** prompt that a developer can use to accomplish the task. The prompt should clearly state the goal without assuming a specific technology or platform.
+    *   'prompt': A detailed, copy-paste ready, and **platform-agnostic** prompt that a developer can use to accomplish the task.
     *   'mapFlow': A brief, high-level explanation of the logic behind this prompt and how it fits into the overall plan.
 
 Here's the user's original idea to start with: {{{idea}}}`,
