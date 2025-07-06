@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { getProjectsForUser, deleteProject, type Project } from '@/lib/projects';
+import { deleteProject, type Project } from '@/lib/projects';
+import { getProjectsForUser } from '@/lib/project-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Loader2, PlusCircle, FolderOpen, AlertTriangle, MoreVertical, Trash2 } from 'lucide-react';
