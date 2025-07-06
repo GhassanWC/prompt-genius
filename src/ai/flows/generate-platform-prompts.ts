@@ -8,10 +8,12 @@
  */
 
 import {ai} from '@/ai/genkit';
+import type { ModelId } from 'genkit/model';
 import {z} from 'genkit';
 
 const GeneratePlatformPromptsInputSchema = z.object({
   idea: z.string().describe('The user defined idea for which prompts are generated.'),
+  model: z.string().optional().describe('The ID of the AI model to use for generation.'),
 });
 export type GeneratePlatformPromptsInput = z.infer<typeof GeneratePlatformPromptsInputSchema>;
 
@@ -45,7 +47,7 @@ First, analyze the user's idea. If it is vague, incomplete, or could be improved
 **Part 2: Generate the Development Plan (Based on the Enhanced Idea)**
 Using the 'enhancedIdea' you just created, generate a complete, platform-agnostic development plan.
 
-1.  **Decompose into Phases**: Divide the project into a 'Frontend' phase and a 'Backend' phase. The steps must be strictly sequential. Generate all frontend steps first, then all backend steps.
+1.  **Decompose into Phases**: Divide the project into a 'Frontend' phase and a 'Backend' phase. The steps must be strictly sequential. Generate all frontend steps or tasks first, then all backend steps or tasks.
 2.  **Create a Complete and Logical Story**: Generate a comprehensive list of actionable steps that tell a full development story from start to finish. Do not skip obvious prerequisites. For example, if a user profile page is needed, you must first generate steps for user registration and login. Think through the entire user journey and application logic.
 3.  **Define Actionable Steps**: For each step within a phase, provide:
     *   'phase': "Frontend" or "Backend".
@@ -63,7 +65,10 @@ const generatePlatformPromptsFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const response = await prompt(input);
+      const response = await prompt.generate({
+        input: input,
+        model: (input.model as ModelId) || 'googleai/gemini-2.0-flash',
+      });
       const output = response.output;
       
       if (!output) {

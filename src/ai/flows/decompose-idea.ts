@@ -9,9 +9,11 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type {ModelId} from 'genkit/model';
 
 const DecomposeIdeaInputSchema = z.object({
   idea: z.string().describe('The project idea to decompose.'),
+  model: z.string().optional().describe('The ID of the AI model to use for generation.'),
 });
 export type DecomposeIdeaInput = z.infer<typeof DecomposeIdeaInputSchema>;
 
@@ -63,7 +65,11 @@ const decomposeIdeaFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const response = await decomposeIdeaPrompt(input);
+      const response = await decomposeIdeaPrompt.generate({
+          input: input,
+          model: (input.model as ModelId) || 'googleai/gemini-2.0-flash',
+      });
+
       const output = response.output;
 
       if (!output) {

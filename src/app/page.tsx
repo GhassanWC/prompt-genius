@@ -17,7 +17,7 @@ export default function LandingPage() {
 
   const navLinks = [
     { name: 'Features', href: '#features' },
-    { name: 'Testimonials', href: '#testimonials' },
+    { name: 'Reviews', href: '#testimonials' },
     { name: 'Pricing', href: '#pricing' },
   ];
 
