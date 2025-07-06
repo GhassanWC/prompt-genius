@@ -13,14 +13,7 @@ import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { availableModels } from "@/ai/models";
+import { getAvailableModels } from "@/ai/flows/get-available-models";
 
 
 export default function NewProjectPage() {
@@ -31,8 +24,15 @@ export default function NewProjectPage() {
   const [idea, setIdea] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string>(availableModels[0]?.id || '');
+  const [isModelAvailable, setIsModelAvailable] = useState(false);
 
+  useEffect(() => {
+    async function checkModels() {
+      const models = await getAvailableModels();
+      setIsModelAvailable(models.length > 0);
+    }
+    checkModels();
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -49,7 +49,7 @@ export default function NewProjectPage() {
 
     try {
       // Generate the plan first
-      const plan = await decomposeIdea({ idea, model: selectedModel });
+      const plan = await decomposeIdea({ idea });
       
       // Create the project and prompts (this is now much faster)
       const projectId = await createProjectWithPrompts(user.uid, projectName, plan.enhancedIdea, plan);
@@ -126,40 +126,21 @@ export default function NewProjectPage() {
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="model-select" className="text-lg font-medium">Generation Model</Label>
-            {availableModels.length > 0 ? (
-                <Select value={selectedModel} onValueChange={setSelectedModel} disabled={isLoading}>
-                    <SelectTrigger id="model-select" className="p-4 text-base">
-                        <SelectValue placeholder="Select a model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {availableModels.map(model => (
-                            <SelectItem key={model.id} value={model.id}>
-                                <div className="flex items-center gap-3 w-full justify-between">
-                                    <span>{model.name}</span>
-                                    <span className="text-xs text-muted-foreground">{model.provider}</span>
-                                </div>
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            ) : (
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>No AI Models Configured</AlertTitle>
-                    <AlertDescription>
-                        Please add an API key for Google AI, Anthropic, or OpenAI in your environment variables to enable project generation.
-                    </AlertDescription>
-                </Alert>
-            )}
-          </div>
+          {!isModelAvailable && (
+             <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>No AI Models Configured</AlertTitle>
+                <AlertDescription>
+                    Please add an API key for Google AI in your <code>.env</code> file to enable project generation.
+                </AlertDescription>
+            </Alert>
+          )}
 
           <Button 
             type="submit" 
             className="w-full text-lg py-6"
             size="lg"
-            disabled={isLoading || !idea.trim() || !projectName.trim() || !selectedModel}
+            disabled={isLoading || !idea.trim() || !projectName.trim() || !isModelAvailable}
           >
             {isLoading ? (
               <>
