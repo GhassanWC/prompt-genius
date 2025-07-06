@@ -17,6 +17,7 @@ import {
   deleteDoc,
   writeBatch,
   type Timestamp,
+  serverTimestamp,
 } from 'firebase/firestore';
 
 // Type for a project
@@ -84,7 +85,7 @@ export const createProjectWithPrompts = async (
     name: projectName,
     idea: idea,
     imageUrl: null,
-    createdAt: new Date(),
+    createdAt: serverTimestamp(),
     userId: userId,
   });
 
