@@ -13,8 +13,8 @@ import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { type ModelDefinition } from "@/ai/models";
 import { getAvailableModels } from "@/ai/flows/get-available-models";
-import type { ModelDefinition } from "@/ai/models";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
@@ -29,7 +29,7 @@ export default function NewProjectPage() {
   
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [availableModels, setAvailableModels] = useState<ModelDefinition[]>([]);
-  const [loadingModels, setLoadingModels] = useState(true);
+  const [modelsLoading, setModelsLoading] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -39,20 +39,21 @@ export default function NewProjectPage() {
 
   useEffect(() => {
     async function fetchModels() {
-        if (!user) return;
-        setLoadingModels(true);
-        try {
-            const models = await getAvailableModels();
-            setAvailableModels(models);
-        } catch (error) {
-            console.error("Failed to fetch available models:", error);
-            setError("Could not load AI models. Please check your API key and configuration.");
-        } finally {
-            setLoadingModels(false);
-        }
+      setModelsLoading(true);
+      setError(null);
+      try {
+        const models = await getAvailableModels();
+        setAvailableModels(models);
+      } catch (e: any) {
+        console.error("Failed to fetch models", e);
+        setError("Failed to load available AI models. Please check your API key configuration and refresh the page.");
+        setAvailableModels([]);
+      } finally {
+        setModelsLoading(false);
+      }
     }
     fetchModels();
-  }, [user]);
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -142,13 +143,15 @@ export default function NewProjectPage() {
             <Select
               value={selectedModel}
               onValueChange={setSelectedModel}
-              disabled={isLoading || loadingModels || availableModels.length === 0}
+              disabled={isLoading || modelsLoading || availableModels.length === 0}
             >
               <SelectTrigger id="model-select" className="p-4 text-base h-auto">
-                <SelectValue placeholder={loadingModels ? "Loading models..." : "Select a model"} />
+                <SelectValue placeholder={modelsLoading ? "Loading models..." : "Select a model"} />
               </SelectTrigger>
               <SelectContent>
-                {availableModels.length > 0 ? (
+                {modelsLoading ? (
+                   <SelectItem value="loading" disabled>Loading...</SelectItem>
+                ) : availableModels.length > 0 ? (
                   availableModels.map((model) => (
                     <SelectItem key={model.id} value={model.id}>
                       <div className="flex items-center gap-2">
@@ -159,7 +162,7 @@ export default function NewProjectPage() {
                   ))
                 ) : (
                   <SelectItem value="no-models" disabled>
-                    {loadingModels ? "Loading..." : "No configured models found."}
+                    No configured models found.
                   </SelectItem>
                 )}
               </SelectContent>
