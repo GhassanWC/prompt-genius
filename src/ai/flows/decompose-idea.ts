@@ -65,8 +65,7 @@ const decomposeIdeaFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const response = await decomposeIdeaPrompt.generate({
-          input: input,
+      const response = await decomposeIdeaPrompt(input, {
           model: (input.model as ModelId) || 'googleai/gemini-2.0-flash',
       });
 

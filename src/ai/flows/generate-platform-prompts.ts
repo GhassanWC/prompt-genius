@@ -65,8 +65,7 @@ const generatePlatformPromptsFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const response = await prompt.generate({
-        input: input,
+      const response = await prompt(input, {
         model: (input.model as ModelId) || 'googleai/gemini-2.0-flash',
       });
       const output = response.output;
