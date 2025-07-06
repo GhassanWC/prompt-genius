@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, type FormEvent, useEffect } from "react";
@@ -52,8 +53,13 @@ export default function NewProjectPage() {
       router.push(`/projects/${projectId}`);
 
     } catch (e: any) {
-      setError(e.message || "An unexpected error occurred. Please try again.");
-      setIsLoading(false); // Only set loading false on error; on success, we navigate away.
+      console.error("Detailed error during project creation:", e);
+      let errorMessage = e.message || "An unexpected error occurred.";
+      if (e.code === 'permission-denied' || (e.message && e.message.includes('PERMISSION_DENIED'))) {
+        errorMessage = `Permission Denied: Your Firestore security rules are preventing the project from being created. This usually happens because the rules don't allow a server-side process to write on behalf of a user. Please ensure your rules correctly allow writes to '/projects/{projectId}' and its 'prompts' subcollection. Original Error: ${e.message}`;
+      }
+      setError(errorMessage);
+      setIsLoading(false);
     }
   };
 
