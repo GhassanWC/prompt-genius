@@ -1,11 +1,12 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { type Project, type Prompt, updatePromptsOrder, addPrompt, updatePrompt, deletePrompt, updateProject } from '@/lib/projects';
-import { getProject, getPromptsForProject } from '@/lib/project-client';
+import type { Project, Prompt } from '@/lib/projects';
+import { updatePromptsOrder, addPrompt, updatePrompt, deletePrompt, updateProject, getProject, getPromptsForProject } from '@/lib/project-client';
 import { Loader2, ArrowLeft, AlertTriangle, PlusCircle, Save, Edit } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';

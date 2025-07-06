@@ -4,7 +4,7 @@
 import { useState, type FormEvent, useEffect } from "react";
 import { Loader2, Sparkles, AlertTriangle } from "lucide-react";
 import { decomposeIdea } from "@/ai/flows/decompose-idea";
-import { createProjectWithPrompts, generateAndSaveProjectImage } from "@/lib/projects";
+import { createProjectWithPrompts, generateAndSaveProjectImage } from "@/lib/project-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,25 +38,26 @@ export default function NewProjectPage() {
     setError(null);
 
     try {
-      // The AI model is now hardcoded in the flow
+      // Step 1: Call the AI flow (a server action) to get the plan
       const plan = await decomposeIdea({ idea });
       
-      // Create the project and prompts
+      // Step 2: Create the project and prompts from the client, which is authenticated
       const projectId = await createProjectWithPrompts(user.uid, projectName, plan.enhancedIdea, plan);
 
-      // Fire-and-forget the image generation. Do not `await` it.
-      generateAndSaveProjectImage(user.uid, projectId, plan.enhancedIdea).catch(err => {
-        console.error("Failed to generate project image in the background:", err);
-      });
+      // Step 3: Fire-and-forget the image generation. This is now a client-side function
+      // that calls an AI flow and then handles the upload and DB update itself.
+      generateAndSaveProjectImage(user.uid, projectId, plan.enhancedIdea);
       
-      // Redirect immediately to the new project page
+      // Step 4: Redirect immediately to the new project page
       router.push(`/projects/${projectId}`);
 
     } catch (e: any) {
       console.error("Detailed error during project creation:", e);
       let errorMessage = e.message || "An unexpected error occurred.";
+      // This more specific error message is now more likely to be a true rules issue
+      // rather than an auth context problem.
       if (e.code === 'permission-denied' || (e.message && e.message.includes('PERMISSION_DENIED'))) {
-        errorMessage = `Permission Denied: Your Firestore security rules are preventing the project from being created. This usually happens because the rules don't allow a server-side process to write on behalf of a user. Please ensure your rules correctly allow writes to '/projects/{projectId}' and its 'prompts' subcollection. Original Error: ${e.message}`;
+        errorMessage = `Permission Denied: Your Firestore security rules are preventing the project from being created. Please ensure your rules correctly allow writes to '/projects/{projectId}' and its 'prompts' subcollection. Original Error: ${e.message}`;
       }
       setError(errorMessage);
       setIsLoading(false);

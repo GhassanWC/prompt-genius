@@ -1,9 +1,11 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { deleteProject, type Project } from '@/lib/projects';
+import { deleteProject } from '@/lib/project-client';
+import type { Project } from '@/lib/projects';
 import { getProjectsForUser } from '@/lib/project-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';

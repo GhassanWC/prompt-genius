@@ -1,8 +1,8 @@
 
 // This file contains functions that are safe to run on the client side.
-// They handle reading project data and do not involve sensitive operations or AI flows.
+// They handle reading and writing project data and do not involve sensitive operations or AI flows.
 
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import {
   collection,
   query,
@@ -11,8 +11,17 @@ import {
   doc,
   getDoc,
   type Timestamp,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  writeBatch,
+  serverTimestamp,
 } from 'firebase/firestore';
+import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage';
+import { generateImage } from '@/ai/flows/generate-image';
+import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
 import type { Project, Prompt } from './projects';
+
 
 // Function to get all projects for a user
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
@@ -97,3 +106,142 @@ export const getPromptsForProject = async (userId: string, projectId: string): P
     prompts.sort((a, b) => (a.order || 0) - (b.order || 0));
     return prompts;
 }
+
+
+// Helper function to verify project ownership, used by write operations below
+const verifyProjectOwner = async (userId: string, projectId: string) => {
+    const project = await getProject(userId, projectId);
+    if (!project) {
+        throw new Error("Permission denied or project not found.");
+    }
+    return project;
+}
+
+
+// Function to create a new project and add its prompts
+export const createProjectWithPrompts = async (
+  userId: string,
+  projectName: string,
+  idea: string,
+  plan: DecomposeIdeaOutput
+): Promise<string> => {
+  const projectDocRef = await addDoc(collection(db, 'projects'), {
+    name: projectName,
+    idea: idea,
+    imageUrl: null,
+    createdAt: serverTimestamp(),
+    userId: userId,
+  });
+
+  const projectId = projectDocRef.id;
+
+  if (plan.developmentPlan && plan.developmentPlan.length > 0) {
+    const batch = writeBatch(db);
+    const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
+    plan.developmentPlan.forEach((step, index) => {
+      const promptDocRef = doc(promptsCollectionRef); 
+      batch.set(promptDocRef, {
+        ...step,
+        order: index,
+      });
+    });
+    await batch.commit();
+  }
+
+  return projectId;
+};
+
+
+// Function to generate and save the project image asynchronously.
+export const generateAndSaveProjectImage = async (
+  userId: string,
+  projectId: string,
+  idea: string
+): Promise<void> => {
+    try {
+        await verifyProjectOwner(userId, projectId);
+        
+        // AI flow is a server action, which is fine to call from the client
+        const imageResult = await generateImage({ idea });
+        const dataUri = imageResult.imageUrl;
+        
+        // Storage and DB writes happen on the authenticated client
+        const imagePath = `project-images/${projectId}`;
+        const imageRef = storageRef(storage, imagePath);
+        await uploadString(imageRef, dataUri, 'data_url');
+        const imageUrl = await getDownloadURL(imageRef);
+
+        const projectRef = doc(db, 'projects', projectId);
+        await updateDoc(projectRef, { imageUrl });
+
+    } catch (err) {
+        // This is a fire-and-forget background task.
+        // We log the error but don't re-throw, as the user has already moved on.
+        console.error("Background image generation and save failed:", err);
+    }
+}
+
+// Function to update a project's details
+export const updateProject = async (userId: string, projectId: string, data: Partial<Omit<Project, 'id' | 'userId' | 'createdAt'>>): Promise<void> => {
+    await verifyProjectOwner(userId, projectId);
+    const projectRef = doc(db, 'projects', projectId);
+    await updateDoc(projectRef, data);
+};
+
+// Function to update a prompt
+export const updatePrompt = async (userId: string, projectId: string, promptId: string, data: Partial<Omit<Prompt, 'id'>>): Promise<void> => {
+    await verifyProjectOwner(userId, projectId);
+    const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
+    await updateDoc(promptRef, data);
+}
+
+// Function to delete a prompt
+export const deletePrompt = async (userId: string, projectId: string, promptId: string): Promise<void> => {
+    await verifyProjectOwner(userId, projectId);
+    const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
+    await deleteDoc(promptRef);
+}
+
+// Function to delete a project and all its associated prompts
+export const deleteProject = async (userId: string, projectId: string): Promise<void> => {
+    await verifyProjectOwner(userId, projectId);
+    const batch = writeBatch(db);
+
+    const projectRef = doc(db, 'projects', projectId);
+    batch.delete(projectRef);
+
+    const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
+    const promptsSnapshot = await getDocs(promptsCollectionRef);
+    promptsSnapshot.forEach((promptDoc) => {
+        batch.delete(promptDoc.ref);
+    });
+
+    await batch.commit();
+};
+
+// Function to add a new prompt to a project
+export const addPrompt = async (userId: string, projectId: string, promptData: Omit<Prompt, 'id' | 'order'>): Promise<string> => {
+    await verifyProjectOwner(userId, projectId);
+    
+    const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
+    const q = query(promptsCollectionRef, where("phase", "==", promptData.phase));
+    const phasePromptsSnapshot = await getDocs(q);
+    const newOrder = phasePromptsSnapshot.docs.length;
+
+    const newPromptRef = await addDoc(promptsCollectionRef, {
+        ...promptData,
+        order: newOrder,
+    });
+    return newPromptRef.id;
+}
+
+// Function to update the order of prompts
+export const updatePromptsOrder = async (userId: string, projectId: string, prompts: { id: string; order: number }[]): Promise<void> => {
+    await verifyProjectOwner(userId, projectId);
+    const batch = writeBatch(db);
+    prompts.forEach(prompt => {
+        const promptRef = doc(db, 'projects', projectId, 'prompts', prompt.id);
+        batch.update(promptRef, { order: prompt.order });
+    });
+    await batch.commit();
+};
