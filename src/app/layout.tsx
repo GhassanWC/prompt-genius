@@ -11,7 +11,23 @@ export const metadata: Metadata = {
 };
 
 function MissingEnvVarsError() {
+  const isFirebaseConfigured = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
   const isAiKeyConfigured = !!process.env.GOOGLE_API_KEY;
+
+  const firebaseVars = `
+# Found in Firebase Console > Project settings > General
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+`;
+
+  const aiVars = `
+# Found in Google AI Studio
+GOOGLE_API_KEY=...
+`;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-4">
@@ -20,33 +36,31 @@ function MissingEnvVarsError() {
           <AlertTriangle className="h-10 w-10 text-destructive flex-shrink-0" />
           <h1 className="text-2xl font-bold font-headline text-destructive">Configuration Error</h1>
         </div>
-        <div className="space-y-4">
-            <p className="text-lg font-medium">Your Firebase environment variables are not set.</p>
-            <p className="text-muted-foreground">Please create or update the <code>.env</code> file in your project's root directory with your Firebase project credentials. You can find these values in the Firebase Console under Project settings &gt; General.</p>
-            <div className="bg-muted p-4 rounded-md text-sm font-code overflow-x-auto">
-              <pre>
-                <code>
-{`# Firebase credentials (required)
-NEXT_PUBLIC_FIREBASE_API_KEY=...
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
-NEXT_PUBLIC_FIREBASE_APP_ID=...
+        
+        <p className="text-muted-foreground">
+          To run this application, you need to set up your environment variables. Create a file named <code>.env</code> in the project's root directory and add the following keys. You will need to restart the development server for the changes to take effect.
+        </p>
 
-# Genkit AI provider credentials (at least one is required)
-# GOOGLE_API_KEY=...
-`}
-                </code>
-              </pre>
+        {!isFirebaseConfigured && (
+          <div className="space-y-2">
+            <p className="text-lg font-medium">Firebase Credentials (Required)</p>
+             <p className="text-sm text-muted-foreground">These are needed for user authentication and database services.</p>
+            <div className="bg-muted p-4 rounded-md text-sm font-code overflow-x-auto">
+              <pre><code>{firebaseVars}</code></pre>
             </div>
-            {!isAiKeyConfigured && (
-              <p className="text-muted-foreground">Additionally, you need to configure an AI provider (e.g., Google AI) for the application to function.</p>
-            )}
-            <p className="text-sm text-muted-foreground">
-              After adding the variables, you will need to restart the development server for the changes to take effect.
-            </p>
-        </div>
+          </div>
+        )}
+
+        {!isAiKeyConfigured && (
+           <div className="space-y-2">
+            <p className="text-lg font-medium">Google AI API Key (Required)</p>
+            <p className="text-sm text-muted-foreground">This is needed for the AI-powered prompt generation features.</p>
+            <div className="bg-muted p-4 rounded-md text-sm font-code overflow-x-auto">
+              <pre><code>{aiVars}</code></pre>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
@@ -58,7 +72,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const isFirebaseConfigured = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  const isConfigured = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY && !!process.env.GOOGLE_API_KEY;
 
   return (
     <html lang="en" className="dark" style={{scrollBehavior: 'smooth'}}>
@@ -69,7 +83,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        {isFirebaseConfigured ? (
+        {isConfigured ? (
             <AuthProvider>
               {children}
               <Toaster />
