@@ -17,12 +17,17 @@ export type DecomposeIdeaInput = z.infer<typeof DecomposeIdeaInputSchema>;
 
 const DecomposeIdeaOutputSchema = z.object({
   enhancedIdea: z.string().describe('An improved and more detailed version of the original user idea, suitable for generating a development plan.'),
-  steps: z.array(
+  developmentPlan: z.array(
     z.object({
       phase: z.string().describe('The development phase, either "Frontend" or "Backend".'),
       title: z.string().describe('A short title for the step.'),
+      environment: z.enum(["Replit", "Blob", "Supabase", "Generic"]).describe('The target environment for the step.'),
+      dir: z.string().optional().describe('The target directory or file path.'),
+      command: z.string().optional().describe('A shell or CLI command to run.'),
       prompt: z.string().describe('A copy-paste ready, platform-agnostic prompt.'),
       mapFlow: z.string().describe('A brief, high-level explanation of the logic behind this prompt and how it fits into the overall plan.'),
+      timeEstimate: z.string().optional().describe('An estimate of the time required for the step.'),
+      complexity: z.enum(["low", "medium", "high"]).optional().describe('The complexity of the step.'),
     })
   ),
 });
@@ -36,24 +41,36 @@ const decomposeIdeaPrompt = ai.definePrompt({
   name: 'decomposeIdeaPrompt',
   input: {schema: DecomposeIdeaInputSchema},
   output: {schema: DecomposeIdeaOutputSchema},
-  prompt: `You are an expert project manager and software architect. Your task is to take a user's project idea, refine it, and then break it down into a structured, sequential, and complete development plan. The prompts you generate should be platform-agnostic.
+  prompt: `You are an expert project manager and software architect. Your task is to take a user’s project idea, refine it, and then break it down into a structured, sequential, and complete development plan. Your output must be a single JSON object, containing:
 
-**Part 1: Enhance the User's Idea**
-First, analyze the user's idea. If it is vague, incomplete, or could be improved, enhance it. Flesh out the concept, consider potential edge cases, and clarify the core features. The goal is to create a more robust and well-defined project description. The enhanced idea should be a clear, actionable summary that can be used to generate the development plan. Set this improved description in the 'enhancedIdea' field of your response.
+1. **enhancedIdea**:  
+   A clear, fleshed-out summary of the user’s concept, with edge cases and core features clarified.
 
-**Part 2: Generate the Development Plan (Based on the Enhanced Idea)**
-Using the 'enhancedIdea' you just created, generate a complete, platform-agnostic development plan.
+2. **developmentPlan**:  
+   An array of strictly ordered steps—first all “Frontend” steps, then all “Backend” steps—each with these fields:
+   - **phase**: \`"Frontend"\` or \`"Backend"\`.  
+   - **title**: Short descriptive name.  
+   - **environment**: One of \`["Replit", "Blob", "Supabase", "Generic"]\`.  
+   - **dir**: (optional) The target directory or file path, e.g. \`"src/components"\` or \`"database/migrations"\`.  
+   - **command**: (optional) A shell or CLI command to run, e.g. \`"npx create-next-app --ts"\`.  
+   - **prompt**: A copy-and-paste–ready instruction block. It must begin with an environment tag in square brackets, include any CLI/install commands, file-paths, and end with “_Return only code, no explanations or markdown fences_.”  
+   - **mapFlow**: One sentence on how this step fits into the overall flow.  
+   - **timeEstimate**: (optional) e.g. \`"30m"\`, \`"2h"\`.  
+   - **complexity**: (optional) \`"low" | "medium" | "high"\`.
 
-1.  **Decompose into Phases**: Divide the project into a 'Frontend' phase and a 'Backend' phase. The steps must be strictly sequential. Generate all frontend steps first, then all backend steps.
-2.  **Create a Complete and Logical Story**: Generate a comprehensive list of actionable steps that tell a full development story from start to finish. Do not skip obvious prerequisites. For example, if a user profile page is needed, you must first generate steps for user registration and login. Think through the entire user journey and application logic.
-3.  **Define Actionable Steps**: For each step within a phase, provide:
-    *   'phase': "Frontend" or "Backend".
-    *   'title': A short, descriptive title for the task (e.g., "Design the Landing Page", "Create Login Form", "Set up User Authentication API").
-    *   'prompt': A detailed, copy-paste ready, and **platform-agnostic** prompt that a developer can use to accomplish the task.
-    *   'mapFlow': A brief, high-level explanation of the logic behind this prompt and how it fits into the overall plan.
+**Instructions for generation**  
+- Emit **only** the JSON object—no extra text.  
+- Use atomic, single-action steps (install, scaffold, write file, test).  
+- Always tag your prompts with \`[Platform: …]\` and \`[Dir: …]\` or \`[File: …]\` when writing code.  
+- End every \`prompt\` with:  
+  \`Return only the file contents, no markdown fences or extra commentary.\`  
 
-Here's the user's original idea to start with: {{{idea}}}`,
+Here’s the user’s original idea:  
+\`\`\`text
+{{{idea}}}
+\`\`\``,
 });
+
 
 const decomposeIdeaFlow = ai.defineFlow(
   {

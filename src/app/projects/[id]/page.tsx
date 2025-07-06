@@ -196,9 +196,7 @@ export default function ProjectPage() {
                       {frontendSteps.map((prompt) => (
                           <PromptCard 
                             key={prompt.id} 
-                            title={prompt.title}
-                            prompt={prompt.prompt}
-                            mapFlow={prompt.mapFlow}
+                            {...prompt}
                           />
                       ))}
                   </div>
@@ -234,9 +232,7 @@ export default function ProjectPage() {
                         {backendSteps.map((prompt) => (
                             <PromptCard 
                                 key={prompt.id} 
-                                title={prompt.title}
-                                prompt={prompt.prompt}
-                                mapFlow={prompt.mapFlow}
+                                {...prompt}
                             />
                         ))}
                     </div>

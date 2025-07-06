@@ -3,16 +3,24 @@
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Terminal, Folder, Clock, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
+import type { Prompt } from "@/lib/projects";
+import { PlatformIcon } from "./platform-icon";
+import { Badge } from "./ui/badge";
 
-type PromptCardProps = {
-  title: string;
-  prompt: string;
-  mapFlow: string;
-};
+type PromptCardProps = Prompt;
 
-export function PromptCard({ title, prompt, mapFlow }: PromptCardProps) {
+export function PromptCard({ 
+  title,
+  prompt,
+  mapFlow,
+  environment,
+  complexity,
+  timeEstimate,
+  command,
+  dir,
+}: PromptCardProps) {
   const { toast } = useToast();
   const [hasCopied, setHasCopied] = useState(false);
 
@@ -35,8 +43,13 @@ export function PromptCard({ title, prompt, mapFlow }: PromptCardProps) {
   return (
     <Card className="flex flex-col overflow-hidden transition-all hover:shadow-lg">
       <CardHeader className="flex flex-row items-start gap-4 space-y-0 bg-secondary/30">
+        <PlatformIcon platform={environment} className="h-6 w-6 text-muted-foreground mt-1" />
         <div className="flex-1">
           <CardTitle className="text-lg font-headline">{title}</CardTitle>
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-2">
+            {complexity && <Badge variant="outline" className="capitalize"><Zap className="mr-1 h-3 w-3"/>{complexity}</Badge>}
+            {timeEstimate && <Badge variant="outline"><Clock className="mr-1 h-3 w-3"/>{timeEstimate}</Badge>}
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -56,6 +69,22 @@ export function PromptCard({ title, prompt, mapFlow }: PromptCardProps) {
               <p className="font-semibold text-foreground/90 not-italic mb-1">Logic Map:</p>
               {mapFlow}
             </div>
+        )}
+        {(command || dir) && (
+          <div className="space-y-2 text-sm">
+            {command && (
+              <div className="flex items-center gap-2 bg-muted p-2 rounded-md">
+                <Terminal className="h-4 w-4 text-muted-foreground" />
+                <code className="font-code text-muted-foreground">{command}</code>
+              </div>
+            )}
+            {dir && (
+               <div className="flex items-center gap-2 bg-muted p-2 rounded-md">
+                <Folder className="h-4 w-4 text-muted-foreground" />
+                <code className="font-code text-muted-foreground">{dir}</code>
+              </div>
+            )}
+          </div>
         )}
         <div className="bg-muted text-muted-foreground rounded-md p-3 h-full flex-grow">
           <pre className="whitespace-pre-wrap font-code text-sm">

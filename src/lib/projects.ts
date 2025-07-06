@@ -37,6 +37,11 @@ export interface Prompt {
     prompt: string;
     order: number;
     mapFlow: string;
+    environment: "Replit" | "Blob" | "Supabase" | "Generic";
+    dir?: string;
+    command?: string;
+    timeEstimate?: string;
+    complexity?: "low" | "medium" | "high";
 }
 
 // Internal function to get a project by ID without checking ownership
@@ -87,17 +92,14 @@ export const createProjectWithPrompts = async (
 
   // Step 2: Now that the project exists, create the prompts in a batch.
   // The security rules for prompts can now verify ownership via get().
-  if (plan.steps && plan.steps.length > 0) {
+  if (plan.developmentPlan && plan.developmentPlan.length > 0) {
     const batch = writeBatch(db);
     const promptsCollectionRef = collection(db, 'prompts');
-    plan.steps.forEach((step, index) => {
+    plan.developmentPlan.forEach((step, index) => {
       const promptDocRef = doc(promptsCollectionRef);
       batch.set(promptDocRef, {
+        ...step,
         projectId: projectId,
-        phase: step.phase,
-        title: step.title,
-        prompt: step.prompt,
-        mapFlow: step.mapFlow,
         order: index,
       });
     });

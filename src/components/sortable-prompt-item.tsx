@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { GripVertical, Pencil, Trash2 } from 'lucide-react';
 import type { Prompt } from '@/lib/projects';
+import { PlatformIcon } from './platform-icon';
 
 interface SortablePromptItemProps {
   prompt: Prompt;
@@ -37,13 +38,9 @@ export function SortablePromptItem({ prompt, onEdit, onDelete }: SortablePromptI
           <Button variant="ghost" size="icon" className="cursor-grab touch-none" {...listeners}>
             <GripVertical className="h-5 w-5 text-muted-foreground" />
           </Button>
+          <PlatformIcon platform={prompt.environment} className="h-5 w-5 text-muted-foreground flex-shrink-0" />
           <div className="flex-grow text-left overflow-hidden">
-            <p className="font-medium">{prompt.title}</p>
-            {prompt.mapFlow && (
-              <p className="text-xs text-muted-foreground mt-2 italic line-clamp-2">
-                {prompt.mapFlow}
-              </p>
-            )}
+            <p className="font-medium truncate">{prompt.title}</p>
             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
               {prompt.prompt}
             </p>

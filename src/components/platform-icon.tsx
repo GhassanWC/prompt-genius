@@ -17,6 +17,8 @@ export function PlatformIcon({ platform, ...props }: PlatformIconProps) {
       return <Heart {...props} />;
     case "blob":
       return <Database {...props} />;
+    case "supabase":
+      return <Database {...props} />;
     case "n8n":
       return <Workflow {...props} />;
     case "chatgpt":
