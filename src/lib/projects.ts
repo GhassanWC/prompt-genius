@@ -1,3 +1,5 @@
+'use server';
+
 import { db, storage } from '@/lib/firebase';
 import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
 import { generateImage } from '@/ai/flows/generate-image';

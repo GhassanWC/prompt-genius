@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { availableModels } from "@/ai/genkit";
+import { availableModels } from "@/ai/models";
 
 
 export default function NewProjectPage() {
