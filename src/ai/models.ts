@@ -10,4 +10,5 @@ export interface ModelDefinition {
 
 export const allAvailableModels: ModelDefinition[] = [
     { id: 'googleai/gemini-2.0-flash', name: 'Gemini 2.0 Flash', provider: 'Google AI' },
+    { id: 'googleai/gemini-pro', name: 'Gemini Pro', provider: 'Google AI' },
 ];

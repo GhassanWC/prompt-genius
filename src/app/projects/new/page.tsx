@@ -13,6 +13,9 @@ import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { getAvailableModels } from "@/ai/flows/get-available-models";
+import type { ModelDefinition } from "@/ai/models";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 export default function NewProjectPage() {
@@ -24,31 +27,52 @@ export default function NewProjectPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  const [selectedModel, setSelectedModel] = useState<string>('');
+  const [availableModels, setAvailableModels] = useState<ModelDefinition[]>([]);
+  const [loadingModels, setLoadingModels] = useState(true);
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
     }
   }, [user, authLoading, router]);
 
+  useEffect(() => {
+    async function fetchModels() {
+        if (!user) return;
+        setLoadingModels(true);
+        try {
+            const models = await getAvailableModels();
+            setAvailableModels(models);
+            if (models.length > 0) {
+                setSelectedModel(models[0].id); // Default to the first available model
+            }
+        } catch (error) {
+            console.error("Failed to fetch available models:", error);
+            setError("Could not load AI models. Please check your API key and configuration.");
+        } finally {
+            setLoadingModels(false);
+        }
+    }
+    fetchModels();
+  }, [user]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!idea.trim() || !projectName.trim() || isLoading || !user) return;
+    if (!idea.trim() || !projectName.trim() || isLoading || !user || !selectedModel) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      // Generate the plan first. The flow will use the default model.
-      const plan = await decomposeIdea({ idea });
+      // Generate the plan first, passing the selected model
+      const plan = await decomposeIdea({ idea, model: selectedModel });
       
-      // Create the project and prompts (this is now much faster)
+      // Create the project and prompts
       const projectId = await createProjectWithPrompts(user.uid, projectName, plan.enhancedIdea, plan);
 
       // Fire-and-forget the image generation. Do not `await` it.
-      // The user is redirected immediately while this runs in the background.
       generateAndSaveProjectImage(user.uid, projectId, plan.enhancedIdea).catch(err => {
-        // Log error to console. The user won't see this, which is fine,
-        // as this is a non-critical background task.
         console.error("Failed to generate project image in the background:", err);
       });
       
@@ -116,11 +140,40 @@ export default function NewProjectPage() {
             />
           </div>
           
+          <div className="space-y-2">
+            <Label htmlFor="model-select" className="text-lg font-medium">AI Model</Label>
+            <Select
+              value={selectedModel}
+              onValueChange={setSelectedModel}
+              disabled={isLoading || loadingModels || availableModels.length === 0}
+            >
+              <SelectTrigger id="model-select" className="p-4 text-base h-auto">
+                <SelectValue placeholder={loadingModels ? "Loading models..." : "Select a model"} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableModels.length > 0 ? (
+                  availableModels.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{model.name}</span>
+                        <span className="text-xs text-muted-foreground">({model.provider})</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-models" disabled>
+                    {loadingModels ? "Loading..." : "No configured models found."}
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          
           <Button 
             type="submit" 
             className="w-full text-lg py-6"
             size="lg"
-            disabled={isLoading || !idea.trim() || !projectName.trim()}
+            disabled={isLoading || !idea.trim() || !projectName.trim() || !selectedModel}
           >
             {isLoading ? (
               <>
