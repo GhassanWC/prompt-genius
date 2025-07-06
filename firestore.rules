@@ -1,0 +1,29 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Projects: Users can only manage their own projects.
+    match /projects/{projectId} {
+      allow read, update, delete: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth.uid == request.resource.data.userId;
+    }
+
+    // Prompts: Can only be managed by the owner of the parent project.
+    // We verify ownership by fetching the project document.
+    match /prompts/{promptId} {
+      // Create checks the incoming document's projectId.
+      allow create: if get(/databases/$(database)/documents/projects/$(request.resource.data.projectId)).data.userId == request.auth.uid;
+      // Read, update, and delete checks the existing document's projectId.
+      allow read, update, delete: if get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.userId == request.auth.uid;
+    }
+
+    // Feedback: Authenticated users can submit feedback.
+    // To protect privacy, users cannot read, update, or delete feedback entries.
+    match /feedback/{feedbackId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if false;
+    }
+  }
+}
