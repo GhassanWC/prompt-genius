@@ -51,7 +51,7 @@ export function PromptCard({
 
   return (
     <Card className={cn(
-        "flex flex-col overflow-hidden transition-all hover:shadow-lg",
+        "flex flex-col overflow-hidden transition-all hover:shadow-lg card-for-print",
         isDone && "bg-secondary/30 opacity-70"
     )}>
       <CardHeader className="flex flex-row items-start gap-4 space-y-0 bg-secondary/50 p-4">
@@ -65,7 +65,7 @@ export function PromptCard({
             {timeEstimate && <Badge variant="outline"><Clock className="mr-1 h-3 w-3"/>{timeEstimate}</Badge>}
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 checkbox-for-print">
            <Checkbox 
             id={`done-${id}`}
             checked={!!isDone}
@@ -89,7 +89,7 @@ export function PromptCard({
             size="icon"
             onClick={handleCopy}
             aria-label="Copy prompt"
-            className="h-8 w-8 absolute top-2 right-2 flex-shrink-0 text-muted-foreground hover:text-accent-foreground"
+            className="h-8 w-8 absolute top-2 right-2 flex-shrink-0 text-muted-foreground hover:text-accent-foreground no-print"
           >
             {hasCopied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
           </Button>

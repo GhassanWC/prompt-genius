@@ -8,7 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { type Project, type Prompt as PromptType, type Role } from '@/lib/projects';
 import { getProject, getPromptsForProject, updatePromptStatus } from '@/lib/project-client';
-import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Download } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import { PromptCard } from '@/components/prompt-card';
@@ -125,7 +125,7 @@ export default function ProjectPage() {
   return (
     <>
     <div className="min-h-screen bg-background text-foreground">
-       <header className="container mx-auto px-4 py-4 flex justify-between items-center border-b">
+       <header className="container mx-auto px-4 py-4 flex justify-between items-center border-b no-print">
          <Link href="/" className="flex items-center gap-2">
             <Logo className="h-8 w-8 text-primary" />
              <h1 className="font-headline text-xl font-bold tracking-tight hidden sm:block">
@@ -136,12 +136,16 @@ export default function ProjectPage() {
       </header>
 
       <main className="container mx-auto px-4 pb-8 md:pb-16">
-        <div className="my-6 flex justify-between items-center gap-4">
+        <div className="my-6 flex justify-between items-center gap-4 no-print">
             <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
             </Link>
             <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => window.print()}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+              </Button>
               {userRole === 'owner' && (
                 <Button variant="outline" onClick={() => setShareDialogOpen(true)}>
                   <Users className="mr-2 h-4 w-4" />
@@ -160,7 +164,7 @@ export default function ProjectPage() {
         </div>
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center mt-6">
           {project?.imageUrl && (
-            <div className="relative w-full h-64 md:h-80 mb-8 rounded-xl overflow-hidden shadow-lg">
+            <div className="relative w-full h-64 md:h-80 mb-8 rounded-xl overflow-hidden shadow-lg no-print">
               <Image
                 src={project.imageUrl}
                 alt={project.name ?? 'Project image'}
