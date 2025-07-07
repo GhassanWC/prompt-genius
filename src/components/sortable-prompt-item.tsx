@@ -5,9 +5,8 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Pencil, Trash2 } from 'lucide-react';
+import { GripVertical, Pencil, Trash2, MessageSquareQuote } from 'lucide-react';
 import type { Prompt } from '@/lib/projects';
-import { PlatformIcon } from './platform-icon';
 import { cn } from '@/lib/utils';
 
 interface SortablePromptItemProps {
@@ -41,11 +40,11 @@ export function SortablePromptItem({ prompt, onEdit, onDelete, isReadOnly = fals
           <Button variant="ghost" size="icon" className={cn("touch-none", isReadOnly ? "cursor-not-allowed" : "cursor-grab")} {...listeners} disabled={isReadOnly}>
             <GripVertical className="h-5 w-5 text-muted-foreground" />
           </Button>
-          <PlatformIcon platform={prompt.environment} className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+          <MessageSquareQuote className="h-5 w-5 text-muted-foreground flex-shrink-0" />
           <div className="flex-grow text-left overflow-hidden">
             <p className="font-medium truncate">{prompt.title}</p>
             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-              {prompt.prompt}
+              {prompt.userPrompt}
             </p>
           </div>
           <Button variant="ghost" size="icon" onClick={() => onEdit(prompt)} disabled={isReadOnly}>

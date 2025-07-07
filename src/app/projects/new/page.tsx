@@ -42,7 +42,7 @@ export default function NewProjectPage() {
       const plan = await decomposeIdea({ idea });
       
       // Step 2: Create the project and prompts from the client, which is authenticated
-      const projectId = await createProjectWithPrompts(user.uid, projectName, plan.enhancedIdea, plan);
+      const projectId = await createProjectWithPrompts(user.uid, projectName, plan);
 
       // Step 3: Fire-and-forget the image generation. This is now a client-side function
       // that calls an AI flow and then handles the upload and DB update itself.

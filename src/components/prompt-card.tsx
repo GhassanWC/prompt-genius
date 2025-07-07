@@ -5,10 +5,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, Check, Terminal, Folder, Clock, Zap, CheckCircle } from "lucide-react";
+import { Copy, Check, Clock, Zap, CheckCircle, MessageSquareQuote } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { Prompt } from "@/lib/projects";
-import { PlatformIcon } from "./platform-icon";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -20,13 +19,10 @@ type PromptCardProps = Prompt & {
 export function PromptCard({ 
   id,
   title,
-  prompt,
+  userPrompt,
   mapFlow,
-  environment,
   complexity,
   timeEstimate,
-  command,
-  dir,
   isDone,
   acceptanceCriteria,
   onStatusChange,
@@ -36,7 +32,7 @@ export function PromptCard({
   const [hasCopied, setHasCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(prompt);
+    navigator.clipboard.writeText(userPrompt);
     setHasCopied(true);
     toast({
       title: "Prompt Copied!",
@@ -57,7 +53,7 @@ export function PromptCard({
         isDone && "bg-secondary/30 opacity-70"
     )}>
       <CardHeader className="flex flex-row items-start gap-4 space-y-0 bg-secondary/50">
-        <PlatformIcon platform={environment} className="h-6 w-6 text-muted-foreground mt-1" />
+        <MessageSquareQuote className="h-6 w-6 text-muted-foreground mt-1 flex-shrink-0" />
         <div className="flex-1">
           <CardTitle className={cn("text-lg font-headline", isDone && "line-through")}>{title}</CardTitle>
           <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-2">
@@ -74,15 +70,6 @@ export function PromptCard({
             aria-label="Mark as done"
             disabled={isReadOnly}
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleCopy}
-            aria-label="Copy prompt"
-            className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-accent-foreground"
-          >
-            {hasCopied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
-          </Button>
         </div>
       </CardHeader>
       <CardContent className="p-4 flex-1 flex flex-col gap-4">
@@ -92,6 +79,21 @@ export function PromptCard({
               {mapFlow}
             </div>
         )}
+        <div className="bg-muted text-muted-foreground rounded-md p-3 h-full flex-grow relative">
+           <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCopy}
+            aria-label="Copy prompt"
+            className="h-8 w-8 absolute top-2 right-2 flex-shrink-0 text-muted-foreground hover:text-accent-foreground"
+          >
+            {hasCopied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
+          </Button>
+          <p className="font-semibold text-foreground/90 mb-2">User Prompt:</p>
+          <p className="whitespace-pre-wrap text-sm pr-10">
+            {userPrompt}
+          </p>
+        </div>
         {acceptanceCriteria && acceptanceCriteria.length > 0 && (
           <div className="text-sm space-y-2">
             <p className="font-semibold text-foreground/90">Acceptance Criteria:</p>
@@ -105,27 +107,6 @@ export function PromptCard({
             </ul>
           </div>
         )}
-        {(command || dir) && (
-          <div className="space-y-2 text-sm">
-            {command && (
-              <div className="flex items-center gap-2 bg-muted p-2 rounded-md">
-                <Terminal className="h-4 w-4 text-muted-foreground" />
-                <code className="font-code text-muted-foreground">{command}</code>
-              </div>
-            )}
-            {dir && (
-               <div className="flex items-center gap-2 bg-muted p-2 rounded-md">
-                <Folder className="h-4 w-4 text-muted-foreground" />
-                <code className="font-code text-muted-foreground">{dir}</code>
-              </div>
-            )}
-          </div>
-        )}
-        <div className="bg-muted text-muted-foreground rounded-md p-3 h-full flex-grow">
-          <pre className="whitespace-pre-wrap font-code text-sm">
-            <code>{prompt}</code>
-          </pre>
-        </div>
       </CardContent>
     </Card>
   );

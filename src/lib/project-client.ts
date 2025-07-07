@@ -20,7 +20,7 @@ import {
 import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage';
 import { generateImage } from '@/ai/flows/generate-image';
 import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
-import type { Project, Prompt, Role } from './projects';
+import type { Project, Prompt, Role, Collaborator } from './projects';
 
 
 // Function to get all projects for a user
@@ -40,7 +40,8 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         idea: data.idea || '',
         imageUrl: data.imageUrl,
         createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
-        roles: data.roles || {}
+        roles: data.roles || {},
+        clarificationSteps: data.clarificationSteps,
       });
     });
 
@@ -76,7 +77,8 @@ export const getProject = async (userId: string, projectId: string): Promise<Pro
                 idea: data.idea || '',
                 imageUrl: data.imageUrl,
                 createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
-                roles: data.roles
+                roles: data.roles,
+                clarificationSteps: data.clarificationSteps,
             };
         }
     }
@@ -115,12 +117,12 @@ export const getProjectRole = async (userId: string, projectId: string): Promise
 export const createProjectWithPrompts = async (
   userId: string,
   projectName: string,
-  enhancedIdea: string,
   plan: DecomposeIdeaOutput
 ): Promise<string> => {
   const projectDocRef = await addDoc(collection(db, 'projects'), {
     name: projectName,
-    idea: enhancedIdea,
+    idea: plan.enhancedIdea,
+    clarificationSteps: plan.clarificationSteps || [],
     imageUrl: null,
     createdAt: serverTimestamp(),
     roles: {

@@ -24,10 +24,8 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
   
   const [title, setTitle] = useState('');
   const [mapFlow, setMapFlow] = useState('');
-  const [promptText, setPromptText] = useState('');
-  const [environment, setEnvironment] = useState<Prompt['environment']>('Generic');
-  const [dir, setDir] = useState('');
-  const [command, setCommand] = useState('');
+  const [userPrompt, setUserPrompt] = useState('');
+  const [phase, setPhase] = useState<Prompt['phase'] | undefined>(undefined);
   const [timeEstimate, setTimeEstimate] = useState('');
   const [complexity, setComplexity] = useState<Prompt['complexity'] | undefined>(undefined);
   const [acceptanceCriteria, setAcceptanceCriteria] = useState('');
@@ -35,10 +33,8 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
   const resetState = () => {
     setTitle('');
     setMapFlow('');
-    setPromptText('');
-    setEnvironment('Generic');
-    setDir('');
-    setCommand('');
+    setUserPrompt('');
+    setPhase(undefined);
     setTimeEstimate('');
     setComplexity(undefined);
     setAcceptanceCriteria('');
@@ -48,10 +44,8 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
     if (open && prompt) {
       setTitle(prompt.title || '');
       setMapFlow(prompt.mapFlow || '');
-      setPromptText(prompt.prompt || '');
-      setEnvironment(prompt.environment || 'Generic');
-      setDir(prompt.dir || '');
-      setCommand(prompt.command || '');
+      setUserPrompt(prompt.userPrompt || '');
+      setPhase(prompt.phase || undefined);
       setTimeEstimate(prompt.timeEstimate || '');
       setComplexity(prompt.complexity || undefined);
       setAcceptanceCriteria(prompt.acceptanceCriteria?.join('\n') || '');
@@ -61,11 +55,11 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
   }, [prompt, open]);
 
   const handleSave = () => {
-    if (!title.trim() || !promptText.trim()) {
+    if (!title.trim() || !userPrompt.trim()) {
       toast({
         variant: "destructive",
         title: "Validation Error",
-        description: "Title and Prompt fields cannot be empty.",
+        description: "Title and User Prompt fields cannot be empty.",
       });
       return;
     }
@@ -74,10 +68,8 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
       ...prompt,
       title,
       mapFlow,
-      prompt: promptText,
-      environment,
-      dir: dir || undefined,
-      command: command || undefined,
+      userPrompt,
+      phase,
       timeEstimate: timeEstimate || undefined,
       complexity: complexity || undefined,
       acceptanceCriteria: acceptanceCriteria.split('\n').filter(line => line.trim() !== ''),
@@ -100,14 +92,12 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
            </div>
 
           <div className="space-y-2">
-            <Label htmlFor="environment">Environment</Label>
-            <Select value={environment} onValueChange={(v) => setEnvironment(v as Prompt['environment'])}>
-                <SelectTrigger id="environment"><SelectValue placeholder="Select an environment" /></SelectTrigger>
+            <Label htmlFor="phase">Phase</Label>
+            <Select value={phase} onValueChange={(v) => setPhase(v as Prompt['phase'])}>
+                <SelectTrigger id="phase"><SelectValue placeholder="Select a phase" /></SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="Generic">Generic</SelectItem>
-                    <SelectItem value="Replit">Replit</SelectItem>
-                    <SelectItem value="Blob">Blob</SelectItem>
-                    <SelectItem value="Supabase">Supabase</SelectItem>
+                    <SelectItem value="Frontend">Frontend</SelectItem>
+                    <SelectItem value="Backend">Backend</SelectItem>
                 </SelectContent>
             </Select>
           </div>
@@ -124,16 +114,6 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="dir">Directory / Path</Label>
-            <Input id="dir" value={dir} onChange={(e) => setDir(e.target.value)} placeholder="e.g., src/components/auth" />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="command">Command</Label>
-            <Input id="command" value={command} onChange={(e) => setCommand(e.target.value)} placeholder="e.g., npm install react-hook-form" />
-          </div>
-
            <div className="space-y-2">
             <Label htmlFor="time">Time Estimate</Label>
             <Input id="time" value={timeEstimate} onChange={(e) => setTimeEstimate(e.target.value)} placeholder="e.g., 30m, 1h" />
@@ -144,6 +124,10 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
                 <Label htmlFor="mapflow-text">Logic Map</Label>
                 <Textarea id="mapflow-text" value={mapFlow} onChange={(e) => setMapFlow(e.target.value)} className="min-h-[80px]" placeholder="Explain the logic behind this prompt..." />
               </div>
+               <div className="space-y-2">
+                <Label htmlFor="userprompt-text">User Prompt</Label>
+                <Textarea id="userprompt-text" value={userPrompt} onChange={(e) => setUserPrompt(e.target.value)} className="min-h-[160px]" placeholder="Enter the plain-English user prompt..." />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="acceptance-criteria-text">Acceptance Criteria (one per line)</Label>
                 <Textarea 
@@ -153,10 +137,6 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
                     className="min-h-[100px]" 
                     placeholder="e.g., Renders on mobile&#x0a;Handles empty state" 
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="prompt-text">Prompt</Label>
-                <Textarea id="prompt-text" value={promptText} onChange={(e) => setPromptText(e.target.value)} className="min-h-[160px]" placeholder="Enter the detailed prompt..." />
               </div>
            </div>
         </div>

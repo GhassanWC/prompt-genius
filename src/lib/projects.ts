@@ -13,6 +13,10 @@ export interface Collaborator {
   role: Role;
 }
 
+export interface ClarificationStep {
+    step: number;
+    userPrompt: string;
+}
 
 // Type for a project
 export interface Project {
@@ -21,22 +25,19 @@ export interface Project {
   idea: string;
   imageUrl?: string;
   createdAt: Date;
-  roles: Record<string, Role>; // نقش ها
+  roles: Record<string, Role>;
+  clarificationSteps?: ClarificationStep[];
 }
 
 // Type for a prompt
 export interface Prompt {
     id: string;
-    // projectId is now implicit via subcollection path
     phase: string;
     title: string;
-    prompt: string;
+    userPrompt: string;
     order: number;
     mapFlow: string;
-    environment: "Replit" | "Blob" | "Supabase" | "Generic";
     isDone?: boolean;
-    dir?: string;
-    command?: string;
     timeEstimate?: string;
     complexity?: "low" | "medium" | "high";
     acceptanceCriteria?: string[];

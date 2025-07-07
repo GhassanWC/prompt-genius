@@ -8,15 +8,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { type Project, type Prompt as PromptType, type Role } from '@/lib/projects';
 import { getProject, getPromptsForProject, updatePromptStatus } from '@/lib/project-client';
-import { Loader2, ArrowLeft, AlertTriangle, Pencil, Copy, Check, Users } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import { PromptCard } from '@/components/prompt-card';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Textarea } from '@/components/ui/textarea';
 import { ShareDialog } from '@/components/share-dialog';
 
 export default function ProjectPage() {
@@ -31,9 +29,6 @@ export default function ProjectPage() {
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<Role | null>(null);
   const [isShareDialogOpen, setShareDialogOpen] = useState(false);
-
-  const [frontendMagicCopied, setFrontendMagicCopied] = useState(false);
-  const [backendMagicCopied, setBackendMagicCopied] = useState(false);
 
   const projectId = params.id as string;
 
@@ -102,32 +97,8 @@ export default function ProjectPage() {
     }
   };
 
-
-  const handleCopyMagic = (text: string, type: 'frontend' | 'backend') => {
-    navigator.clipboard.writeText(text);
-    if (type === 'frontend') {
-      setFrontendMagicCopied(true);
-      setTimeout(() => setFrontendMagicCopied(false), 2500);
-    } else {
-      setBackendMagicCopied(true);
-      setTimeout(() => setBackendMagicCopied(false), 2500);
-    }
-    toast({
-      title: "Combined Prompt Copied!",
-      description: `The combined ${type} prompt is on your clipboard.`,
-    });
-  };
-
   const frontendSteps = prompts.filter(p => p.phase === 'Frontend') || [];
   const backendSteps = prompts.filter(p => p.phase === 'Backend') || [];
-
-  const frontendMagicPrompt = frontendSteps
-    .map((p, index) => `--- Step ${index + 1}: ${p.title} ---\n\n${p.prompt}`)
-    .join('\n\n');
-
-  const backendMagicPrompt = backendSteps
-    .map((p, index) => `--- Step ${index + 1}: ${p.title} ---\n\n${p.prompt}`)
-    .join('\n\n');
 
   const canEdit = userRole === 'owner' || userRole === 'editor';
 
@@ -215,28 +186,6 @@ export default function ProjectPage() {
               {frontendSteps.length > 0 && (
                 <div className="space-y-6">
                   <h3 className="text-2xl font-bold font-headline text-center">Frontend Phase</h3>
-                  <Accordion type="single" collapsible className="w-full bg-card border rounded-lg">
-                    <AccordionItem value="item-1" className="border-b-0">
-                      <AccordionTrigger className="px-4 hover:no-underline">Show Combined Frontend Prompt</AccordionTrigger>
-                      <AccordionContent className="px-4">
-                        <div className="relative">
-                          <Textarea
-                            readOnly
-                            value={frontendMagicPrompt}
-                            className="h-64 font-code text-sm bg-muted"
-                          />
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="absolute top-2 right-2 h-8 w-8"
-                            onClick={() => handleCopyMagic(frontendMagicPrompt, 'frontend')}
-                          >
-                            {frontendMagicCopied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
-                          </Button>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
                   <div className="grid gap-6 md:grid-cols-2">
                       {frontendSteps.map((prompt) => (
                           <PromptCard 
@@ -253,28 +202,6 @@ export default function ProjectPage() {
               {backendSteps.length > 0 && (
                   <div className="space-y-6">
                     <h3 className="text-2xl font-bold font-headline text-center">Backend Phase</h3>
-                    <Accordion type="single" collapsible className="w-full bg-card border rounded-lg">
-                      <AccordionItem value="item-1" className="border-b-0">
-                        <AccordionTrigger className="px-4 hover:no-underline">Show Combined Backend Prompt</AccordionTrigger>
-                        <AccordionContent className="px-4">
-                          <div className="relative">
-                            <Textarea
-                              readOnly
-                              value={backendMagicPrompt}
-                              className="h-64 font-code text-sm bg-muted"
-                            />
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="absolute top-2 right-2 h-8 w-8"
-                              onClick={() => handleCopyMagic(backendMagicPrompt, 'backend')}
-                            >
-                              {backendMagicCopied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
-                            </Button>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
                     <div className="grid gap-6 md:grid-cols-2">
                         {backendSteps.map((prompt) => (
                             <PromptCard 

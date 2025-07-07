@@ -16,15 +16,18 @@ const DecomposeIdeaInputSchema = z.object({
 export type DecomposeIdeaInput = z.infer<typeof DecomposeIdeaInputSchema>;
 
 const DecomposeIdeaOutputSchema = z.object({
+  clarificationSteps: z.array(
+    z.object({
+        step: z.number().describe('The step number.'),
+        userPrompt: z.string().describe('A plain-English question for the user to clarify ambiguity.'),
+    })
+  ).describe('A list of questions to ask the user to clarify the project idea.'),
   enhancedIdea: z.string().describe('An improved and more detailed version of the original user idea, suitable for generating a development plan.'),
   developmentPlan: z.array(
     z.object({
       phase: z.string().describe('The development phase, either "Frontend" or "Backend".'),
       title: z.string().describe('A short title for the step.'),
-      environment: z.enum(["Replit", "Blob", "Supabase", "Generic"]).describe('The target environment for the step.'),
-      dir: z.string().optional().describe('The target directory or file path.'),
-      command: z.string().optional().describe('A shell or CLI command to run.'),
-      prompt: z.string().describe('A copy-paste ready, platform-agnostic prompt.'),
+      userPrompt: z.string().describe('A simple English instruction the user can use in any AI builder chat.'),
       mapFlow: z.string().describe('A brief, high-level explanation of the logic behind this prompt and how it fits into the overall plan.'),
       timeEstimate: z.string().optional().describe('An estimate of the time required for the step.'),
       complexity: z.enum(["low", "medium", "high"]).optional().describe('The complexity of the step.'),
@@ -42,33 +45,35 @@ const decomposeIdeaPrompt = ai.definePrompt({
   name: 'decomposeIdeaPrompt',
   input: {schema: DecomposeIdeaInputSchema},
   output: {schema: DecomposeIdeaOutputSchema},
-  prompt: `You are an expert project manager and software architect. Your task is to take a user’s project idea, refine it, and then break it down into a structured, sequential, and complete development plan. Your output must be a single JSON object, containing:
+  prompt: `You are an expert project manager and software architect. Your task is to take a user’s project idea (in plain English), clarify any ambiguities, refine it, and then break it down into a structured, sequential, and complete development plan. All prompts you generate must be simple, natural-language instructions—no code, commands, or technical details.
 
-1. **enhancedIdea**:  
-   A clear, fleshed-out summary of the user’s concept, with edge cases and core features clarified.
+**Emit only a single JSON object** with these top-level fields:
 
-2. **developmentPlan**:  
-   An array of strictly ordered steps—first all “Frontend” steps, then all “Backend” steps—each with these fields:
-   - **phase**: \`"Frontend"\` or \`"Backend"\`.  
-   - **title**: Short descriptive name.  
-   - **environment**: One of \`["Replit", "Blob", "Supabase", "Generic"]\`.  
-   - **dir**: (optional) The target directory or file path, e.g. \`"src/components"\` or \`"database/migrations"\`.  
-   - **command**: (optional) A shell or CLI command to run, e.g. \`"npx create-next-app --ts"\`.  
-   - **prompt**: A copy-and-paste–ready instruction block. It must begin with an environment tag in square brackets, include any CLI/install commands, file-paths, and end with “_Return only code, no explanations or markdown fences_.”  
-   - **mapFlow**: One sentence on how this step fits into the overall flow.  
-   - **timeEstimate**: (optional) e.g. \`"30m"\`, \`"2h"\`.  
-   - **complexity**: (optional) \`"low" | "medium" | "high"\`.
-   - **acceptanceCriteria**: (optional) A bullet-point list of what "done" looks like for this step. For example: ["Renders correctly on mobile & desktop", "Shows 'No results' state", "Error message if Firestore query fails"].
+1. **clarificationSteps**:  
+   An array of 1–3 objects, each with:  
+   - **step**: integer (1, 2, …)  
+   - **userPrompt**: a plain-English question the user can answer to remove ambiguity  
 
-**Instructions for generation**  
-- Emit **only** the JSON object—no extra text.  
-- Use atomic, single-action steps (install, scaffold, write file, test).  
-- Always tag your prompts with \`[Platform: …]\` and \`[Dir: …]\` or \`[File: …]\` when writing code.  
-- End every \`prompt\` with:  
-  \`Return only the file contents, no markdown fences or extra commentary.\`
-- For any data or schema step, include a small, concrete example in the prompt.
+2. **enhancedIdea**:  
+   A clear, fleshed-out summary of the user’s concept, including edge cases and core features, phrased in straightforward English.
 
-Here’s the user’s original idea:  
+3. **developmentPlan**:  
+   An array of strictly ordered, **atomic** steps—first all “Frontend,” then all “Backend.” Each step object must include:  
+   - **phase**: \`"Frontend"\` or \`"Backend"\`  
+   - **title**: a short descriptive name  
+   - **userPrompt**: a simple English instruction the user can paste verbatim into any AI builder chat to accomplish that task  
+   - **mapFlow**: one sentence explaining how this step fits into the overall project story  
+   - **timeEstimate** (optional): e.g. \`"30m"\`, \`"2h"\`  
+   - **complexity** (optional): \`"low" | "medium" | "high"\`  
+   - **acceptanceCriteria** (optional): an array of bullet-point strings describing what “done” looks like
+
+**Rules for generation**  
+- Emit **only** the JSON object—no extra text or fields.  
+- All prompts are in plain English; do not include any code, CLI commands, file paths, or technical jargon.  
+- Use atomic, single-action steps (e.g. “Design the signup page,” “Add email/password validation”).  
+- Ensure the sequence covers every prerequisite in order.
+
+Here is the user’s original idea:  
 \`\`\`text
 {{{idea}}}
 \`\`\``,
