@@ -30,6 +30,7 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
   const [command, setCommand] = useState('');
   const [timeEstimate, setTimeEstimate] = useState('');
   const [complexity, setComplexity] = useState<Prompt['complexity'] | undefined>(undefined);
+  const [acceptanceCriteria, setAcceptanceCriteria] = useState('');
 
   const resetState = () => {
     setTitle('');
@@ -40,6 +41,7 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
     setCommand('');
     setTimeEstimate('');
     setComplexity(undefined);
+    setAcceptanceCriteria('');
   }
   
   useEffect(() => {
@@ -52,6 +54,7 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
       setCommand(prompt.command || '');
       setTimeEstimate(prompt.timeEstimate || '');
       setComplexity(prompt.complexity || undefined);
+      setAcceptanceCriteria(prompt.acceptanceCriteria?.join('\n') || '');
     } else if (!open) {
       resetState();
     }
@@ -76,7 +79,8 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
       dir: dir || undefined,
       command: command || undefined,
       timeEstimate: timeEstimate || undefined,
-      complexity: complexity || undefined
+      complexity: complexity || undefined,
+      acceptanceCriteria: acceptanceCriteria.split('\n').filter(line => line.trim() !== ''),
     });
     onOpenChange(false);
   }
@@ -139,6 +143,16 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
               <div className="space-y-2">
                 <Label htmlFor="mapflow-text">Logic Map</Label>
                 <Textarea id="mapflow-text" value={mapFlow} onChange={(e) => setMapFlow(e.target.value)} className="min-h-[80px]" placeholder="Explain the logic behind this prompt..." />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="acceptance-criteria-text">Acceptance Criteria (one per line)</Label>
+                <Textarea 
+                    id="acceptance-criteria-text" 
+                    value={acceptanceCriteria} 
+                    onChange={(e) => setAcceptanceCriteria(e.target.value)} 
+                    className="min-h-[100px]" 
+                    placeholder="e.g., Renders on mobile&#x0a;Handles empty state" 
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="prompt-text">Prompt</Label>

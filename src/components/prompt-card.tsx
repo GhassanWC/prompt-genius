@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, Check, Terminal, Folder, Clock, Zap } from "lucide-react";
+import { Copy, Check, Terminal, Folder, Clock, Zap, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { Prompt } from "@/lib/projects";
 import { PlatformIcon } from "./platform-icon";
@@ -28,6 +28,7 @@ export function PromptCard({
   command,
   dir,
   isDone,
+  acceptanceCriteria,
   onStatusChange,
   isReadOnly = false,
 }: PromptCardProps) {
@@ -90,6 +91,19 @@ export function PromptCard({
               <p className="font-semibold text-foreground/90 not-italic mb-1">Logic Map:</p>
               {mapFlow}
             </div>
+        )}
+        {acceptanceCriteria && acceptanceCriteria.length > 0 && (
+          <div className="text-sm space-y-2">
+            <p className="font-semibold text-foreground/90">Acceptance Criteria:</p>
+            <ul className="space-y-1.5 pl-1">
+              {acceptanceCriteria.map((criterion, index) => (
+                <li key={index} className="flex items-start gap-2 text-muted-foreground">
+                  <CheckCircle className="h-4 w-4 mt-0.5 text-green-500 flex-shrink-0" />
+                  <span>{criterion}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
         {(command || dir) && (
           <div className="space-y-2 text-sm">

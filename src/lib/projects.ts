@@ -1,4 +1,3 @@
-
 // This file is now used only for shared type definitions.
 // All database interaction logic has been moved to `src/lib/project-client.ts`
 // to ensure that write operations are executed from the authenticated client,
@@ -40,4 +39,5 @@ export interface Prompt {
     command?: string;
     timeEstimate?: string;
     complexity?: "low" | "medium" | "high";
+    acceptanceCriteria?: string[];
 }

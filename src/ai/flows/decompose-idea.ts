@@ -28,6 +28,7 @@ const DecomposeIdeaOutputSchema = z.object({
       mapFlow: z.string().describe('A brief, high-level explanation of the logic behind this prompt and how it fits into the overall plan.'),
       timeEstimate: z.string().optional().describe('An estimate of the time required for the step.'),
       complexity: z.enum(["low", "medium", "high"]).optional().describe('The complexity of the step.'),
+      acceptanceCriteria: z.array(z.string()).optional().describe('A list of conditions that must be met for the step to be considered complete.'),
     })
   ),
 });
@@ -57,13 +58,15 @@ const decomposeIdeaPrompt = ai.definePrompt({
    - **mapFlow**: One sentence on how this step fits into the overall flow.  
    - **timeEstimate**: (optional) e.g. \`"30m"\`, \`"2h"\`.  
    - **complexity**: (optional) \`"low" | "medium" | "high"\`.
+   - **acceptanceCriteria**: (optional) A bullet-point list of what "done" looks like for this step. For example: ["Renders correctly on mobile & desktop", "Shows 'No results' state", "Error message if Firestore query fails"].
 
 **Instructions for generation**  
 - Emit **only** the JSON object—no extra text.  
 - Use atomic, single-action steps (install, scaffold, write file, test).  
 - Always tag your prompts with \`[Platform: …]\` and \`[Dir: …]\` or \`[File: …]\` when writing code.  
 - End every \`prompt\` with:  
-  \`Return only the file contents, no markdown fences or extra commentary.\`  
+  \`Return only the file contents, no markdown fences or extra commentary.\`
+- For any data or schema step, include a small, concrete example in the prompt.
 
 Here’s the user’s original idea:  
 \`\`\`text
