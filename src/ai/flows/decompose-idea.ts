@@ -25,7 +25,6 @@ const DecomposeIdeaOutputSchema = z.object({
   enhancedIdea: z.string().describe('An improved and more detailed version of the original user idea, suitable for generating a development plan.'),
   developmentPlan: z.array(
     z.object({
-      phase: z.string().describe('The development phase, either "Frontend" or "Backend".'),
       title: z.string().describe('A short title for the step.'),
       userPrompt: z.string().describe('A simple English instruction the user can use in any AI builder chat.'),
       mapFlow: z.string().describe('A brief, high-level explanation of the logic behind this prompt and how it fits into the overall plan.'),
@@ -58,8 +57,7 @@ const decomposeIdeaPrompt = ai.definePrompt({
    A clear, fleshed-out summary of the user’s concept, including edge cases and core features, phrased in straightforward English.
 
 3. **developmentPlan**:  
-   An array of strictly ordered, **atomic** steps—first all “Frontend,” then all “Backend.” Each step object must include:  
-   - **phase**: \`"Frontend"\` or \`"Backend"\`  
+   An array of strictly ordered, **atomic** steps that create a full end-to-end plan. Each step object must include:
    - **title**: a short descriptive name  
    - **userPrompt**: a simple English instruction the user can paste verbatim into any AI builder chat to accomplish that task  
    - **mapFlow**: one sentence explaining how this step fits into the overall project story  

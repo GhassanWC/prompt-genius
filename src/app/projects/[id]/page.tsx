@@ -97,9 +97,6 @@ export default function ProjectPage() {
     }
   };
 
-  const frontendSteps = prompts.filter(p => p.phase === 'Frontend') || [];
-  const backendSteps = prompts.filter(p => p.phase === 'Backend') || [];
-
   const canEdit = userRole === 'owner' || userRole === 'editor';
 
   if (loading || authLoading || !user) {
@@ -183,11 +180,11 @@ export default function ProjectPage() {
         <div className="max-w-4xl mx-auto mt-12">
             <div className="space-y-10">
               
-              {frontendSteps.length > 0 && (
+              {prompts.length > 0 && (
                 <div className="space-y-6">
-                  <h3 className="text-2xl font-bold font-headline text-center">Frontend Phase</h3>
+                  <h3 className="text-2xl font-bold font-headline text-center">Development Plan</h3>
                   <div className="grid gap-6 md:grid-cols-2">
-                      {frontendSteps.map((prompt) => (
+                      {prompts.map((prompt) => (
                           <PromptCard 
                             key={prompt.id} 
                             {...prompt}
@@ -197,22 +194,6 @@ export default function ProjectPage() {
                       ))}
                   </div>
                 </div>
-              )}
-              
-              {backendSteps.length > 0 && (
-                  <div className="space-y-6">
-                    <h3 className="text-2xl font-bold font-headline text-center">Backend Phase</h3>
-                    <div className="grid gap-6 md:grid-cols-2">
-                        {backendSteps.map((prompt) => (
-                            <PromptCard 
-                                key={prompt.id} 
-                                {...prompt}
-                                isReadOnly={!canEdit}
-                                onStatusChange={handleTogglePromptStatus}
-                            />
-                        ))}
-                    </div>
-                  </div>
               )}
             </div>
         </div>

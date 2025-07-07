@@ -236,9 +236,8 @@ export const addPrompt = async (userId: string, projectId: string, promptData: O
     if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
     
     const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
-    const q = query(promptsCollectionRef, where("phase", "==", promptData.phase));
-    const phasePromptsSnapshot = await getDocs(q);
-    const newOrder = phasePromptsSnapshot.docs.length;
+    const allPromptsSnapshot = await getDocs(promptsCollectionRef);
+    const newOrder = allPromptsSnapshot.docs.length;
 
     const newPromptRef = await addDoc(promptsCollectionRef, {
         ...promptData,

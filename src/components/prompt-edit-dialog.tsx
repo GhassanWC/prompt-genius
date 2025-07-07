@@ -25,7 +25,6 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
   const [title, setTitle] = useState('');
   const [mapFlow, setMapFlow] = useState('');
   const [userPrompt, setUserPrompt] = useState('');
-  const [phase, setPhase] = useState<Prompt['phase'] | undefined>(undefined);
   const [timeEstimate, setTimeEstimate] = useState('');
   const [complexity, setComplexity] = useState<Prompt['complexity'] | undefined>(undefined);
   const [acceptanceCriteria, setAcceptanceCriteria] = useState('');
@@ -34,7 +33,6 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
     setTitle('');
     setMapFlow('');
     setUserPrompt('');
-    setPhase(undefined);
     setTimeEstimate('');
     setComplexity(undefined);
     setAcceptanceCriteria('');
@@ -45,7 +43,6 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
       setTitle(prompt.title || '');
       setMapFlow(prompt.mapFlow || '');
       setUserPrompt(prompt.userPrompt || '');
-      setPhase(prompt.phase || undefined);
       setTimeEstimate(prompt.timeEstimate || '');
       setComplexity(prompt.complexity || undefined);
       setAcceptanceCriteria(prompt.acceptanceCriteria?.join('\n') || '');
@@ -69,7 +66,6 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
       title,
       mapFlow,
       userPrompt,
-      phase,
       timeEstimate: timeEstimate || undefined,
       complexity: complexity || undefined,
       acceptanceCriteria: acceptanceCriteria.split('\n').filter(line => line.trim() !== ''),
@@ -90,17 +86,6 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
                 <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Create Login Form" />
              </div>
            </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phase">Phase</Label>
-            <Select value={phase} onValueChange={(v) => setPhase(v as Prompt['phase'])}>
-                <SelectTrigger id="phase"><SelectValue placeholder="Select a phase" /></SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="Frontend">Frontend</SelectItem>
-                    <SelectItem value="Backend">Backend</SelectItem>
-                </SelectContent>
-            </Select>
-          </div>
 
           <div className="space-y-2">
             <Label htmlFor="complexity">Complexity</Label>

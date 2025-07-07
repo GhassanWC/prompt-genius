@@ -32,7 +32,6 @@ export interface Project {
 // Type for a prompt
 export interface Prompt {
     id: string;
-    phase: string;
     title: string;
     userPrompt: string;
     order: number;

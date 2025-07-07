@@ -13,7 +13,7 @@ import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { DndContext, closestCenter, type DragEndEvent, useSensor, useSensors, PointerSensor, KeyboardSensor } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortablePromptItem } from '@/components/sortable-prompt-item';
@@ -29,8 +29,7 @@ export default function EditProjectPage() {
   
   const [project, setProject] = useState<Project | null>(null);
   const [userRole, setUserRole] = useState<Role | null>(null);
-  const [frontendPrompts, setFrontendPrompts] = useState<Prompt[]>([]);
-  const [backendPrompts, setBackendPrompts] = useState<Prompt[]>([]);
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -69,8 +68,7 @@ export default function EditProjectPage() {
       setUserRole(role);
 
       const promptsData = await getPromptsForProject(user.uid, projectId);
-      setFrontendPrompts(promptsData.filter(p => p.phase === 'Frontend'));
-      setBackendPrompts(promptsData.filter(p => p.phase === 'Backend'));
+      setPrompts(promptsData);
 
     } catch (e: any) {
       setError(e.message || "Failed to load project data.");
@@ -95,37 +93,20 @@ export default function EditProjectPage() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const isFrontend = frontendPrompts.some(p => p.id === active.id);
-    const isBackend = backendPrompts.some(p => p.id === active.id);
-
-    if (isFrontend) {
-      const overIsFrontend = frontendPrompts.some(p => p.id === over.id);
-      if (!overIsFrontend) return;
-      setFrontendPrompts((items) => {
-        const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over!.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-      setIsPromptsOrderDirty(true);
-    } else if (isBackend) {
-      const overIsBackend = backendPrompts.some(p => p.id === over.id);
-      if (!overIsBackend) return;
-      setBackendPrompts((items) => {
-        const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over!.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-      setIsPromptsOrderDirty(true);
-    }
+    setPrompts((items) => {
+      const oldIndex = items.findIndex(item => item.id === active.id);
+      const newIndex = items.findIndex(item => item.id === over!.id);
+      return arrayMove(items, oldIndex, newIndex);
+    });
+    setIsPromptsOrderDirty(true);
   };
 
   const handleSaveOrder = async () => {
     if (!user || !canEdit) return;
     setIsSavingPromptsOrder(true);
     try {
-      const frontendUpdates = frontendPrompts.map((p, index) => ({ id: p.id, order: index }));
-      const backendUpdates = backendPrompts.map((p, index) => ({ id: p.id, order: index }));
-      await updatePromptsOrder(user.uid, projectId, [...frontendUpdates, ...backendUpdates]);
+      const promptUpdates = prompts.map((p, index) => ({ id: p.id, order: index }));
+      await updatePromptsOrder(user.uid, projectId, promptUpdates);
       toast({ title: 'Success', description: 'Prompt order has been saved.' });
       setIsPromptsOrderDirty(false);
     } catch (error: any) {
@@ -135,9 +116,9 @@ export default function EditProjectPage() {
     }
   };
   
-  const handleOpenPromptDialog = (prompt: Partial<Prompt> | null, phase?: 'Frontend' | 'Backend') => {
+  const handleOpenPromptDialog = (prompt: Partial<Prompt> | null) => {
     if (!canEdit) return;
-    setCurrentPrompt(prompt ? prompt : { phase });
+    setCurrentPrompt(prompt);
     setIsPromptDialogOpen(true);
   };
 
@@ -241,33 +222,19 @@ export default function EditProjectPage() {
         <div className="max-w-4xl mx-auto mt-12 space-y-12">
             <div>
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold font-headline">Prompts</h2>
+                    <h2 className="text-2xl font-bold font-headline">Development Plan</h2>
                     {isPromptsOrderDirty && canEdit && <Button onClick={handleSaveOrder} disabled={isSavingPromptsOrder}><Save className="mr-2 h-4 w-4" />{isSavingPromptsOrder ? 'Saving...' : 'Save Prompt Order'}</Button>}
                 </div>
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} >
-                    <div className="grid md:grid-cols-2 gap-8 items-start">
-                        <div className="space-y-4">
-                            <h3 className="text-xl font-bold font-headline text-center">Frontend Phase</h3>
-                            <Card className="p-4">
-                                <SortableContext items={frontendPrompts} strategy={verticalListSortingStrategy} disabled={!canEdit}>
-                                    {frontendPrompts.length > 0 ? frontendPrompts.map(p => (
-                                        <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog} isReadOnly={!canEdit} />
-                                    )) : <p className="text-muted-foreground text-center p-4">No frontend prompts yet.</p>}
-                                </SortableContext>
-                            </Card>
-                            <Button variant="outline" className="w-full" onClick={() => handleOpenPromptDialog(null, 'Frontend')} disabled={!canEdit}><PlusCircle className="mr-2 h-4 w-4" />Add Frontend Prompt</Button>
-                        </div>
-                        <div className="space-y-4">
-                            <h3 className="text-xl font-bold font-headline text-center">Backend Phase</h3>
-                            <Card className="p-4">
-                               <SortableContext items={backendPrompts} strategy={verticalListSortingStrategy} disabled={!canEdit}>
-                                    {backendPrompts.length > 0 ? backendPrompts.map(p => (
-                                        <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog} isReadOnly={!canEdit}/>
-                                    )) : <p className="text-muted-foreground text-center p-4">No backend prompts yet.</p>}
-                                </SortableContext>
-                            </Card>
-                            <Button variant="outline" className="w-full" onClick={() => handleOpenPromptDialog(null, 'Backend')} disabled={!canEdit}><PlusCircle className="mr-2 h-4 w-4" />Add Backend Prompt</Button>
-                        </div>
+                    <div className="space-y-4">
+                        <Card className="p-4">
+                            <SortableContext items={prompts} strategy={verticalListSortingStrategy} disabled={!canEdit}>
+                                {prompts.length > 0 ? prompts.map(p => (
+                                    <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog} isReadOnly={!canEdit} />
+                                )) : <p className="text-muted-foreground text-center p-4">No prompts yet.</p>}
+                            </SortableContext>
+                        </Card>
+                        <Button variant="outline" className="w-full" onClick={() => handleOpenPromptDialog(null)} disabled={!canEdit}><PlusCircle className="mr-2 h-4 w-4" />Add Prompt</Button>
                     </div>
                 </DndContext>
             </div>
