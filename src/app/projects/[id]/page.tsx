@@ -183,11 +183,12 @@ export default function ProjectPage() {
               {prompts.length > 0 && (
                 <div className="space-y-6">
                   <h3 className="text-2xl font-bold font-headline text-center">Development Plan</h3>
-                  <div className="grid gap-6 md:grid-cols-2">
-                      {prompts.map((prompt) => (
+                  <div className="space-y-6">
+                      {prompts.map((prompt, index) => (
                           <PromptCard 
                             key={prompt.id} 
                             {...prompt}
+                            stepNumber={index + 1}
                             isReadOnly={!canEdit}
                             onStatusChange={handleTogglePromptStatus}
                           />

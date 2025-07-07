@@ -229,8 +229,8 @@ export default function EditProjectPage() {
                     <div className="space-y-4">
                         <Card className="p-4">
                             <SortableContext items={prompts} strategy={verticalListSortingStrategy} disabled={!canEdit}>
-                                {prompts.length > 0 ? prompts.map(p => (
-                                    <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog} isReadOnly={!canEdit} />
+                                {prompts.length > 0 ? prompts.map((p, index) => (
+                                    <SortablePromptItem key={p.id} prompt={p} stepNumber={index + 1} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog} isReadOnly={!canEdit} />
                                 )) : <p className="text-muted-foreground text-center p-4">No prompts yet.</p>}
                             </SortableContext>
                         </Card>

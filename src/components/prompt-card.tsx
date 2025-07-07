@@ -5,13 +5,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, Check, Clock, Zap, CheckCircle, MessageSquareQuote } from "lucide-react";
+import { Copy, Check, Clock, Zap, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { Prompt } from "@/lib/projects";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
 
 type PromptCardProps = Prompt & {
+  stepNumber: number;
   onStatusChange: (promptId: string, isDone: boolean) => void;
   isReadOnly?: boolean;
 };
@@ -25,6 +26,7 @@ export function PromptCard({
   timeEstimate,
   isDone,
   acceptanceCriteria,
+  stepNumber,
   onStatusChange,
   isReadOnly = false,
 }: PromptCardProps) {
@@ -52,8 +54,10 @@ export function PromptCard({
         "flex flex-col overflow-hidden transition-all hover:shadow-lg",
         isDone && "bg-secondary/30 opacity-70"
     )}>
-      <CardHeader className="flex flex-row items-start gap-4 space-y-0 bg-secondary/50">
-        <MessageSquareQuote className="h-6 w-6 text-muted-foreground mt-1 flex-shrink-0" />
+      <CardHeader className="flex flex-row items-start gap-4 space-y-0 bg-secondary/50 p-4">
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+          {stepNumber}
+        </div>
         <div className="flex-1">
           <CardTitle className={cn("text-lg font-headline", isDone && "line-through")}>{title}</CardTitle>
           <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-2">
