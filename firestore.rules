@@ -1,17 +1,42 @@
 service cloud.firestore {
-  match /databases/{db}/documents {
+  match /databases/{database}/documents {
+    
+    // Users can only create and update their own profile, but anyone can read them
+    // to facilitate searching for collaborators by email.
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Rules for the main projects collection
     match /projects/{projectId} {
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth.uid == resource.data.userId;
+      
+      // Allow read access if the user's UID is a key in the roles map.
+      allow read: if request.auth != null && request.auth.uid in resource.data.roles;
+      
+      // Allow create access if the user is authenticated and is creating the project
+      // with themselves as the owner.
+      allow create: if request.auth != null && request.resource.data.roles[request.auth.uid] == 'owner';
+        
+      // Allow update access if the user is an 'owner' or 'editor'.
+      allow update: if request.auth != null && resource.data.roles[request.auth.uid] in ['owner', 'editor'];
+        
+      // Allow delete access only if the user is the 'owner'.
+      allow delete: if request.auth != null && resource.data.roles[request.auth.uid] == 'owner';
 
-      // subcollection
+      // Rules for the prompts subcollection
       match /prompts/{promptId} {
-        allow create, read, update, delete:
-          if request.auth.uid == get(/databases/$(db)/documents/projects/$(projectId)).data.userId;
+        // To access a prompt, check the roles on the parent project document.
+        // Allow full R/W access to owners and editors. Viewers can only read projects, not prompts directly this way for modification.
+        // Reading prompts is handled by the parent read rule via getPromptsForProject which checks parent access first.
+        allow read, create, update, delete: if request.auth != null && get(/databases/$(database)/documents/projects/$(projectId)).data.roles[request.auth.uid] in ['owner', 'editor'];
       }
     }
-
+    
+    // Rules for the feedback collection
     match /feedback/{feedbackId} {
+        // Allow create if the user is logged in and the userId in the document
+        // matches their authenticated UID.
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
   }
