@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Decomposes a project idea into a sequential development plan.
@@ -48,30 +49,36 @@ const decomposeIdeaPrompt = ai.definePrompt({
 
 **Emit only a single JSON object** with these top-level fields:
 
-1. **clarificationSteps**:  
-   An array of 1–3 objects, each with:  
-   - **step**: integer (1, 2, …)  
-   - **userPrompt**: a plain-English question the user can answer to remove ambiguity  
+1. **clarificationSteps**:
+   An array of 1–3 objects, each with:
+   - **step**: integer (1, 2, …)
+   - **userPrompt**: a plain-English question for the user to clarify ambiguity (e.g., "Do you need user accounts or just public access?").
 
-2. **enhancedIdea**:  
+2. **enhancedIdea**:
    A clear, fleshed-out summary of the user’s concept, including edge cases and core features, phrased in straightforward English.
 
-3. **developmentPlan**:  
+3. **developmentPlan**:
    An array of strictly ordered, **atomic** steps that create a full end-to-end plan. Each step object must include:
-   - **title**: a short descriptive name  
-   - **userPrompt**: a simple English instruction the user can paste verbatim into any AI builder chat to accomplish that task  
-   - **mapFlow**: one sentence explaining how this step fits into the overall project story  
-   - **timeEstimate** (optional): e.g. \`"30m"\`, \`"2h"\`  
-   - **complexity** (optional): \`"low" | "medium" | "high"\`  
-   - **acceptanceCriteria** (optional): an array of bullet-point strings describing what “done” looks like
+   - **title**: a short descriptive name for the task.
+   - **userPrompt**: a simple, single-action English instruction the user can paste verbatim into any AI builder chat. Frame this from the user's perspective (e.g., "Create a new screen called 'Home'").
+   - **mapFlow**: one sentence explaining how this step fits into the overall project story (e.g., "This establishes the main entry point for users.").
+   - **timeEstimate** (optional): e.g. \`"15m"\`, \`"1h"\`.
+   - **complexity** (optional): \`"low" | "medium" | "high"\`.
+   - **acceptanceCriteria**: an array of 1-3 bullet-point strings describing what “done” looks like for this specific step. This is **mandatory**. Be specific (e.g., "Shows 'No results' if the search is empty," "Tapping the button navigates to the profile page.").
 
-**Rules for generation**  
-- Emit **only** the JSON object—no extra text or fields.  
-- All prompts are in plain English; do not include any code, CLI commands, file paths, or technical jargon.  
-- Use atomic, single-action steps (e.g. “Design the signup page,” “Add email/password validation”).  
+**Rules for userPrompt generation:**
+- **Be Atomic:** Each prompt must be a single, focused action. (e.g., separate "define the data model" from "populate it with mock data").
+- **Use Examples:** When defining data models or schemas, include a simple example value in the prompt. (e.g., "Define a 'CoffeeShop' record... Use this sample entry: { name: 'Cafe Sunrise' }").
+- **Cover Edge Cases:** Explicitly include prompts for handling empty states and potential errors (e.g., "If the user is not logged in, show a login button.").
+- **Include Checkpoints:** After every 4-5 steps, insert a checkpoint prompt like "Pause and test the app to confirm the login and list screens work as expected."
+- **Finish with a Test:** The final step should always be a smoke-test prompt, like "Run the app and confirm there are no errors on startup."
+- **Use Plain English:** Absolutely no code, CLI commands, file paths, or technical jargon.
+
+**Overall Rules:**
+- Emit **only** the JSON object—no extra text or fields.
 - Ensure the sequence covers every prerequisite in order.
 
-Here is the user’s original idea:  
+Here is the user’s original idea:
 \`\`\`text
 {{{idea}}}
 \`\`\``,
