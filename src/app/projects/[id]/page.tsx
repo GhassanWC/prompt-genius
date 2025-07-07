@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -6,7 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { type Project, type Prompt as PromptType } from '@/lib/projects';
-import { getProject, getPromptsForProject } from '@/lib/project-client';
+import { getProject, getPromptsForProject, updatePromptStatus } from '@/lib/project-client';
 import { Loader2, ArrowLeft, AlertTriangle, Pencil, Copy, Check } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
@@ -70,6 +71,30 @@ export default function ProjectPage() {
         fetchProjectData().finally(() => setLoading(false));
     }
   }, [user, authLoading, router, fetchProjectData]);
+
+  const handleTogglePromptStatus = async (promptId: string, newStatus: boolean) => {
+    if (!user) return;
+
+    // Optimistic UI update
+    const originalPrompts = [...prompts];
+    setPrompts(prompts.map(p => p.id === promptId ? { ...p, isDone: newStatus } : p));
+
+    try {
+      await updatePromptStatus(user.uid, projectId, promptId, newStatus);
+      toast({
+        title: `Prompt marked as ${newStatus ? 'done' : 'not done'}`,
+      });
+    } catch (error: any) {
+      // Revert on error
+      setPrompts(originalPrompts);
+      toast({
+        variant: 'destructive',
+        title: 'Error updating status',
+        description: error.message || 'Could not update prompt status. Please try again.',
+      });
+    }
+  };
+
 
   const handleCopyMagic = (text: string, type: 'frontend' | 'backend') => {
     navigator.clipboard.writeText(text);
@@ -197,6 +222,7 @@ export default function ProjectPage() {
                           <PromptCard 
                             key={prompt.id} 
                             {...prompt}
+                            onStatusChange={handleTogglePromptStatus}
                           />
                       ))}
                   </div>
@@ -233,6 +259,7 @@ export default function ProjectPage() {
                             <PromptCard 
                                 key={prompt.id} 
                                 {...prompt}
+                                onStatusChange={handleTogglePromptStatus}
                             />
                         ))}
                     </div>

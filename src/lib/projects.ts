@@ -24,6 +24,7 @@ export interface Prompt {
     order: number;
     mapFlow: string;
     environment: "Replit" | "Blob" | "Supabase" | "Generic";
+    isDone?: boolean;
     dir?: string;
     command?: string;
     timeEstimate?: string;

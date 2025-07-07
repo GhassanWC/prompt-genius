@@ -143,6 +143,7 @@ export const createProjectWithPrompts = async (
       batch.set(promptDocRef, {
         ...step,
         order: index,
+        isDone: false,
       });
     });
     await batch.commit();
@@ -195,6 +196,13 @@ export const updatePrompt = async (userId: string, projectId: string, promptId: 
     await updateDoc(promptRef, data);
 }
 
+// Function to update a prompt's status
+export const updatePromptStatus = async (userId: string, projectId: string, promptId: string, isDone: boolean): Promise<void> => {
+    await verifyProjectOwner(userId, projectId);
+    const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
+    await updateDoc(promptRef, { isDone });
+};
+
 // Function to delete a prompt
 export const deletePrompt = async (userId: string, projectId: string, promptId: string): Promise<void> => {
     await verifyProjectOwner(userId, projectId);
@@ -231,6 +239,7 @@ export const addPrompt = async (userId: string, projectId: string, promptData: O
     const newPromptRef = await addDoc(promptsCollectionRef, {
         ...promptData,
         order: newOrder,
+        isDone: false, // Default to not done
     });
     return newPromptRef.id;
 }
