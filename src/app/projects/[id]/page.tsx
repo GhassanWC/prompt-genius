@@ -8,7 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { type Project, type Prompt as PromptType, type Role } from '@/lib/projects';
 import { getProject, getPromptsForProject, updatePromptStatus } from '@/lib/project-client';
-import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Download } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Download, Copy } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import { PromptCard } from '@/components/prompt-card';
@@ -97,6 +97,29 @@ export default function ProjectPage() {
     }
   };
 
+  const handleCopyAll = () => {
+    if (prompts.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'No prompts to copy',
+        description: 'This project does not have any prompts yet.',
+      });
+      return;
+    }
+
+    const allPromptsText = prompts
+      .map((p, index) => {
+        return `--- Step ${index + 1}: ${p.title} ---\n\n${p.userPrompt}`;
+      })
+      .join('\n\n\n');
+
+    navigator.clipboard.writeText(allPromptsText);
+    toast({
+      title: 'All Prompts Copied!',
+      description: 'The complete development plan is on your clipboard.',
+    });
+  };
+
   const canEdit = userRole === 'owner' || userRole === 'editor';
 
   if (loading || authLoading || !user) {
@@ -145,6 +168,10 @@ export default function ProjectPage() {
               <Button variant="outline" onClick={() => window.print()}>
                   <Download className="mr-2 h-4 w-4" />
                   Export
+              </Button>
+               <Button variant="outline" onClick={handleCopyAll}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy All
               </Button>
               {userRole === 'owner' && (
                 <Button variant="outline" onClick={() => setShareDialogOpen(true)}>
