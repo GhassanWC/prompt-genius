@@ -15,8 +15,32 @@ import {
   updatePassword,
   type User,
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+
+
+// Function to create a user profile document in Firestore if it doesn't exist
+const createUserProfileDocument = async (user: User) => {
+  if (!user) return;
+  const userRef = doc(db, 'users', user.uid);
+  const snapshot = await getDoc(userRef);
+
+  if (!snapshot.exists()) {
+    const { displayName, email, photoURL } = user;
+    try {
+      await setDoc(userRef, {
+        displayName,
+        email,
+        photoURL,
+        createdAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error creating user profile document: ", error);
+    }
+  }
+};
+
 
 interface AuthContextType {
   user: User | null;
@@ -38,18 +62,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        await createUserProfileDocument(user);
+      }
       setUser(user);
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
+  const handleSuccessfulSignIn = async (userCredential: any) => {
+    if (userCredential.user) {
+        await createUserProfileDocument(userCredential.user);
+    }
+    router.push('/dashboard');
+  }
+
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      router.push('/dashboard');
+      const result = await signInWithPopup(auth, provider);
+      await handleSuccessfulSignIn(result);
     } catch (error) {
       console.error("Error signing in with Google", error);
       throw error;
@@ -59,20 +93,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGithub = async () => {
     const provider = new GithubAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      router.push('/dashboard');
+      const result = await signInWithPopup(auth, provider);
+      await handleSuccessfulSignIn(result);
     } catch (error) {
       console.error("Error signing in with Github", error);
       throw error;
     }
   };
 
-  const signUpWithEmail = (email: string, pass: string) => {
-      return createUserWithEmailAndPassword(auth, email, pass);
+  const signUpWithEmail = async (email: string, pass: string) => {
+      const result = await createUserWithEmailAndPassword(auth, email, pass);
+      await handleSuccessfulSignIn(result);
+      return result;
   }
 
-  const signInWithEmail = (email: string, pass: string) => {
-      return signInWithEmailAndPassword(auth, email, pass);
+  const signInWithEmail = async (email: string, pass: string) => {
+      const result = await signInWithEmailAndPassword(auth, email, pass);
+      await handleSuccessfulSignIn(result);
+      return result;
   }
 
   const signOut = async () => {
@@ -89,6 +127,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await updateProfile(auth.currentUser, {
         displayName: data.displayName,
       });
+       // Also update the user profile document in Firestore
+      const userRef = doc(db, 'users', auth.currentUser.uid);
+      await setDoc(userRef, { displayName: data.displayName }, { merge: true });
       // The onAuthStateChanged listener will eventually handle updating the user state.
       // For immediate feedback, we can manually update the local state.
       setUser(auth.currentUser);

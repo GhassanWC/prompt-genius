@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSortable } from '@dnd-kit/sortable';
@@ -7,14 +8,16 @@ import { Button } from '@/components/ui/button';
 import { GripVertical, Pencil, Trash2 } from 'lucide-react';
 import type { Prompt } from '@/lib/projects';
 import { PlatformIcon } from './platform-icon';
+import { cn } from '@/lib/utils';
 
 interface SortablePromptItemProps {
   prompt: Prompt;
   onEdit: (prompt: Prompt) => void;
   onDelete: (promptId: string) => void;
+  isReadOnly?: boolean;
 }
 
-export function SortablePromptItem({ prompt, onEdit, onDelete }: SortablePromptItemProps) {
+export function SortablePromptItem({ prompt, onEdit, onDelete, isReadOnly = false }: SortablePromptItemProps) {
   const {
     attributes,
     listeners,
@@ -22,7 +25,7 @@ export function SortablePromptItem({ prompt, onEdit, onDelete }: SortablePromptI
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: prompt.id });
+  } = useSortable({ id: prompt.id, disabled: isReadOnly });
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -35,7 +38,7 @@ export function SortablePromptItem({ prompt, onEdit, onDelete }: SortablePromptI
     <div ref={setNodeRef} style={style} {...attributes} className="relative">
       <Card className="mb-2 bg-secondary/50">
         <CardContent className="p-3 flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="cursor-grab touch-none" {...listeners}>
+          <Button variant="ghost" size="icon" className={cn("touch-none", isReadOnly ? "cursor-not-allowed" : "cursor-grab")} {...listeners} disabled={isReadOnly}>
             <GripVertical className="h-5 w-5 text-muted-foreground" />
           </Button>
           <PlatformIcon platform={prompt.environment} className="h-5 w-5 text-muted-foreground flex-shrink-0" />
@@ -45,11 +48,11 @@ export function SortablePromptItem({ prompt, onEdit, onDelete }: SortablePromptI
               {prompt.prompt}
             </p>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => onEdit(prompt)}>
+          <Button variant="ghost" size="icon" onClick={() => onEdit(prompt)} disabled={isReadOnly}>
             <Pencil className="h-4 w-4" />
             <span className="sr-only">Edit</span>
           </Button>
-          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => onDelete(prompt.id)}>
+          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => onDelete(prompt.id)} disabled={isReadOnly}>
             <Trash2 className="h-4 w-4" />
             <span className="sr-only">Delete</span>
           </Button>

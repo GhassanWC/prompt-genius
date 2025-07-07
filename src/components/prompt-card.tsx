@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 type PromptCardProps = Prompt & {
   onStatusChange: (promptId: string, isDone: boolean) => void;
+  isReadOnly?: boolean;
 };
 
 export function PromptCard({ 
@@ -27,7 +28,8 @@ export function PromptCard({
   command,
   dir,
   isDone,
-  onStatusChange
+  onStatusChange,
+  isReadOnly = false,
 }: PromptCardProps) {
   const { toast } = useToast();
   const [hasCopied, setHasCopied] = useState(false);
@@ -69,6 +71,7 @@ export function PromptCard({
             onCheckedChange={(checked) => onStatusChange(id, !!checked)}
             className="h-6 w-6"
             aria-label="Mark as done"
+            disabled={isReadOnly}
           />
           <Button
             variant="ghost"

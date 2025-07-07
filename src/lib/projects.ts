@@ -4,6 +4,17 @@
 // to ensure that write operations are executed from the authenticated client,
 // satisfying Firestore security rules.
 
+export type Role = 'owner' | 'editor' | 'viewer';
+
+export interface Collaborator {
+  uid: string;
+  email: string;
+  displayName: string | null;
+  photoURL: string | null;
+  role: Role;
+}
+
+
 // Type for a project
 export interface Project {
   id: string;
@@ -11,7 +22,7 @@ export interface Project {
   idea: string;
   imageUrl?: string;
   createdAt: Date;
-  userId: string; // userId for ownership
+  roles: Record<string, Role>; // نقش ها
 }
 
 // Type for a prompt

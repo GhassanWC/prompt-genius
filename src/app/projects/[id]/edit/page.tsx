@@ -5,9 +5,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import type { Project, Prompt } from '@/lib/projects';
-import { updatePromptsOrder, addPrompt, updatePrompt, deletePrompt, updateProject, getProject, getPromptsForProject } from '@/lib/project-client';
-import { Loader2, ArrowLeft, AlertTriangle, PlusCircle, Save, Edit } from 'lucide-react';
+import type { Project, Prompt, Role } from '@/lib/projects';
+import { updatePromptsOrder, addPrompt, updatePrompt, deletePrompt, updateProject, getProject, getPromptsForProject, getProjectRole } from '@/lib/project-client';
+import { Loader2, ArrowLeft, AlertTriangle, PlusCircle, Save, Edit, ShieldAlert } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +28,7 @@ export default function EditProjectPage() {
   const params = useParams();
   
   const [project, setProject] = useState<Project | null>(null);
+  const [userRole, setUserRole] = useState<Role | null>(null);
   const [frontendPrompts, setFrontendPrompts] = useState<Prompt[]>([]);
   const [backendPrompts, setBackendPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,8 @@ export default function EditProjectPage() {
     useSensor(KeyboardSensor)
   );
 
+  const canEdit = userRole === 'owner' || userRole === 'editor';
+
   const fetchProjectData = useCallback(async () => {
     if (!projectId || !user) return;
     setLoading(true);
@@ -62,6 +65,8 @@ export default function EditProjectPage() {
         return;
       }
       setProject(projectData);
+      const role = await getProjectRole(user.uid, projectId);
+      setUserRole(role);
 
       const promptsData = await getPromptsForProject(user.uid, projectId);
       setFrontendPrompts(promptsData.filter(p => p.phase === 'Frontend'));
@@ -86,6 +91,7 @@ export default function EditProjectPage() {
   }, [user, authLoading, router, fetchProjectData]);
 
   const handleDragEnd = (event: DragEndEvent) => {
+    if (!canEdit) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -114,7 +120,7 @@ export default function EditProjectPage() {
   };
 
   const handleSaveOrder = async () => {
-    if (!user) return;
+    if (!user || !canEdit) return;
     setIsSavingPromptsOrder(true);
     try {
       const frontendUpdates = frontendPrompts.map((p, index) => ({ id: p.id, order: index }));
@@ -130,35 +136,37 @@ export default function EditProjectPage() {
   };
   
   const handleOpenPromptDialog = (prompt: Partial<Prompt> | null, phase?: 'Frontend' | 'Backend') => {
+    if (!canEdit) return;
     setCurrentPrompt(prompt ? prompt : { phase });
     setIsPromptDialogOpen(true);
   };
 
   const handleSavePrompt = async (promptData: Partial<Prompt>) => {
-    if (!user) return;
+    if (!user || !canEdit) return;
     try {
-      if (promptData.id) { // Editing existing prompt
-        const { id, ...updateData } = promptData; // projectId removed from promptData
-        await updatePrompt(user.uid, projectId, id, updateData); // Use projectId from page scope
+      if (promptData.id) {
+        const { id, ...updateData } = promptData;
+        await updatePrompt(user.uid, projectId, id, updateData);
         toast({ title: "Prompt Updated" });
-      } else { // Adding new prompt
-        // Cast to the correct type for `addPrompt`, which no longer needs projectId in data
+      } else {
         await addPrompt(user.uid, projectId, promptData as Omit<Prompt, 'id' | 'order'>);
         toast({ title: "Prompt Added" });
       }
       fetchProjectData();
-    } catch (error: any) {
+    } catch (error: any)
+{
       setError(error.message || "Failed to save prompt.");
     }
   };
 
   const handleOpenDeleteDialog = (promptId: string) => {
+    if (!canEdit) return;
     setPromptToDelete(promptId);
     setDeleteDialogOpen(true);
   };
 
   const handleDeletePrompt = async () => {
-    if (!user || !promptToDelete) return;
+    if (!user || !promptToDelete || !canEdit) return;
     try {
       await deletePrompt(user.uid, projectId, promptToDelete);
       toast({ title: 'Prompt Deleted' });
@@ -172,7 +180,7 @@ export default function EditProjectPage() {
   };
 
   const handleSaveProjectDetails = async (data: { name: string, idea: string }) => {
-    if (!user || !project) return;
+    if (!user || !project || !canEdit) return;
     setError(null);
     try {
       await updateProject(user.uid, projectId, { name: data.name, idea: data.idea });
@@ -214,41 +222,51 @@ export default function EditProjectPage() {
             <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight">Edit Project</h1>
             <p className="mt-2 text-lg text-muted-foreground">{project?.name}</p>
           </div>
-          <Button variant="outline" onClick={() => setIsProjectDetailsDialogOpen(true)}>
+          <Button variant="outline" onClick={() => setIsProjectDetailsDialogOpen(true)} disabled={!canEdit}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Details
           </Button>
         </div>
+        
+        {!canEdit && (
+            <Alert variant="destructive" className="max-w-4xl mx-auto mt-8">
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>View-Only Mode</AlertTitle>
+                <AlertDescription>
+                    You have view-only permissions for this project. You cannot make any changes.
+                </AlertDescription>
+            </Alert>
+        )}
 
         <div className="max-w-4xl mx-auto mt-12 space-y-12">
             <div>
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold font-headline">Prompts</h2>
-                    {isPromptsOrderDirty && <Button onClick={handleSaveOrder} disabled={isSavingPromptsOrder}><Save className="mr-2 h-4 w-4" />{isSavingPromptsOrder ? 'Saving...' : 'Save Prompt Order'}</Button>}
+                    {isPromptsOrderDirty && canEdit && <Button onClick={handleSaveOrder} disabled={isSavingPromptsOrder}><Save className="mr-2 h-4 w-4" />{isSavingPromptsOrder ? 'Saving...' : 'Save Prompt Order'}</Button>}
                 </div>
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} >
                     <div className="grid md:grid-cols-2 gap-8 items-start">
                         <div className="space-y-4">
                             <h3 className="text-xl font-bold font-headline text-center">Frontend Phase</h3>
                             <Card className="p-4">
-                                <SortableContext items={frontendPrompts} strategy={verticalListSortingStrategy}>
+                                <SortableContext items={frontendPrompts} strategy={verticalListSortingStrategy} disabled={!canEdit}>
                                     {frontendPrompts.length > 0 ? frontendPrompts.map(p => (
-                                        <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog} />
+                                        <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog} isReadOnly={!canEdit} />
                                     )) : <p className="text-muted-foreground text-center p-4">No frontend prompts yet.</p>}
                                 </SortableContext>
                             </Card>
-                            <Button variant="outline" className="w-full" onClick={() => handleOpenPromptDialog(null, 'Frontend')}><PlusCircle className="mr-2 h-4 w-4" />Add Frontend Prompt</Button>
+                            <Button variant="outline" className="w-full" onClick={() => handleOpenPromptDialog(null, 'Frontend')} disabled={!canEdit}><PlusCircle className="mr-2 h-4 w-4" />Add Frontend Prompt</Button>
                         </div>
                         <div className="space-y-4">
                             <h3 className="text-xl font-bold font-headline text-center">Backend Phase</h3>
                             <Card className="p-4">
-                               <SortableContext items={backendPrompts} strategy={verticalListSortingStrategy}>
+                               <SortableContext items={backendPrompts} strategy={verticalListSortingStrategy} disabled={!canEdit}>
                                     {backendPrompts.length > 0 ? backendPrompts.map(p => (
-                                        <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog}/>
+                                        <SortablePromptItem key={p.id} prompt={p} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog} isReadOnly={!canEdit}/>
                                     )) : <p className="text-muted-foreground text-center p-4">No backend prompts yet.</p>}
                                 </SortableContext>
                             </Card>
-                            <Button variant="outline" className="w-full" onClick={() => handleOpenPromptDialog(null, 'Backend')}><PlusCircle className="mr-2 h-4 w-4" />Add Backend Prompt</Button>
+                            <Button variant="outline" className="w-full" onClick={() => handleOpenPromptDialog(null, 'Backend')} disabled={!canEdit}><PlusCircle className="mr-2 h-4 w-4" />Add Backend Prompt</Button>
                         </div>
                     </div>
                 </DndContext>
@@ -260,7 +278,8 @@ export default function EditProjectPage() {
         open={isProjectDetailsDialogOpen} 
         onOpenChange={setIsProjectDetailsDialogOpen} 
         project={project} 
-        onSave={handleSaveProjectDetails} 
+        onSave={handleSaveProjectDetails}
+        isReadOnly={!canEdit}
       />
 
       <PromptEditDialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen} prompt={currentPrompt} onSave={handleSavePrompt} />

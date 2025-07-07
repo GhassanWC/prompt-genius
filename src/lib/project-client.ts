@@ -20,14 +20,14 @@ import {
 import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage';
 import { generateImage } from '@/ai/flows/generate-image';
 import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
-import type { Project, Prompt } from './projects';
+import type { Project, Prompt, Role } from './projects';
 
 
 // Function to get all projects for a user
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
     const projectsCollectionRef = collection(db, 'projects');
-    const q = query(projectsCollectionRef, where("userId", "==", userId));
+    const q = query(projectsCollectionRef, where(`roles.${userId}`, "in", ["owner", "editor", "viewer"]));
     const querySnapshot = await getDocs(q);
     
     const projects: Project[] = [];
@@ -40,7 +40,7 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         idea: data.idea || '',
         imageUrl: data.imageUrl,
         createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
-        userId: data.userId
+        roles: data.roles || {}
       });
     });
 
@@ -51,7 +51,6 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
   } catch (err: any) {
      console.error("Error fetching projects:", err);
      if (err.code === 'permission-denied') {
-        // This error will now be more meaningful as it's definitely a rules issue.
         throw new Error("Permission Denied: Your security rules are blocking access. Please ensure they allow you to read your own projects.");
      } else if (err.code === 'failed-precondition') {
         throw new Error("Database Index Required: This query requires an index. Please check your browser's developer console for a link to create it.");
@@ -68,8 +67,8 @@ export const getProject = async (userId: string, projectId: string): Promise<Pro
 
     if (docSnap.exists()) {
         const data = docSnap.data();
-        // Security rules should enforce this, but an extra client-side check doesn't hurt.
-        if (data.userId === userId) {
+        // Check if the user has a role in this project
+        if (data.roles && data.roles[userId]) {
             const createdAtTimestamp = data.createdAt as Timestamp;
             return {
                 id: docSnap.id,
@@ -77,29 +76,26 @@ export const getProject = async (userId: string, projectId: string): Promise<Pro
                 idea: data.idea || '',
                 imageUrl: data.imageUrl,
                 createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
-                userId: data.userId,
+                roles: data.roles
             };
         }
     }
-    // If we are here, either the project doesn't exist or the user doesn't own it.
+    // If we are here, either the project doesn't exist or the user doesn't have access.
     return null;
 }
 
-// Function to get all prompts for a project
+
+// Function to get all prompts for a project, also verifies access
 export const getPromptsForProject = async (userId: string, projectId: string): Promise<Prompt[]> => {
-    // First, verify the user can access the project at all.
     const project = await getProject(userId, projectId);
     if (!project) {
         throw new Error("Permission denied or project not found.");
     }
     
-    // Prompts are now a subcollection of projects
     const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
-    // We don't need to query by projectId anymore since we are in the subcollection.
     const querySnapshot = await getDocs(promptsCollectionRef);
     const prompts: Prompt[] = [];
     querySnapshot.forEach((doc) => {
-      // The returned prompt will not have projectId, which matches our updated Prompt interface.
       prompts.push({ id: doc.id, ...doc.data() } as Prompt)
     });
 
@@ -108,13 +104,10 @@ export const getPromptsForProject = async (userId: string, projectId: string): P
 }
 
 
-// Helper function to verify project ownership, used by write operations below
-const verifyProjectOwner = async (userId: string, projectId: string) => {
+// Helper function to verify project access and role, used by write operations below
+export const getProjectRole = async (userId: string, projectId: string): Promise<Role | null> => {
     const project = await getProject(userId, projectId);
-    if (!project) {
-        throw new Error("Permission denied or project not found.");
-    }
-    return project;
+    return project?.roles?.[userId] || null;
 }
 
 
@@ -122,15 +115,17 @@ const verifyProjectOwner = async (userId: string, projectId: string) => {
 export const createProjectWithPrompts = async (
   userId: string,
   projectName: string,
-  idea: string,
+  enhancedIdea: string,
   plan: DecomposeIdeaOutput
 ): Promise<string> => {
   const projectDocRef = await addDoc(collection(db, 'projects'), {
     name: projectName,
-    idea: idea,
+    idea: enhancedIdea,
     imageUrl: null,
     createdAt: serverTimestamp(),
-    userId: userId,
+    roles: {
+      [userId]: 'owner' // Set the creator as the owner
+    },
   });
 
   const projectId = projectDocRef.id;
@@ -160,13 +155,12 @@ export const generateAndSaveProjectImage = async (
   idea: string
 ): Promise<void> => {
     try {
-        await verifyProjectOwner(userId, projectId);
+        const role = await getProjectRole(userId, projectId);
+        if (!role) throw new Error("Permission denied for image generation.");
         
-        // AI flow is a server action, which is fine to call from the client
         const imageResult = await generateImage({ idea });
         const dataUri = imageResult.imageUrl;
         
-        // Storage and DB writes happen on the authenticated client
         const imagePath = `project-images/${projectId}`;
         const imageRef = storageRef(storage, imagePath);
         await uploadString(imageRef, dataUri, 'data_url');
@@ -176,45 +170,52 @@ export const generateAndSaveProjectImage = async (
         await updateDoc(projectRef, { imageUrl });
 
     } catch (err) {
-        // This is a fire-and-forget background task.
-        // We log the error but don't re-throw, as the user has already moved on.
         console.error("Background image generation and save failed:", err);
     }
 }
 
 // Function to update a project's details
-export const updateProject = async (userId: string, projectId: string, data: Partial<Omit<Project, 'id' | 'userId' | 'createdAt'>>): Promise<void> => {
-    await verifyProjectOwner(userId, projectId);
+export const updateProject = async (userId: string, projectId: string, data: Partial<Omit<Project, 'id' | 'roles' | 'createdAt'>>): Promise<void> => {
+    const role = await getProjectRole(userId, projectId);
+    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
+    
     const projectRef = doc(db, 'projects', projectId);
     await updateDoc(projectRef, data);
 };
 
 // Function to update a prompt
 export const updatePrompt = async (userId: string, projectId: string, promptId: string, data: Partial<Omit<Prompt, 'id'>>): Promise<void> => {
-    await verifyProjectOwner(userId, projectId);
+    const role = await getProjectRole(userId, projectId);
+    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
+
     const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
     await updateDoc(promptRef, data);
 }
 
 // Function to update a prompt's status
 export const updatePromptStatus = async (userId: string, projectId: string, promptId: string, isDone: boolean): Promise<void> => {
-    await verifyProjectOwner(userId, projectId);
+    const role = await getProjectRole(userId, projectId);
+    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
+
     const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
     await updateDoc(promptRef, { isDone });
 };
 
 // Function to delete a prompt
 export const deletePrompt = async (userId: string, projectId: string, promptId: string): Promise<void> => {
-    await verifyProjectOwner(userId, projectId);
+    const role = await getProjectRole(userId, projectId);
+    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
+
     const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
     await deleteDoc(promptRef);
 }
 
 // Function to delete a project and all its associated prompts
 export const deleteProject = async (userId: string, projectId: string): Promise<void> => {
-    await verifyProjectOwner(userId, projectId);
-    const batch = writeBatch(db);
+    const role = await getProjectRole(userId, projectId);
+    if (role !== 'owner') throw new Error("Permission denied. Only the owner can delete a project.");
 
+    const batch = writeBatch(db);
     const projectRef = doc(db, 'projects', projectId);
     batch.delete(projectRef);
 
@@ -229,7 +230,8 @@ export const deleteProject = async (userId: string, projectId: string): Promise<
 
 // Function to add a new prompt to a project
 export const addPrompt = async (userId: string, projectId: string, promptData: Omit<Prompt, 'id' | 'order'>): Promise<string> => {
-    await verifyProjectOwner(userId, projectId);
+    const role = await getProjectRole(userId, projectId);
+    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
     
     const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
     const q = query(promptsCollectionRef, where("phase", "==", promptData.phase));
@@ -239,14 +241,16 @@ export const addPrompt = async (userId: string, projectId: string, promptData: O
     const newPromptRef = await addDoc(promptsCollectionRef, {
         ...promptData,
         order: newOrder,
-        isDone: false, // Default to not done
+        isDone: false,
     });
     return newPromptRef.id;
 }
 
 // Function to update the order of prompts
 export const updatePromptsOrder = async (userId: string, projectId: string, prompts: { id: string; order: number }[]): Promise<void> => {
-    await verifyProjectOwner(userId, projectId);
+    const role = await getProjectRole(userId, projectId);
+    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
+
     const batch = writeBatch(db);
     prompts.forEach(prompt => {
         const promptRef = doc(db, 'projects', projectId, 'prompts', prompt.id);
@@ -254,3 +258,47 @@ export const updatePromptsOrder = async (userId: string, projectId: string, prom
     });
     await batch.commit();
 };
+
+// --- Collaboration Functions ---
+
+export const findUserByEmail = async (email: string): Promise<{ uid: string; email: string; displayName: string | null; photoURL: string | null; } | null> => {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('email', '==', email));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+        return null;
+    }
+    const userDoc = querySnapshot.docs[0];
+    return {
+        uid: userDoc.id,
+        ...userDoc.data()
+    } as { uid: string; email: string; displayName: string | null; photoURL: string | null; };
+}
+
+export const getUsers = async (userIds: string[]): Promise<Omit<Collaborator, 'role'>[]> => {
+    if (userIds.length === 0) return [];
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('__name__', 'in', userIds));
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs.map(doc => ({
+        uid: doc.id,
+        email: doc.data().email,
+        displayName: doc.data().displayName,
+        photoURL: doc.data().photoURL
+    }));
+}
+
+export const updateProjectRoles = async (currentUserId: string, projectId: string, newRoles: Record<string, Role>): Promise<void> => {
+    const role = await getProjectRole(currentUserId, projectId);
+    if (role !== 'owner') {
+        throw new Error("Permission denied. Only the project owner can change roles.");
+    }
+    if (!newRoles[currentUserId] || newRoles[currentUserId] !== 'owner') {
+        throw new Error("The project must always have an owner.");
+    }
+
+    const projectRef = doc(db, 'projects', projectId);
+    await updateDoc(projectRef, { roles: newRoles });
+}

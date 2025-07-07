@@ -6,9 +6,9 @@ import { useAuth } from '@/context/auth-context';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { type Project, type Prompt as PromptType } from '@/lib/projects';
+import { type Project, type Prompt as PromptType, type Role } from '@/lib/projects';
 import { getProject, getPromptsForProject, updatePromptStatus } from '@/lib/project-client';
-import { Loader2, ArrowLeft, AlertTriangle, Pencil, Copy, Check } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, Pencil, Copy, Check, Users } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import { PromptCard } from '@/components/prompt-card';
@@ -17,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Textarea } from '@/components/ui/textarea';
+import { ShareDialog } from '@/components/share-dialog';
 
 export default function ProjectPage() {
   const { user, loading: authLoading } = useAuth();
@@ -28,6 +29,8 @@ export default function ProjectPage() {
   const [prompts, setPrompts] = useState<PromptType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<Role | null>(null);
+  const [isShareDialogOpen, setShareDialogOpen] = useState(false);
 
   const [frontendMagicCopied, setFrontendMagicCopied] = useState(false);
   const [backendMagicCopied, setBackendMagicCopied] = useState(false);
@@ -41,9 +44,13 @@ export default function ProjectPage() {
       const projectData = await getProject(user.uid, projectId);
       if (!projectData) {
         setError("Project not found or you don't have permission to view it.");
+        setProject(null);
+        setPrompts([]);
+        setUserRole(null);
         return;
       }
       setProject(projectData);
+      setUserRole(projectData.roles[user.uid]);
 
       const promptsData = await getPromptsForProject(user.uid, projectId);
       setPrompts(promptsData);
@@ -73,7 +80,7 @@ export default function ProjectPage() {
   }, [user, authLoading, router, fetchProjectData]);
 
   const handleTogglePromptStatus = async (promptId: string, newStatus: boolean) => {
-    if (!user) return;
+    if (!user || userRole === 'viewer') return;
 
     // Optimistic UI update
     const originalPrompts = [...prompts];
@@ -122,6 +129,8 @@ export default function ProjectPage() {
     .map((p, index) => `--- Step ${index + 1}: ${p.title} ---\n\n${p.prompt}`)
     .join('\n\n');
 
+  const canEdit = userRole === 'owner' || userRole === 'editor';
+
   if (loading || authLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -146,6 +155,7 @@ export default function ProjectPage() {
   }
   
   return (
+    <>
     <div className="min-h-screen bg-background text-foreground">
        <header className="container mx-auto px-4 py-4 flex justify-between items-center border-b">
          <Link href="/" className="flex items-center gap-2">
@@ -158,17 +168,27 @@ export default function ProjectPage() {
       </header>
 
       <main className="container mx-auto px-4 pb-8 md:pb-16">
-        <div className="my-6 flex justify-between items-center">
+        <div className="my-6 flex justify-between items-center gap-4">
             <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
             </Link>
-            <Link href={`/projects/${projectId}/edit`}>
-              <Button variant="outline">
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit Project
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              {userRole === 'owner' && (
+                <Button variant="outline" onClick={() => setShareDialogOpen(true)}>
+                  <Users className="mr-2 h-4 w-4" />
+                  Share
+                </Button>
+              )}
+              {canEdit && (
+                <Link href={`/projects/${projectId}/edit`}>
+                  <Button variant="outline">
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit Project
+                  </Button>
+                </Link>
+              )}
+            </div>
         </div>
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center mt-6">
           {project?.imageUrl && (
@@ -222,6 +242,7 @@ export default function ProjectPage() {
                           <PromptCard 
                             key={prompt.id} 
                             {...prompt}
+                            isReadOnly={!canEdit}
                             onStatusChange={handleTogglePromptStatus}
                           />
                       ))}
@@ -259,6 +280,7 @@ export default function ProjectPage() {
                             <PromptCard 
                                 key={prompt.id} 
                                 {...prompt}
+                                isReadOnly={!canEdit}
                                 onStatusChange={handleTogglePromptStatus}
                             />
                         ))}
@@ -269,5 +291,15 @@ export default function ProjectPage() {
         </div>
       </main>
     </div>
+    {project && user && userRole === 'owner' && (
+      <ShareDialog
+        open={isShareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        project={project}
+        currentUser={user}
+        onRolesChange={fetchProjectData}
+      />
+    )}
+    </>
   );
 }
