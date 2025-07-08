@@ -9,6 +9,9 @@ import type { Prompt } from "@/lib/projects";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Sparkles } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { enhancePrompt } from "@/ai/flows/enhance-prompt";
 
 type PromptData = Partial<Prompt>;
 
@@ -28,6 +31,8 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
   const [timeEstimate, setTimeEstimate] = useState('');
   const [complexity, setComplexity] = useState<Prompt['complexity'] | undefined>(undefined);
   const [acceptanceCriteria, setAcceptanceCriteria] = useState('');
+  const [isEnhancing, setIsEnhancing] = useState(false);
+
 
   const resetState = () => {
     setTitle('');
@@ -36,6 +41,7 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
     setTimeEstimate('');
     setComplexity(undefined);
     setAcceptanceCriteria('');
+    setIsEnhancing(false);
   }
   
   useEffect(() => {
@@ -72,6 +78,35 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
     });
     onOpenChange(false);
   }
+
+  const handleEnhancePrompt = async () => {
+    if (!userPrompt.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Cannot Enhance",
+        description: "Please enter a prompt to enhance.",
+      });
+      return;
+    }
+    setIsEnhancing(true);
+    try {
+      const result = await enhancePrompt({ prompt: userPrompt });
+      setUserPrompt(result.enhancedPrompt);
+      toast({
+        title: "Prompt Enhanced",
+        description: "The user prompt has been improved by AI.",
+      });
+    } catch (error) {
+      console.error("Error enhancing prompt:", error);
+      toast({
+        variant: "destructive",
+        title: "Enhancement Failed",
+        description: "Could not enhance the prompt. Please try again.",
+      });
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -111,7 +146,35 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
               </div>
                <div className="space-y-2">
                 <Label htmlFor="userprompt-text">User Prompt</Label>
-                <Textarea id="userprompt-text" value={userPrompt} onChange={(e) => setUserPrompt(e.target.value)} className="min-h-[160px]" placeholder="Enter the plain-English user prompt..." />
+                 <div className="relative">
+                    <Textarea 
+                        id="userprompt-text" 
+                        value={userPrompt} 
+                        onChange={(e) => setUserPrompt(e.target.value)} 
+                        className="min-h-[160px] pr-12"
+                        placeholder="Enter the plain-English user prompt..." 
+                    />
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                           <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="icon" 
+                              className="absolute top-2 right-2 h-8 w-8 text-muted-foreground"
+                              onClick={handleEnhancePrompt}
+                              disabled={isEnhancing}
+                            >
+                               {isEnhancing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                              <span className="sr-only">Enhance prompt with AI</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Enhance with AI</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="acceptance-criteria-text">Acceptance Criteria (one per line)</Label>
