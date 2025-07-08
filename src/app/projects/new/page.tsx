@@ -40,6 +40,11 @@ export default function NewProjectPage() {
     try {
       // Step 1: Call the AI flow (a server action) to get the plan
       const plan = await decomposeIdea({ idea });
+
+      // Check if the plan is empty, which may indicate a refusal from the AI
+      if (!plan.developmentPlan || plan.developmentPlan.length === 0) {
+        throw new Error(plan.enhancedIdea || "The AI could not generate a plan for this idea. Please make sure it's a software development topic and try rephrasing.");
+      }
       
       // Step 2: Create the project and prompts from the client, which is authenticated
       const projectId = await createProjectWithPrompts(user.uid, projectName, plan);
@@ -54,8 +59,6 @@ export default function NewProjectPage() {
     } catch (e: any) {
       console.error("Detailed error during project creation:", e);
       let errorMessage = e.message || "An unexpected error occurred.";
-      // This more specific error message is now more likely to be a true rules issue
-      // rather than an auth context problem.
       if (e.code === 'permission-denied' || (e.message && e.message.includes('PERMISSION_DENIED'))) {
         errorMessage = `Permission Denied: Your Firestore security rules are preventing the project from being created. Please ensure your rules correctly allow writes to '/projects/{projectId}' and its 'prompts' subcollection. Original Error: ${e.message}`;
       }

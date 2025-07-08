@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Decomposes a project idea into a sequential development plan.
@@ -46,6 +45,8 @@ const decomposeIdeaPrompt = ai.definePrompt({
   input: {schema: DecomposeIdeaInputSchema},
   output: {schema: DecomposeIdeaOutputSchema},
   prompt: `You are an expert project manager and software architect. Your task is to take a user’s project idea (in plain English), clarify any ambiguities, refine it, and then break it down into a structured, sequential, and complete development plan. All prompts you generate must be simple, natural-language instructions—no code, commands, or technical details.
+
+**Your scope is strictly limited to software development projects.** If the user’s idea is not about software development (e.g., writing a book, planning a vacation, a marketing campaign), you must politely decline by returning a JSON object where \`developmentPlan\` is an empty array and \`enhancedIdea\` contains a refusal message (e.g., "I can only help with software project ideas."). Do not generate clarification steps for non-software ideas.
 
 **Emit only a single JSON object** with these top-level fields:
 
