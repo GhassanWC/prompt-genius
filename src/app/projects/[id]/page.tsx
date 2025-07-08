@@ -209,7 +209,7 @@ export default function ProjectPage() {
               {prompts.length > 0 && (
                 <div className="space-y-6">
                   <h3 className="text-2xl font-bold font-headline text-center">Development Plan</h3>
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                       {prompts.map((prompt, index) => (
                           <PromptCard 
                             key={prompt.id} 
