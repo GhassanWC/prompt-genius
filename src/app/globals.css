@@ -86,35 +86,3 @@ body {
     @apply bg-background text-foreground;
   }
 }
-
-@media print {
-  body {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  .no-print,
-  .no-print * {
-    display: none !important;
-  }
-
-  main {
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-
-  .container {
-    max-width: 100%;
-    padding: 0;
-  }
-
-  .card-for-print {
-    border: 1px solid hsl(var(--border));
-    box-shadow: none;
-    page-break-inside: avoid;
-  }
-
-  .checkbox-for-print {
-    display: none;
-  }
-}
