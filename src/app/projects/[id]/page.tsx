@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -7,7 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { type Project, type Prompt as PromptType, type Role } from '@/lib/projects';
 import { getProject, getPromptsForProject, updatePromptStatus } from '@/lib/project-client';
-import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Copy } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Copy, Download } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import { PromptCard } from '@/components/prompt-card';
@@ -97,25 +98,37 @@ export default function ProjectPage() {
   };
 
   const handleCopyAll = () => {
-    if (prompts.length === 0) {
+    if (!project || prompts.length === 0) {
       toast({
         variant: 'destructive',
-        title: 'No prompts to copy',
-        description: 'This project does not have any prompts yet.',
+        title: 'No Content to Copy',
+        description: 'This project does not have an idea or any prompts yet.',
       });
       return;
     }
 
+    let fullText = `Project Idea:\n${project.idea}\n\n`;
+    fullText += '========================================\n\n';
+    fullText += 'Development Plan:\n\n';
+
     const allPromptsText = prompts
       .map((p, index) => {
-        return `--- Step ${index + 1}: ${p.title} ---\n\n${p.userPrompt}`;
-      })
-      .join('\n\n\n');
+        let promptText = `--- Step ${index + 1}: ${p.title} ---\n\n`;
+        promptText += `${p.userPrompt}`;
 
-    navigator.clipboard.writeText(allPromptsText);
+        if (p.acceptanceCriteria && p.acceptanceCriteria.length > 0) {
+          promptText += `\n\nAcceptance Criteria:\n${p.acceptanceCriteria.map(ac => ` - ${ac}`).join('\n')}`;
+        }
+        return promptText;
+      })
+      .join('\n\n');
+    
+    fullText += allPromptsText;
+
+    navigator.clipboard.writeText(fullText);
     toast({
-      title: 'All Prompts Copied!',
-      description: 'The complete development plan is on your clipboard.',
+      title: 'Project Copied!',
+      description: 'The idea and all prompts are on your clipboard.',
     });
   };
 
@@ -146,8 +159,8 @@ export default function ProjectPage() {
   
   return (
     <>
-    <div className="min-h-screen bg-background text-foreground">
-       <header className="container mx-auto px-4 py-4 flex justify-between items-center border-b">
+    <div className="min-h-screen bg-background text-foreground print:bg-white">
+       <header className="container mx-auto px-4 py-4 flex justify-between items-center border-b print:hidden">
          <Link href="/" className="flex items-center gap-2">
             <Logo className="h-8 w-8 text-primary" />
              <h1 className="font-headline text-xl font-bold tracking-tight hidden sm:block">
@@ -158,7 +171,7 @@ export default function ProjectPage() {
       </header>
 
       <main className="container mx-auto px-4 pb-8 md:pb-16">
-        <div className="my-6 flex justify-between items-center gap-4">
+        <div className="my-6 flex justify-between items-center gap-4 print:hidden">
             <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
@@ -186,7 +199,7 @@ export default function ProjectPage() {
         </div>
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center mt-6">
           {project?.imageUrl && (
-            <div className="relative w-full h-64 md:h-80 mb-8 rounded-xl overflow-hidden shadow-lg">
+            <div className="relative w-full h-64 md:h-80 mb-8 rounded-xl overflow-hidden shadow-lg print:shadow-none print:h-auto print:aspect-video">
               <Image
                 src={project.imageUrl}
                 alt={project.name ?? 'Project image'}
@@ -203,13 +216,13 @@ export default function ProjectPage() {
           </p>
         </div>
         
-        <div className="max-w-4xl mx-auto mt-12">
+        <div className="max-w-4xl mx-auto mt-12 print:mt-8">
             <div className="space-y-10">
               
               {prompts.length > 0 && (
                 <div className="space-y-6">
-                  <h3 className="text-2xl font-bold font-headline text-center">Development Plan</h3>
-                  <div className="space-y-4">
+                  <h3 className="text-2xl font-bold font-headline text-center print:text-left">Development Plan</h3>
+                  <div className="space-y-4 print:space-y-6">
                       {prompts.map((prompt, index) => (
                           <PromptCard 
                             key={prompt.id} 
