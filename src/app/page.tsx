@@ -214,7 +214,7 @@ export default function LandingPage() {
                 Choose the plan that's right for you. Get started for free, and upgrade when you're ready to build more.
               </p>
             </div>
-            <div className="mt-12 grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
+            <div className="mt-12 grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
               <Card className="flex flex-col">
                 <CardHeader>
                   <CardTitle className="font-headline text-2xl">Hobbyist</CardTitle>
@@ -235,9 +235,27 @@ export default function LandingPage() {
               <Card className="flex flex-col border-primary shadow-lg">
                 <CardHeader>
                   <div className="flex justify-between items-center">
-                     <CardTitle className="font-headline text-2xl">Pro</CardTitle>
+                     <CardTitle className="font-headline text-2xl">Plus</CardTitle>
                      <div className="text-xs font-bold uppercase text-primary bg-primary/10 px-2 py-1 rounded-full">Most Popular</div>
                   </div>
+                  <CardDescription>For individuals and small teams shipping projects.</CardDescription>
+                  <p className="pt-4"><span className="text-4xl font-bold">$5</span><span className="text-muted-foreground">/month</span></p>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-3">
+                  <p className="flex items-center"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 20 projects</p>
+                  <p className="flex items-center"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> AI Idea Enhancement</p>
+                  <p className="flex items-center"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Full Prompt Generation</p>
+                  <p className="flex items-center"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Community Support</p>
+                </CardContent>
+                 <div className="p-6 pt-0">
+                  <Button asChild className="w-full">
+                     <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>Get Plus</Link>
+                  </Button>
+                </div>
+              </Card>
+              <Card className="flex flex-col">
+                <CardHeader>
+                  <CardTitle className="font-headline text-2xl">Pro</CardTitle>
                   <CardDescription>For serious builders who want to ship faster.</CardDescription>
                   <p className="pt-4"><span className="text-4xl font-bold">$12</span><span className="text-muted-foreground">/month</span></p>
                 </CardHeader>
@@ -248,7 +266,7 @@ export default function LandingPage() {
                   <p className="flex items-center"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Priority Support</p>
                 </CardContent>
                  <div className="p-6 pt-0">
-                  <Button asChild className="w-full">
+                  <Button asChild className="w-full" variant="outline">
                      <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>Go Pro</Link>
                   </Button>
                 </div>
