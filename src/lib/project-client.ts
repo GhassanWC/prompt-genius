@@ -16,6 +16,8 @@ import {
   deleteDoc,
   writeBatch,
   serverTimestamp,
+  limit,
+  orderBy,
 } from 'firebase/firestore';
 import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage';
 import { generateImage } from '@/ai/flows/generate-image';
@@ -328,4 +330,38 @@ export const updateProjectSettings = async (currentUserId: string, projectId: st
 
     const projectRef = doc(db, 'projects', projectId);
     await updateDoc(projectRef, { roles, isPublic });
+}
+
+// Function to get the latest public projects for the landing page
+export const getPublicProjects = async (count: number): Promise<Project[]> => {
+    try {
+        const projectsCollectionRef = collection(db, 'projects');
+        const q = query(
+            projectsCollectionRef, 
+            where("isPublic", "==", true), 
+            orderBy("createdAt", "desc"),
+            limit(count)
+        );
+        const querySnapshot = await getDocs(q);
+        
+        const projects: Project[] = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const createdAtTimestamp = data.createdAt as Timestamp;
+            projects.push({ 
+                id: doc.id,
+                name: data.name || 'Untitled Project',
+                idea: data.idea || '',
+                imageUrl: data.imageUrl,
+                isPublic: data.isPublic,
+                createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
+                roles: data.roles || {},
+            });
+        });
+        return projects;
+    } catch (err: any) {
+        console.error("Error fetching public projects:", err);
+        // Silently fail for landing page, but log error
+        return [];
+    }
 }
