@@ -1,13 +1,13 @@
+
 "use client";
 
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, Check, Clock, Zap, CheckCircle } from "lucide-react";
+import { Copy, Check, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { Prompt } from "@/lib/projects";
-import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
 
 type PromptCardProps = Prompt & {
@@ -21,8 +21,6 @@ export function PromptCard({
   title,
   userPrompt,
   mapFlow,
-  complexity,
-  timeEstimate,
   isDone,
   acceptanceCriteria,
   stepNumber,
@@ -50,42 +48,36 @@ export function PromptCard({
 
   return (
     <Card className={cn(
-        "transition-all duration-300",
-        isDone ? "bg-card/80 opacity-70" : "bg-card hover:bg-secondary/20"
+        "transition-all duration-300 print:break-inside-avoid",
+        isDone ? "bg-card/60 opacity-60" : "bg-card"
     )}>
-      <CardContent className="p-6">
+      <CardContent className="p-0">
         {/* Header section */}
-        <div className="flex items-start gap-4">
+        <div className="flex items-center gap-4 p-6 border-b">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
             {stepNumber}
           </div>
           <div className="flex-1">
-            <div className="flex justify-between items-start gap-4">
-              <CardTitle className={cn("text-xl font-headline", isDone && "line-through")}>
-                {title}
-              </CardTitle>
-              <Checkbox 
-                id={`done-${id}`}
-                checked={!!isDone}
-                onCheckedChange={(checked) => onStatusChange(id, !!checked)}
-                className="h-6 w-6 flex-shrink-0 mt-1"
-                aria-label="Mark as done"
-                disabled={isReadOnly}
-              />
-            </div>
-            <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-2">
-              {complexity && <Badge variant="outline" className="capitalize"><Zap className="mr-1 h-3 w-3"/>{complexity}</Badge>}
-              {timeEstimate && <Badge variant="outline"><Clock className="mr-1 h-3 w-3"/>{timeEstimate}</Badge>}
-            </div>
+            <h3 className={cn("text-xl font-headline font-semibold", isDone && "line-through")}>
+              {title}
+            </h3>
           </div>
+          <Checkbox 
+            id={`done-${id}`}
+            checked={!!isDone}
+            onCheckedChange={(checked) => onStatusChange(id, !!checked)}
+            className="h-6 w-6 flex-shrink-0 print:hidden"
+            aria-label="Mark as done"
+            disabled={isReadOnly}
+          />
         </div>
 
         {/* Content section */}
-        <div className="pl-14 pt-4 mt-4 border-t border-border/50 space-y-6">
+        <div className="p-6 space-y-6">
             {mapFlow && (
-                <div className="text-sm">
+                <div>
                     <p className="font-semibold text-foreground/90 mb-1">Logic Map</p>
-                    <p className="text-muted-foreground italic">{mapFlow}</p>
+                    <p className="text-muted-foreground italic text-sm">{mapFlow}</p>
                 </div>
             )}
             
@@ -95,7 +87,7 @@ export function PromptCard({
                 size="icon"
                 onClick={handleCopy}
                 aria-label="Copy prompt"
-                className="h-8 w-8 absolute top-3 right-3 text-muted-foreground hover:text-accent-foreground"
+                className="h-8 w-8 absolute top-3 right-3 text-muted-foreground hover:text-accent-foreground print:hidden"
                 >
                 {hasCopied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
                 </Button>

@@ -8,7 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { type Project, type Prompt as PromptType, type Role } from '@/lib/projects';
 import { getProject, getPromptsForProject, updatePromptStatus } from '@/lib/project-client';
-import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Copy, Download } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Copy } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import { PromptCard } from '@/components/prompt-card';
@@ -114,7 +114,7 @@ export default function ProjectPage() {
     const allPromptsText = prompts
       .map((p, index) => {
         let promptText = `--- Step ${index + 1}: ${p.title} ---\n\n`;
-        promptText += `${p.userPrompt}`;
+        promptText += `User Prompt:\n${p.userPrompt}`;
 
         if (p.acceptanceCriteria && p.acceptanceCriteria.length > 0) {
           promptText += `\n\nAcceptance Criteria:\n${p.acceptanceCriteria.map(ac => ` - ${ac}`).join('\n')}`;
@@ -181,6 +181,9 @@ export default function ProjectPage() {
                   <Copy className="mr-2 h-4 w-4" />
                   Copy All
               </Button>
+               <Button variant="outline" onClick={() => window.print()}>
+                  Export
+              </Button>
               {userRole === 'owner' && (
                 <Button variant="outline" onClick={() => setShareDialogOpen(true)}>
                   <Users className="mr-2 h-4 w-4" />
@@ -222,7 +225,7 @@ export default function ProjectPage() {
               {prompts.length > 0 && (
                 <div className="space-y-6">
                   <h3 className="text-2xl font-bold font-headline text-center print:text-left">Development Plan</h3>
-                  <div className="space-y-4 print:space-y-6">
+                  <div className="space-y-6 print:space-y-6">
                       {prompts.map((prompt, index) => (
                           <PromptCard 
                             key={prompt.id} 
