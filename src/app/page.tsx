@@ -96,57 +96,53 @@ export default function LandingPage() {
       </header>
 
       <main className="flex-grow">
-        <section id="hero" className="container mx-auto px-4 py-20 sm:py-28">
-          <div className="grid grid-cols-1 gap-12 items-center">
-            <div className="text-center">
-              <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight">
-                Turn Your Vague Idea Into a Concrete Plan
-              </h1>
-              <p className="mt-6 max-w-xl mx-auto text-lg text-muted-foreground">
-                Stop wondering where to start. PromptForge AI decomposes your biggest ideas into a clear, sequential development plan with actionable prompts for every step.
-              </p>
-              <div className="mt-8 flex justify-center gap-4">
-                <Button asChild size="lg">
-                  <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>Start Forging</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link href="#features">Learn More</Link>
-                </Button>
-              </div>
-              <div className="mt-10 flex items-center justify-center gap-4">
-                <div className="flex -space-x-2 overflow-hidden">
-                    <Avatar className="border-2 border-background h-10 w-10">
-                        <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person" />
-                        <AvatarFallback>S</AvatarFallback>
-                    </Avatar>
-                    <Avatar className="border-2 border-background h-10 w-10">
-                        <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person" />
-                        <AvatarFallback>J</AvatarFallback>
-                    </Avatar>
-                    <Avatar className="border-2 border-background h-10 w-10">
-                        <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person" />
-                        <AvatarFallback>M</AvatarFallback>
-                    </Avatar>
+        <section id="hero" className="container mx-auto px-4 py-20 text-center sm:py-28">
+          <h1 className="font-headline text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
+            Turn Your Vague Idea Into a Concrete Plan
+          </h1>
+          <p className="mt-6 mx-auto max-w-2xl text-lg text-muted-foreground">
+            Stop wondering where to start. PromptForge AI decomposes your biggest ideas into a clear, sequential development plan with actionable prompts for every step.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button asChild size="lg" className="w-full sm:w-auto">
+              <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>Start Forging</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+              <Link href="#features">Learn More</Link>
+            </Button>
+          </div>
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex -space-x-2 overflow-hidden">
+                <Avatar className="border-2 border-background h-10 w-10">
+                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person" />
+                    <AvatarFallback>S</AvatarFallback>
+                </Avatar>
+                <Avatar className="border-2 border-background h-10 w-10">
+                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person" />
+                    <AvatarFallback>J</AvatarFallback>
+                </Avatar>
+                <Avatar className="border-2 border-background h-10 w-10">
+                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person" />
+                    <AvatarFallback>M</AvatarFallback>
+                </Avatar>
+            </div>
+            <div className="text-sm text-muted-foreground">
+                <div className="flex items-center justify-center gap-0.5">
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                 </div>
-                <div className="text-sm text-muted-foreground">
-                    <div className="flex items-center justify-center gap-0.5">
-                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                    </div>
-                    <p className="mt-1">Loved by <strong>1,000+</strong> developers & founders</p>
-                </div>
-              </div>
+                <p className="mt-1">Loved by <strong>1,000+</strong> developers & founders</p>
             </div>
           </div>
         </section>
 
-        <section id="features" className="py-20 bg-secondary/30">
+        <section id="features" className="py-16 sm:py-20 bg-secondary/30">
           <div className="container mx-auto px-4">
             <div className="text-center">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold">A Smarter Way to Build</h2>
+              <h2 className="font-headline text-3xl font-bold md:text-4xl">A Smarter Way to Build</h2>
               <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">
                 From concept to code, we've got you covered. Our features are designed to eliminate guesswork and accelerate your development process.
               </p>
@@ -169,15 +165,15 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="testimonials" className="py-20">
+        <section id="testimonials" className="py-16 sm:py-20">
           <div className="container mx-auto px-4">
             <div className="text-center">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold">Loved by Developers and Founders</h2>
+              <h2 className="font-headline text-3xl font-bold md:text-4xl">Loved by Developers and Founders</h2>
               <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">
                 Don't just take our word for it. Here's what our users have to say about their experience with PromptForge AI.
               </p>
             </div>
-            <div className="mt-12 grid gap-8 lg:grid-cols-3">
+            <div className="mt-12 grid gap-8 md:grid-cols-1 lg:grid-cols-3">
               {testimonials.map((testimonial) => (
                 <Card key={testimonial.name} className="flex flex-col">
                   <CardContent className="pt-6 flex-grow">
@@ -206,15 +202,15 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="pricing" className="py-20 bg-secondary/30">
+        <section id="pricing" className="py-16 sm:py-20 bg-secondary/30">
           <div className="container mx-auto px-4">
             <div className="text-center">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold">Simple, Transparent Pricing</h2>
+              <h2 className="font-headline text-3xl font-bold md:text-4xl">Simple, Transparent Pricing</h2>
               <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">
                 Choose the plan that's right for you. Get started for free, and upgrade when you're ready to build more.
               </p>
             </div>
-            <div className="mt-12 grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
+            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
               <Card className="flex flex-col">
                 <CardHeader>
                   <CardTitle className="font-headline text-2xl">Hobbyist</CardTitle>
