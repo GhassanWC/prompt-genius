@@ -21,8 +21,9 @@ export interface ClarificationStep {
 // Type for a project
 export interface Project {
   id: string;
-  name: string;
+  name:string;
   idea: string;
+  isPublic: boolean;
   imageUrl?: string;
   createdAt: Date;
   roles: Record<string, Role>;

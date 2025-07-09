@@ -39,6 +39,7 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         name: data.name || 'Untitled Project',
         idea: data.idea || '',
         imageUrl: data.imageUrl,
+        isPublic: data.isPublic || false,
         createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
         roles: data.roles || {},
         clarificationSteps: data.clarificationSteps,
@@ -62,19 +63,36 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
 };
 
 // Function to get a single project's details
-export const getProject = async (userId: string, projectId: string): Promise<Project | null> => {
+export const getProject = async (userId: string | null, projectId: string): Promise<Project | null> => {
     const docRef = doc(db, 'projects', projectId);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
         const data = docSnap.data();
-        // Check if the user has a role in this project
-        if (data.roles && data.roles[userId]) {
+        
+        // Public projects are readable by anyone
+        if (data.isPublic) {
             const createdAtTimestamp = data.createdAt as Timestamp;
             return {
                 id: docSnap.id,
                 name: data.name || 'Untitled Project',
                 idea: data.idea || '',
+                isPublic: data.isPublic,
+                imageUrl: data.imageUrl,
+                createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
+                roles: data.roles,
+                clarificationSteps: data.clarificationSteps,
+            };
+        }
+
+        // Private projects are only readable by collaborators
+        if (userId && data.roles && data.roles[userId]) {
+            const createdAtTimestamp = data.createdAt as Timestamp;
+            return {
+                id: docSnap.id,
+                name: data.name || 'Untitled Project',
+                idea: data.idea || '',
+                isPublic: data.isPublic,
                 imageUrl: data.imageUrl,
                 createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
                 roles: data.roles,
@@ -82,13 +100,14 @@ export const getProject = async (userId: string, projectId: string): Promise<Pro
             };
         }
     }
-    // If we are here, either the project doesn't exist or the user doesn't have access.
+    // If we are here, the project is private and user is not a collaborator, or it doesn't exist.
     return null;
 }
 
 
 // Function to get all prompts for a project, also verifies access
-export const getPromptsForProject = async (userId: string, projectId: string): Promise<Prompt[]> => {
+export const getPromptsForProject = async (userId: string | null, projectId: string): Promise<Prompt[]> => {
+    // getProject handles the public/private access logic
     const project = await getProject(userId, projectId);
     if (!project) {
         throw new Error("Permission denied or project not found.");
@@ -108,8 +127,12 @@ export const getPromptsForProject = async (userId: string, projectId: string): P
 
 // Helper function to verify project access and role, used by write operations below
 export const getProjectRole = async (userId: string, projectId: string): Promise<Role | null> => {
-    const project = await getProject(userId, projectId);
-    return project?.roles?.[userId] || null;
+    const projectDoc = await getDoc(doc(db, 'projects', projectId));
+    if (!projectDoc.exists()) return null;
+    const projectData = projectDoc.data();
+    // This is a direct role check, doesn't account for public read access.
+    // Intended for write permission checks.
+    return projectData?.roles?.[userId] || null;
 }
 
 
@@ -122,6 +145,7 @@ export const createProjectWithPrompts = async (
   const projectDocRef = await addDoc(collection(db, 'projects'), {
     name: projectName,
     idea: plan.enhancedIdea,
+    isPublic: false, // Projects are private by default
     clarificationSteps: plan.clarificationSteps || [],
     imageUrl: null,
     createdAt: serverTimestamp(),
@@ -291,15 +315,17 @@ export const getUsers = async (userIds: string[]): Promise<Omit<Collaborator, 'r
     }));
 }
 
-export const updateProjectRoles = async (currentUserId: string, projectId: string, newRoles: Record<string, Role>): Promise<void> => {
+export const updateProjectSettings = async (currentUserId: string, projectId: string, settings: { roles: Record<string, Role>, isPublic: boolean }): Promise<void> => {
     const role = await getProjectRole(currentUserId, projectId);
     if (role !== 'owner') {
-        throw new Error("Permission denied. Only the project owner can change roles.");
+        throw new Error("Permission denied. Only the project owner can change settings.");
     }
-    if (!newRoles[currentUserId] || newRoles[currentUserId] !== 'owner') {
+
+    const { roles, isPublic } = settings;
+    if (!roles[currentUserId] || roles[currentUserId] !== 'owner') {
         throw new Error("The project must always have an owner.");
     }
 
     const projectRef = doc(db, 'projects', projectId);
-    await updateDoc(projectRef, { roles: newRoles });
+    await updateDoc(projectRef, { roles, isPublic });
 }

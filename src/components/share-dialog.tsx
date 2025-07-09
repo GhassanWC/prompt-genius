@@ -17,11 +17,12 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, X, AlertCircle } from 'lucide-react';
+import { Loader2, X, AlertCircle, Lock, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Project, Role, Collaborator } from '@/lib/projects';
-import { findUserByEmail, getUsers, updateProjectRoles } from '@/lib/project-client';
-import { cn } from '@/lib/utils';
+import { findUserByEmail, getUsers, updateProjectSettings } from '@/lib/project-client';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
 
 interface ShareDialogProps {
   open: boolean;
@@ -35,7 +36,8 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
   const { toast } = useToast();
   
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
-  const [newRoles, setNewRoles] = useState<Record<string, Role>>({});
+  const [roles, setRoles] = useState<Record<string, Role>>({});
+  const [isPublic, setIsPublic] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   
   const [isLoading, setIsLoading] = useState(true);
@@ -56,7 +58,8 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
             role: project.roles[profile.uid],
           }));
           setCollaborators(collaboratorData);
-          setNewRoles(project.roles);
+          setRoles(project.roles);
+          setIsPublic(project.isPublic);
         } catch (err: any) {
           setError(err.message || "Failed to load collaborators.");
         } finally {
@@ -67,23 +70,25 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
     } else {
       // Reset state on close
       setCollaborators([]);
-      setNewRoles({});
+      setRoles({});
       setInviteEmail('');
       setIsLoading(true);
       setIsSaving(false);
       setIsInviting(false);
       setError(null);
     }
-  }, [open, project.roles]);
+  }, [open, project.roles, project.isPublic]);
 
   const handleRoleChange = (uid: string, role: Role) => {
-    setNewRoles(prev => ({ ...prev, [uid]: role }));
+    setRoles(prev => ({ ...prev, [uid]: role }));
   };
 
   const handleRemoveCollaborator = (uid: string) => {
-    const updatedRoles = { ...newRoles };
+    // Optimistically update UI
+    setCollaborators(prev => prev.filter(c => c.uid !== uid));
+    const updatedRoles = { ...roles };
     delete updatedRoles[uid];
-    setNewRoles(updatedRoles);
+    setRoles(updatedRoles);
   };
 
   const handleInvite = async () => {
@@ -95,11 +100,15 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
       if (!userToInvite) {
         throw new Error("User with that email address not found.");
       }
-      if (newRoles[userToInvite.uid]) {
+      if (roles[userToInvite.uid]) {
         throw new Error("This user is already a collaborator on the project.");
       }
-      setNewRoles(prev => ({ ...prev, [userToInvite.uid]: 'viewer' }));
+
+      // Optimistically update UI
+      setCollaborators(prev => [...prev, { ...userToInvite, role: 'viewer' }]);
+      setRoles(prev => ({ ...prev, [userToInvite.uid]: 'viewer' }));
       setInviteEmail('');
+
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Invite Failed', description: err.message });
     } finally {
@@ -111,8 +120,8 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
     setIsSaving(true);
     setError(null);
     try {
-      await updateProjectRoles(currentUser.uid, project.id, newRoles);
-      toast({ title: 'Success', description: 'Collaborators have been updated.' });
+      await updateProjectSettings(currentUser.uid, project.id, { roles, isPublic });
+      toast({ title: 'Success', description: 'Project settings have been updated.' });
       onRolesChange(); // Trigger data refresh on the parent page
       onOpenChange(false);
     } catch (err: any) {
@@ -132,15 +141,48 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Share "{project.name}"</DialogTitle>
+          <DialogTitle>Share & Access Settings</DialogTitle>
           <DialogDescription>
-            Manage who has access to this project and what they can do.
+             Manage project visibility and who can collaborate.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="py-4 space-y-4">
+        <div className="py-4 space-y-6">
+
+          <div className="space-y-3">
+             <Label className="font-semibold">Project Visibility</Label>
+              <RadioGroup value={isPublic ? 'public' : 'private'} onValueChange={(v) => setIsPublic(v === 'public')}>
+                <div className="flex items-center space-x-2 p-3 border rounded-md has-[:checked]:border-primary">
+                    <RadioGroupItem value="private" id="private"/>
+                    <Label htmlFor="private" className="w-full font-normal">
+                        <div className="flex items-center gap-3">
+                            <Lock className="h-4 w-4" />
+                            <div>
+                                <p>Private</p>
+                                <p className="text-xs text-muted-foreground">Only collaborators can access.</p>
+                            </div>
+                        </div>
+                    </Label>
+                </div>
+                 <div className="flex items-center space-x-2 p-3 border rounded-md has-[:checked]:border-primary">
+                    <RadioGroupItem value="public" id="public"/>
+                    <Label htmlFor="public" className="w-full font-normal">
+                        <div className="flex items-center gap-3">
+                            <Globe className="h-4 w-4" />
+                             <div>
+                                <p>Public</p>
+                                <p className="text-xs text-muted-foreground">Anyone with the link can view.</p>
+                            </div>
+                        </div>
+                    </Label>
+                </div>
+              </RadioGroup>
+          </div>
+
+          <Separator />
+          
           <div className="space-y-2">
-            <Label>Invite new collaborator</Label>
+            <Label className="font-semibold">Invite Collaborator</Label>
             <div className="flex gap-2">
               <Input
                 type="email"
@@ -156,19 +198,17 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
           </div>
           
           <div className="space-y-3">
-            <Label>Collaborators</Label>
+            <Label className="font-semibold">Manage Collaborators</Label>
             {isLoading ? (
                 <div className="flex items-center justify-center p-4">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
             ) : (
                 <div className="max-h-60 overflow-y-auto pr-2 space-y-2">
-                    {Object.keys(newRoles).map(uid => {
-                        const collaborator = collaborators.find(c => c.uid === uid);
-                        if (!collaborator) return null;
-                        const isOwner = newRoles[uid] === 'owner';
+                    {collaborators.map(collaborator => {
+                        const isOwner = roles[collaborator.uid] === 'owner';
                         return (
-                            <div key={uid} className="flex items-center gap-3">
+                            <div key={collaborator.uid} className="flex items-center gap-3">
                                 <Avatar className="h-9 w-9">
                                     <AvatarImage src={collaborator.photoURL || undefined} alt={collaborator.displayName || 'User'}/>
                                     <AvatarFallback>{getInitials(collaborator.displayName)}</AvatarFallback>
@@ -178,8 +218,8 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
                                     <p className="text-xs text-muted-foreground">{collaborator.email}</p>
                                 </div>
                                 <Select 
-                                    value={newRoles[uid]} 
-                                    onValueChange={(role) => handleRoleChange(uid, role as Role)} 
+                                    value={roles[collaborator.uid]} 
+                                    onValueChange={(role) => handleRoleChange(collaborator.uid, role as Role)} 
                                     disabled={isOwner || isSaving}
                                 >
                                     <SelectTrigger className="w-[110px]">
@@ -192,7 +232,7 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
                                     </SelectContent>
                                 </Select>
                                 {!isOwner && (
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleRemoveCollaborator(uid)} disabled={isSaving}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleRemoveCollaborator(collaborator.uid)} disabled={isSaving}>
                                         <X className="h-4 w-4" />
                                     </Button>
                                 )}

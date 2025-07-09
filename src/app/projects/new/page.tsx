@@ -60,7 +60,7 @@ export default function NewProjectPage() {
       console.error("Detailed error during project creation:", e);
       let errorMessage = e.message || "An unexpected error occurred.";
       if (e.code === 'permission-denied' || (e.message && e.message.includes('PERMISSION_DENIED'))) {
-        errorMessage = `Permission Denied: Your Firestore security rules are preventing the project from being created. Please ensure your rules correctly allow writes to '/projects/{projectId}' and its 'prompts' subcollection. Original Error: ${e.message}`;
+        errorMessage = `Permission Denied: Your Firestore security rules are preventing the project from being created. Please ensure your rules correctly allow writes to '/projects/{projectId}' and its 'prompts' subcollection, and that you are setting the project to be private by default. Original Error: ${e.message}`;
       }
       setError(errorMessage);
       setIsLoading(false);

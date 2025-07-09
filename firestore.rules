@@ -1,43 +1,77 @@
+rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Users can only create and update their own profile, but anyone can read them
-    // to facilitate searching for collaborators by email.
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow create, update: if request.auth != null && request.auth.uid == userId;
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
     }
     
-    // Rules for the main projects collection
-    match /projects/{projectId} {
-      
-      // Allow read access if the user's UID is a key in the roles map.
-      allow read: if request.auth != null && request.auth.uid in resource.data.roles;
-      
-      // Allow create access if the user is authenticated and is creating the project
-      // with themselves as the owner.
-      allow create: if request.auth != null && request.resource.data.roles[request.auth.uid] == 'owner';
-        
-      // Allow update access if the user is an 'owner' or 'editor'.
-      allow update: if request.auth != null && resource.data.roles[request.auth.uid] in ['owner', 'editor'];
-        
-      // Allow delete access only if the user is the 'owner'.
-      allow delete: if request.auth != null && resource.data.roles[request.auth.uid] == 'owner';
+    function isUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
 
-      // Rules for the prompts subcollection
+    // Projects Collection
+    match /projects/{projectId} {
+      // READ:
+      // - Allow if the project is public.
+      // - Allow if the user is a collaborator (has a role).
+      allow read: if resource.data.isPublic == true || (isSignedIn() && request.auth.uid in resource.data.roles);
+
+      // CREATE:
+      // - Allow if the user is signed in.
+      // - The new project must set the creator as the owner.
+      // - The project must be private initially.
+      allow create: if isSignedIn()
+                    && request.resource.data.roles[request.auth.uid] == 'owner'
+                    && request.resource.data.isPublic == false;
+      
+      // UPDATE:
+      // - Allow if the user is an owner or editor.
+      // - Only owners can change roles or public status.
+      function canEdit() {
+        return isSignedIn() && resource.data.roles[request.auth.uid] in ['owner', 'editor'];
+      }
+      function isOwner() {
+        return isSignedIn() && resource.data.roles[request.auth.uid] == 'owner';
+      }
+      allow update: if (canEdit() && !(request.resource.data.isPublic != resource.data.isPublic || request.resource.data.roles != resource.data.roles))
+                    || (isOwner());
+
+      // DELETE:
+      // - Allow only if the user is the owner.
+      allow delete: if isOwner();
+
+      // Prompts Subcollection
       match /prompts/{promptId} {
-        // To access a prompt, check the roles on the parent project document.
-        // Allow full R/W access to owners and editors. Viewers can only read projects, not prompts directly this way for modification.
-        // Reading prompts is handled by the parent read rule via getPromptsForProject which checks parent access first.
-        allow read, create, update, delete: if request.auth != null && get(/databases/$(database)/documents/projects/$(projectId)).data.roles[request.auth.uid] in ['owner', 'editor'];
+        // READ:
+        // - Allow if the parent project is public.
+        // - Allow if the user is a collaborator on the parent project.
+        allow read: if get(/databases/$(database)/documents/projects/$(projectId)).data.isPublic == true || (isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.roles);
+
+        // WRITE (create, update, delete):
+        // - Allow if the user is an owner or editor of the parent project.
+        allow write: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.roles && get(/databases/$(database)/documents/projects/$(projectId)).data.roles[request.auth.uid] in ['owner', 'editor'];
       }
     }
-    
-    // Rules for the feedback collection
+
+    // Users Collection
+    match /users/{userId} {
+        // Anyone can create their own user document.
+        allow create: if isUser(userId);
+        // Only the user themselves can read or update their own document.
+        allow read, update: if isUser(userId);
+        // Nobody can delete user documents.
+        allow delete: if false;
+    }
+
+    // Feedback Collection
     match /feedback/{feedbackId} {
-        // Allow create if the user is logged in and the userId in the document
-        // matches their authenticated UID.
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+        // Only authenticated users can create feedback.
+        allow create: if isSignedIn();
+        // Feedback is write-only for clients.
+        allow read, update, delete: if false;
     }
   }
 }
