@@ -29,6 +29,7 @@ import type { Project, Prompt, Role, Collaborator } from './projects';
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
     const projectsCollectionRef = collection(db, 'projects');
+    // The query now only filters by role, and we will sort on the client.
     const q = query(projectsCollectionRef, where(`roles.${userId}`, "in", ["owner", "editor", "viewer"]));
     const querySnapshot = await getDocs(q);
     
@@ -48,7 +49,7 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
       });
     });
 
-    // Sort in code to avoid needing a composite index
+    // Sort in code to avoid needing a composite index on `roles` and `createdAt`
     projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     return projects;
@@ -374,7 +375,7 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
         // Fallback query if the indexed one fails
         try {
             const fallbackQuery = query(
-                projectsCollectionGlowbe, 
+                projectsCollectionRef, 
                 where("isPublic", "==", true), 
                 limit(count)
             );
