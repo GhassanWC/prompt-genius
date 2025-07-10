@@ -7,12 +7,18 @@ import Image from 'next/image';
 import { useAuth } from '@/context/auth-context';
 import type { Project } from '@/lib/projects';
 import { getPublicProjects } from '@/lib/project-client';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+function getInitials(name: string | null | undefined) {
+    if (!name) return 'A';
+    return name.split(' ').map((n) => n[0]).join('').substring(0, 2);
+}
 
 export default function CommunityPage() {
   const { user, loading: authLoading } = useAuth();
@@ -71,6 +77,12 @@ export default function CommunityPage() {
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-2/3 mt-2" />
                 </CardContent>
+                 <CardFooter>
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <Skeleton className="h-4 w-24" />
+                    </div>
+                 </CardFooter>
               </Card>
             ))}
           </div>
@@ -90,12 +102,23 @@ export default function CommunityPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <CardTitle className="font-headline text-xl text-white absolute bottom-4 left-4 right-4">{project.name}</CardTitle>
                   </div>
-                  <CardContent className="pt-4 flex-grow flex flex-col">
+                  <div className="p-4 flex-grow flex flex-col">
                       <p className="text-sm text-muted-foreground line-clamp-3 flex-grow">{project.idea}</p>
                       <div className="mt-4 text-sm font-semibold text-primary flex items-center group-hover:underline">
                           View Project <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </div>
-                  </CardContent>
+                  </div>
+                   <CardFooter className="border-t pt-4">
+                        {project.author && (
+                            <div className="flex items-center gap-2">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={project.author.photoURL || undefined} />
+                                    <AvatarFallback>{getInitials(project.author.displayName)}</AvatarFallback>
+                                </Avatar>
+                                <span className="text-xs text-muted-foreground">By {project.author.displayName}</span>
+                            </div>
+                        )}
+                   </CardFooter>
                 </Card>
               </Link>
             ))}

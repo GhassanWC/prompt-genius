@@ -29,6 +29,10 @@ export interface Project {
   roles: Record<string, Role>;
   members: string[]; // Added for efficient querying
   clarificationSteps?: ClarificationStep[];
+  author?: {
+    displayName: string;
+    photoURL: string | null;
+  }
 }
 
 // Type for a prompt

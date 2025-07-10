@@ -326,7 +326,7 @@ export const updateProjectSettings = async (currentUserId: string, projectId: st
     await updateDoc(projectRef, { roles, isPublic, members });
 }
 
-// Function to get the latest public projects for the landing page
+// Function to get the latest public projects for the community page
 export const getPublicProjects = async (count: number): Promise<Project[]> => {
   const projectsCollectionRef = collection(db, 'projects');
   
@@ -337,54 +337,57 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
       orderBy("createdAt", "desc"),
       limit(count)
     );
-    const querySnapshot = await getDocs(q);
+    const projectsSnapshot = await getDocs(q);
 
     const projects: Project[] = [];
-    querySnapshot.forEach((doc) => {
+    projectsSnapshot.forEach((doc) => {
       const data = doc.data();
-      const createdAtTimestamp = data.createdAt as Timestamp;
       projects.push({ 
         id: doc.id,
         name: data.name || 'Untitled Project',
         idea: data.idea || '',
         imageUrl: data.imageUrl,
         isPublic: data.isPublic,
-        createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
+        createdAt: (data.createdAt as Timestamp).toDate(),
         roles: data.roles || {},
         members: data.members || [],
       });
     });
     
-    return projects;
+    if (projects.length === 0) {
+        return [];
+    }
+    
+    // Get all owner UIDs
+    const ownerUids = projects.map(p => {
+        return Object.keys(p.roles).find(uid => p.roles[uid] === 'owner')!;
+    }).filter(uid => uid); // Filter out any undefineds
+
+    // Fetch all owner profiles in one go
+    const ownersSnapshot = await getDocs(query(collection(db, 'users'), where('__name__', 'in', ownerUids)));
+    const ownersMap = new Map(ownersSnapshot.docs.map(doc => [doc.id, doc.data()]));
+    
+    // Augment projects with author info
+    const projectsWithAuthors = projects.map(p => {
+        const ownerUid = Object.keys(p.roles).find(uid => p.roles[uid] === 'owner');
+        if (ownerUid && ownersMap.has(ownerUid)) {
+            const ownerData = ownersMap.get(ownerUid);
+            return {
+                ...p,
+                author: {
+                    displayName: ownerData?.displayName || 'Anonymous',
+                    photoURL: ownerData?.photoURL || null,
+                }
+            };
+        }
+        return p;
+    });
+
+    return projectsWithAuthors;
     
   } catch (err: any) {
     if (err.code === 'failed-precondition') {
-      console.warn("Firestore index for public projects is missing. Falling back to client-side sorting.");
-      // Fallback query without ordering
-      const fallbackQuery = query(
-        projectsCollectionRef,
-        where("isPublic", "==", true),
-        limit(count)
-      );
-      const querySnapshot = await getDocs(fallbackQuery);
-      const projects: Project[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const createdAtTimestamp = data.createdAt as Timestamp;
-        projects.push({ 
-          id: doc.id,
-          name: data.name || 'Untitled Project',
-          idea: data.idea || '',
-          imageUrl: data.imageUrl,
-          isPublic: data.isPublic,
-          createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
-          roles: data.roles || {},
-          members: data.members || [],
-        });
-      });
-      // Sort on the client
-      projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-      return projects;
+      throw new Error("Database Index Required: The query for public projects requires a composite index. Please use the link in your browser's developer console to create it in Firestore.");
     }
     console.error("Error fetching public projects:", err);
     throw new Error("An error occurred while fetching public projects.");
