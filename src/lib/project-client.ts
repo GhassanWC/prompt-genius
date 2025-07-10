@@ -334,18 +334,11 @@ export const updateProjectSettings = async (currentUserId: string, projectId: st
 
 // Function to get the latest public projects for the landing page
 export const getPublicProjects = async (count: number): Promise<Project[]> => {
-    try {
-        const projectsCollectionRef = collection(db, 'projects');
-        const q = query(
-            projectsCollectionRef, 
-            where("isPublic", "==", true), 
-            orderBy("createdAt", "desc"),
-            limit(count)
-        );
-        const querySnapshot = await getDocs(q);
-        
+    const projectsCollectionRef = collection(db, 'projects');
+    
+    const parseSnapshot = (querySnapshot: any) => {
         const projects: Project[] = [];
-        querySnapshot.forEach((doc) => {
+        querySnapshot.forEach((doc: any) => {
             const data = doc.data();
             const createdAtTimestamp = data.createdAt as Timestamp;
             projects.push({ 
@@ -359,9 +352,40 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
             });
         });
         return projects;
+    }
+
+    try {
+        // Try the ideal query first (requires a composite index)
+        const indexedQuery = query(
+            projectsCollectionRef, 
+            where("isPublic", "==", true), 
+            orderBy("createdAt", "desc"),
+            limit(count)
+        );
+        const querySnapshot = await getDocs(indexedQuery);
+        return parseSnapshot(querySnapshot);
     } catch (err: any) {
-        console.error("Error fetching public projects:", err);
-        // Silently fail for landing page, but log error
-        return [];
+        console.warn(
+            "Warning: Firestore query failed, likely due to a missing composite index. " +
+            "The error message from Firestore should contain a link to create it. " +
+            "Falling back to an un-ordered query. Original error:", err
+        );
+
+        // Fallback query if the indexed one fails
+        try {
+            const fallbackQuery = query(
+                projectsCollectionGlowbe, 
+                where("isPublic", "==", true), 
+                limit(count)
+            );
+            const querySnapshot = await getDocs(fallbackQuery);
+            const projects = parseSnapshot(querySnapshot);
+            // Manual sort on the client as a fallback
+            projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+            return projects;
+        } catch (finalErr) {
+             console.error("Error fetching public projects with fallback:", finalErr);
+             return []; // Silently fail for landing page, but log error
+        }
     }
 }
