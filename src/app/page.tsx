@@ -51,7 +51,7 @@ export default function LandingPage() {
     const fetchTestimonials = async () => {
         setLoadingTestimonials(true);
         try {
-            const fetchedTestimonials = await getPublicFeedback(3); // Fetch top 3 testimonials
+            const fetchedTestimonials = await getPublicFeedback(6); // Fetch top 6 testimonials
             setTestimonials(fetchedTestimonials);
         } catch (error) {
             console.error("Failed to fetch testimonials:", error);
@@ -161,7 +161,7 @@ export default function LandingPage() {
             <div className="mt-8">
                {loadingTestimonials ? (
                    <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
-                       {Array.from({ length: 3 }).map((_, i) => (
+                       {Array.from({ length: 6 }).map((_, i) => (
                            <Card key={i} className="flex flex-col">
                                <CardContent className="pt-6 flex-grow">
                                    <div className="flex gap-1 mb-2">
