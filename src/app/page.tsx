@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
 import { Logo } from '@/components/logo';
-import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight } from 'lucide-react';
+import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserNav } from '@/components/user-nav';
@@ -15,10 +15,12 @@ import { useEffect, useState } from 'react';
 import type { Project } from '@/lib/projects';
 import { getPublicProjects } from '@/lib/project-client';
 import { cn } from '@/lib/utils';
+import { FeedbackDialog } from '@/components/feedback-dialog';
 
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   
   const navLinks = [
     { name: 'Features', href: '#features' },
@@ -117,32 +119,6 @@ export default function LandingPage() {
               <Link href="#features">Learn More</Link>
             </Button>
           </div>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <div className="flex -space-x-2 overflow-hidden">
-                <Avatar className="border-2 border-background h-10 w-10">
-                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person" />
-                    <AvatarFallback>S</AvatarFallback>
-                </Avatar>
-                <Avatar className="border-2 border-background h-10 w-10">
-                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person" />
-                    <AvatarFallback>J</AvatarFallback>
-                </Avatar>
-                <Avatar className="border-2 border-background h-10 w-10">
-                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="person" />
-                    <AvatarFallback>M</AvatarFallback>
-                </Avatar>
-            </div>
-            <div className="text-sm text-muted-foreground">
-                <div className="flex items-center justify-center gap-0.5">
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                </div>
-                <p className="mt-1">Loved by <strong>1,000+</strong> developers & founders</p>
-            </div>
-          </div>
         </section>
 
         <section id="features" className="py-16 sm:py-20 bg-secondary/30">
@@ -179,31 +155,44 @@ export default function LandingPage() {
                 Don't just take our word for it. Here's what our users have to say about their experience with Prompt Genius AI.
               </p>
             </div>
-            <div className="mt-12 grid gap-8 md:grid-cols-1 lg:grid-cols-3">
-              {testimonials.map((testimonial) => (
-                <Card key={testimonial.name} className="flex flex-col">
-                  <CardContent className="pt-6 flex-grow">
-                    <div className="flex gap-1 mb-2">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground">"{testimonial.quote}"</p>
-                  </CardContent>
-                  <CardHeader>
-                    <div className="flex items-center gap-4">
-                      <Avatar>
-                        <AvatarImage src={testimonial.avatar} alt={testimonial.name} data-ai-hint="person" />
-                        <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-base font-semibold">{testimonial.name}</CardTitle>
-                        <CardDescription>{testimonial.title}</CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                </Card>
-              ))}
+            <div className="mt-12">
+              {testimonials.length > 0 ? (
+                <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
+                    {testimonials.map((testimonial) => (
+                      <Card key={testimonial.name} className="flex flex-col">
+                        <CardContent className="pt-6 flex-grow">
+                          <div className="flex gap-1 mb-2">
+                            {[...Array(testimonial.rating)].map((_, i) => (
+                              <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                            ))}
+                          </div>
+                          <p className="text-muted-foreground">"{testimonial.quote}"</p>
+                        </CardContent>
+                        <CardHeader>
+                          <div className="flex items-center gap-4">
+                            <Avatar>
+                              <AvatarImage src={testimonial.avatar} alt={testimonial.name} data-ai-hint="person" />
+                              <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <CardTitle className="text-base font-semibold">{testimonial.name}</CardTitle>
+                              <CardDescription>{testimonial.title}</CardDescription>
+                            </div>
+                          </div>
+                        </CardHeader>
+                      </Card>
+                    ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 border-2 border-dashed rounded-lg">
+                  <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
+                  <h3 className="mt-4 text-xl font-medium">No reviews yet</h3>
+                  <p className="mt-2 text-muted-foreground">Be the first to share your thoughts!</p>
+                  <Button className="mt-6" onClick={() => setIsFeedbackDialogOpen(true)}>
+                      Leave Feedback
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -290,6 +279,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      <FeedbackDialog open={isFeedbackDialogOpen} onOpenChange={setIsFeedbackDialogOpen} />
     </div>
   );
 }
