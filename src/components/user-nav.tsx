@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, MessageSquare, User as UserIcon, LayoutDashboard } from 'lucide-react';
+import { LogOut, MessageSquare, User as UserIcon, LayoutDashboard, Rocket } from 'lucide-react';
 import { useState } from 'react';
 import { FeedbackDialog } from './feedback-dialog';
 import { useRouter } from 'next/navigation';
@@ -60,6 +60,10 @@ export function UserNav() {
            <DropdownMenuItem onClick={() => router.push('/profile')}>
             <UserIcon className="mr-2 h-4 w-4" />
             <span>Profile</span>
+          </DropdownMenuItem>
+           <DropdownMenuItem onClick={() => router.push('/community')}>
+            <Rocket className="mr-2 h-4 w-4" />
+            <span>Community</span>
           </DropdownMenuItem>
            <DropdownMenuItem onClick={() => setIsFeedbackDialogOpen(true)}>
             <MessageSquare className="mr-2 h-4 w-4" />

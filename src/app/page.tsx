@@ -19,22 +19,10 @@ import { cn } from '@/lib/utils';
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
-  const [publicProjects, setPublicProjects] = useState<Project[]>([]);
-  const [loadingProjects, setLoadingProjects] = useState(true);
-
-  useEffect(() => {
-    const fetchPublicProjects = async () => {
-      setLoadingProjects(true);
-      const projects = await getPublicProjects(6); // Fetch 6 projects
-      setPublicProjects(projects);
-      setLoadingProjects(false);
-    };
-    fetchPublicProjects();
-  }, []);
-
+  
   const navLinks = [
     { name: 'Features', href: '#features' },
-    { name: 'Community', href: '#community' },
+    { name: 'Community', href: '/community' },
     { name: 'Reviews', href: '#testimonials' },
     { name: 'Pricing', href: '#pricing' },
   ];
@@ -180,58 +168,6 @@ export default function LandingPage() {
                 </Card>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section id="community" className="py-16 sm:py-20">
-          <div className="container mx-auto px-4">
-            <div className="text-center">
-              <h2 className="font-headline text-3xl font-bold md:text-4xl">Community Spotlight</h2>
-              <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">
-                See what other innovators are building. Explore public projects created with Prompt Genius AI.
-              </p>
-            </div>
-            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {loadingProjects
-                ? Array.from({ length: 3 }).map((_, i) => (
-                    <Card key={i}>
-                      <div className="w-full h-40 bg-muted rounded-t-lg animate-pulse" />
-                      <CardHeader>
-                        <Skeleton className="h-6 w-3/4" />
-                      </CardHeader>
-                      <CardContent>
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-2/3 mt-2" />
-                      </CardContent>
-                    </Card>
-                  ))
-                : publicProjects.map((project) => (
-                    <Link href={`/projects/${project.id}`} key={project.id} className="group block">
-                      <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:border-primary hover:shadow-xl">
-                        <div className="relative w-full h-40 bg-secondary">
-                          {project.imageUrl ? (
-                            <Image src={project.imageUrl} alt={project.name} fill className="object-cover" />
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                                <Logo className="h-12 w-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                          <CardTitle className="font-headline text-xl text-white absolute bottom-4 left-4 right-4">{project.name}</CardTitle>
-                        </div>
-                        <CardContent className="pt-4 flex-grow flex flex-col">
-                            <p className="text-sm text-muted-foreground line-clamp-3 flex-grow">{project.idea}</p>
-                            <div className="mt-4 text-sm font-semibold text-primary flex items-center group-hover:underline">
-                                View Project <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                            </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-            </div>
-             {publicProjects.length === 0 && !loadingProjects && (
-                 <p className="text-center text-muted-foreground mt-8">No public projects yet. Be the first to share!</p>
-             )}
           </div>
         </section>
 

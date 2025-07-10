@@ -334,6 +334,7 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
     const q = query(
       projectsCollectionRef, 
       where("isPublic", "==", true),
+      orderBy("createdAt", "desc"),
       limit(count)
     );
     const querySnapshot = await getDocs(q);
@@ -353,13 +354,38 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
         members: data.members || [],
       });
     });
-
-    // Sort projects by creation date on the client side
-    projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     
     return projects;
     
   } catch (err: any) {
+    if (err.code === 'failed-precondition') {
+      console.warn("Firestore index for public projects is missing. Falling back to client-side sorting.");
+      // Fallback query without ordering
+      const fallbackQuery = query(
+        projectsCollectionRef,
+        where("isPublic", "==", true),
+        limit(count)
+      );
+      const querySnapshot = await getDocs(fallbackQuery);
+      const projects: Project[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const createdAtTimestamp = data.createdAt as Timestamp;
+        projects.push({ 
+          id: doc.id,
+          name: data.name || 'Untitled Project',
+          idea: data.idea || '',
+          imageUrl: data.imageUrl,
+          isPublic: data.isPublic,
+          createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
+          roles: data.roles || {},
+          members: data.members || [],
+        });
+      });
+      // Sort on the client
+      projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      return projects;
+    }
     console.error("Error fetching public projects:", err);
     throw new Error("An error occurred while fetching public projects.");
   }
