@@ -333,8 +333,7 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
   try {
     const q = query(
       projectsCollectionRef, 
-      where("isPublic", "==", true), 
-      orderBy("createdAt", "desc"),
+      where("isPublic", "==", true),
       limit(count)
     );
     const querySnapshot = await getDocs(q);
@@ -354,21 +353,14 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
         members: data.members || [],
       });
     });
+
+    // Sort projects by creation date on the client side
+    projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    
     return projects;
     
   } catch (err: any) {
-    if (err.code === 'failed-precondition') {
-      console.error(
-        "Firestore query for public projects failed. This usually means a composite index is required. " +
-        "Please check the developer console for a link to create the index in your Firebase project.", err
-      );
-      throw new Error(
-        "Database Index Required: A Firestore index is needed to display public projects. " +
-        "Please check the browser's developer console for a link to create it in your Firebase project."
-      );
-    }
     console.error("Error fetching public projects:", err);
-    // Re-throw other errors, including permission denied, to be handled by the UI
-    throw err;
+    throw new Error("An error occurred while fetching public projects.");
   }
 }
