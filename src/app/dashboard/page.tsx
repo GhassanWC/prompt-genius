@@ -4,12 +4,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { deleteProject } from '@/lib/project-client';
+import { deleteProject, updateProject } from '@/lib/project-client';
 import type { Project } from '@/lib/projects';
 import { getProjectsForUser } from '@/lib/project-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Loader2, PlusCircle, FolderOpen, AlertTriangle, MoreVertical, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, FolderOpen, AlertTriangle, MoreVertical, Trash2, Globe, Lock } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
@@ -17,7 +17,7 @@ import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 
@@ -93,6 +93,27 @@ export default function DashboardPage() {
     }
   };
 
+  const handleToggleVisibility = async (project: Project, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+
+    const newVisibility = !project.isPublic;
+
+    try {
+        await updateProject(user.uid, project.id, { isPublic: newVisibility });
+        toast({
+            title: "Visibility Updated",
+            description: `"${project.name}" is now ${newVisibility ? 'public' : 'private'}.`,
+        });
+        fetchProjects(); // Refresh the list to show the new state
+    } catch (err: any) {
+        console.error("Failed to update visibility:", err);
+        setError(err.message || "An unknown error occurred while updating visibility.");
+    }
+  };
+
+
   if (authLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -153,51 +174,66 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => (
-              <div key={project.id} className="relative">
-                <Link href={`/projects/${project.id}`} className="block group h-full">
-                    <Card className="h-full hover:shadow-lg hover:border-primary/50 transition-all flex flex-col overflow-hidden">
-                      {project.imageUrl ? (
-                        <div className="relative w-full h-40">
-                          <Image
-                            src={project.imageUrl}
-                            alt={project.name}
-                            fill
-                            className="object-cover"
-                          />
+            {projects.map((project) => {
+              const isOwner = project.roles[user.uid] === 'owner';
+              return (
+                <div key={project.id} className="relative">
+                  <Link href={`/projects/${project.id}`} className="block group h-full">
+                      <Card className="h-full hover:shadow-lg hover:border-primary/50 transition-all flex flex-col overflow-hidden">
+                        {project.imageUrl ? (
+                          <div className="relative w-full h-40">
+                            <Image
+                              src={project.imageUrl}
+                              alt={project.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-40 w-full bg-secondary rounded-t-lg flex items-center justify-center">
+                              <Logo className="h-12 w-12 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex flex-col flex-grow p-6">
+                            <CardTitle className="font-headline">{project.name}</CardTitle>
+                            <CardDescription className="mt-1">
+                              Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
+                            </CardDescription>
+                            <p className="text-sm text-muted-foreground line-clamp-2 mt-4 flex-grow">{project.idea}</p>
                         </div>
-                      ) : (
-                        <div className="h-40 w-full bg-secondary rounded-t-lg flex items-center justify-center">
-                            <Logo className="h-12 w-12 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="flex flex-col flex-grow p-6">
-                          <CardTitle className="font-headline">{project.name}</CardTitle>
-                          <CardDescription className="mt-1">
-                            Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
-                          </CardDescription>
-                          <p className="text-sm text-muted-foreground line-clamp-2 mt-4 flex-grow">{project.idea}</p>
-                      </div>
-                    </Card>
-                </Link>
-                <div className="absolute top-3 right-3">
-                   <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                              <MoreVertical className="h-5 w-5" />
-                              <span className="sr-only">Project options</span>
-                          </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                          <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={(e) => openDeleteDialog(project, e)}>
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              <span>Delete</span>
-                          </DropdownMenuItem>
-                      </DropdownMenuContent>
-                  </DropdownMenu>
+                      </Card>
+                  </Link>
+                  <div className="absolute top-3 right-3">
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                                <MoreVertical className="h-5 w-5" />
+                                <span className="sr-only">Project options</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                            {isOwner && (
+                                <>
+                                    <DropdownMenuItem onClick={(e) => handleToggleVisibility(project, e)}>
+                                        {project.isPublic ? (
+                                            <><Lock className="mr-2 h-4 w-4" /><span>Make Private</span></>
+                                        ) : (
+                                            <><Globe className="mr-2 h-4 w-4" /><span>Make Public</span></>
+                                        )}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                </>
+                            )}
+                            <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={(e) => openDeleteDialog(project, e)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Delete</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
