@@ -96,7 +96,11 @@ export const getPublicFeedback = async (count: number): Promise<Testimonial[]> =
     });
 
     return testimonials;
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'failed-precondition') {
+      console.error("Firestore index required for feedback query:", error);
+      throw new Error("A database index is required for this feature. Please create it using the link in your browser's developer console.");
+    }
     console.error("Error fetching public feedback:", error);
     // It's better not to throw here to avoid breaking the landing page if feedback fails to load.
     return [];
