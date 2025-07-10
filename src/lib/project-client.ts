@@ -29,8 +29,7 @@ import type { Project, Prompt, Role, Collaborator } from './projects';
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
     const projectsCollectionRef = collection(db, 'projects');
-    // The query now only filters by role, and we will sort on the client.
-    const q = query(projectsCollectionRef, where(`roles.${userId}`, "in", ["owner", "editor", "viewer"]));
+    const q = query(projectsCollectionRef, where("members", "array-contains", userId));
     const querySnapshot = await getDocs(q);
     
     const projects: Project[] = [];
@@ -45,11 +44,11 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         isPublic: data.isPublic || false,
         createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
         roles: data.roles || {},
+        members: data.members || [],
         clarificationSteps: data.clarificationSteps,
       });
     });
 
-    // Sort in code to avoid needing a composite index on `roles` and `createdAt`
     projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     return projects;
@@ -72,35 +71,26 @@ export const getProject = async (userId: string | null, projectId: string): Prom
 
     if (docSnap.exists()) {
         const data = docSnap.data();
-        
+        const projectData = {
+            id: docSnap.id,
+            name: data.name || 'Untitled Project',
+            idea: data.idea || '',
+            isPublic: data.isPublic,
+            imageUrl: data.imageUrl,
+            createdAt: (data.createdAt as Timestamp) ? (data.createdAt as Timestamp).toDate() : new Date(),
+            roles: data.roles,
+            members: data.members || [],
+            clarificationSteps: data.clarificationSteps,
+        };
+
         // Public projects are readable by anyone
-        if (data.isPublic) {
-            const createdAtTimestamp = data.createdAt as Timestamp;
-            return {
-                id: docSnap.id,
-                name: data.name || 'Untitled Project',
-                idea: data.idea || '',
-                isPublic: data.isPublic,
-                imageUrl: data.imageUrl,
-                createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
-                roles: data.roles,
-                clarificationSteps: data.clarificationSteps,
-            };
+        if (projectData.isPublic) {
+            return projectData;
         }
 
         // Private projects are only readable by collaborators
-        if (userId && data.roles && data.roles[userId]) {
-            const createdAtTimestamp = data.createdAt as Timestamp;
-            return {
-                id: docSnap.id,
-                name: data.name || 'Untitled Project',
-                idea: data.idea || '',
-                isPublic: data.isPublic,
-                imageUrl: data.imageUrl,
-                createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
-                roles: data.roles,
-                clarificationSteps: data.clarificationSteps,
-            };
+        if (userId && projectData.members.includes(userId)) {
+            return projectData;
         }
     }
     // If we are here, the project is private and user is not a collaborator, or it doesn't exist.
@@ -155,6 +145,7 @@ export const createProjectWithPrompts = async (
     roles: {
       [userId]: 'owner' // Set the creator as the owner
     },
+    members: [userId], // Add the owner to the members array
   });
 
   const projectId = projectDocRef.id;
@@ -328,9 +319,12 @@ export const updateProjectSettings = async (currentUserId: string, projectId: st
     if (!roles[currentUserId] || roles[currentUserId] !== 'owner') {
         throw new Error("The project must always have an owner.");
     }
+    
+    // Create the members array from the keys of the roles map
+    const members = Object.keys(roles);
 
     const projectRef = doc(db, 'projects', projectId);
-    await updateDoc(projectRef, { roles, isPublic });
+    await updateDoc(projectRef, { roles, isPublic, members });
 }
 
 // Function to get the latest public projects for the landing page
@@ -350,6 +344,7 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
                 isPublic: data.isPublic,
                 createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
                 roles: data.roles || {},
+                members: data.members || [],
             });
         });
         return projects;

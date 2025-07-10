@@ -27,6 +27,7 @@ export interface Project {
   imageUrl?: string;
   createdAt: Date;
   roles: Record<string, Role>;
+  members: string[]; // Added for efficient querying
   clarificationSteps?: ClarificationStep[];
 }
 
