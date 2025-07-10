@@ -331,15 +331,15 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
   const projectsCollectionRef = collection(db, 'projects');
   
   try {
+    // Query for public projects, but do not order by 'createdAt' to avoid needing a composite index.
     const q = query(
       projectsCollectionRef, 
       where("isPublic", "==", true),
-      orderBy("createdAt", "desc"),
       limit(count)
     );
     const projectsSnapshot = await getDocs(q);
 
-    const projects: Project[] = [];
+    let projects: Project[] = [];
     projectsSnapshot.forEach((doc) => {
       const data = doc.data();
       projects.push({ 
@@ -354,6 +354,9 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
       });
     });
     
+    // Perform the sorting on the client side after fetching
+    projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
     if (projects.length === 0) {
         return [];
     }
@@ -362,6 +365,10 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
     const ownerUids = projects.map(p => {
         return Object.keys(p.roles).find(uid => p.roles[uid] === 'owner')!;
     }).filter(uid => uid); // Filter out any undefineds
+
+    if (ownerUids.length === 0) {
+      return projects; // Return projects without authors if no owners are found
+    }
 
     // Fetch all owner profiles in one go
     const ownersSnapshot = await getDocs(query(collection(db, 'users'), where('__name__', 'in', ownerUids)));
@@ -386,8 +393,9 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
     return projectsWithAuthors;
     
   } catch (err: any) {
+    // This specific check might still be useful if other complex queries are added later.
     if (err.code === 'failed-precondition') {
-      throw new Error("Database Index Required: The query for public projects requires a composite index. Please use the link in your browser's developer console to create it in Firestore.");
+      throw new Error("Database Index Required: A query requires a composite index that has not been created. Please use the link in your browser's developer console to create it in Firestore.");
     }
     console.error("Error fetching public projects:", err);
     throw new Error("An error occurred while fetching public projects.");
