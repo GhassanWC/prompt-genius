@@ -53,11 +53,9 @@ export const submitFeedback = async (
 export const getPublicFeedback = async (count: number): Promise<Testimonial[]> => {
   try {
     const feedbackCollectionRef = collection(db, 'feedback');
-    // Get the most recent, highest-rated feedback
+    // Get the most recent feedback, ordered by creation date.
     const q = query(
       feedbackCollectionRef,
-      where('rating', '>=', 4),
-      orderBy('rating', 'desc'),
       orderBy('createdAt', 'desc'),
       limit(count)
     );
