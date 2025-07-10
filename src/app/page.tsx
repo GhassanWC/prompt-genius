@@ -152,7 +152,13 @@ export default function LandingPage() {
                 Don't just take our word for it. Here's what our users have to say about their experience with Prompt Genius AI.
               </p>
             </div>
-            <div className="mt-12">
+            <div className="text-center mt-8">
+                <Button onClick={() => setIsFeedbackDialogOpen(true)}>
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Leave a Review
+                </Button>
+            </div>
+            <div className="mt-8">
                {loadingTestimonials ? (
                    <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
                        {Array.from({ length: 3 }).map((_, i) => (
@@ -207,11 +213,8 @@ export default function LandingPage() {
               ) : (
                 <div className="text-center py-16 border-2 border-dashed rounded-lg">
                   <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <h3 className="mt-4 text-xl font-medium">No reviews yet</h3>
-                  <p className="mt-2 text-muted-foreground">Be the first to share your thoughts!</p>
-                  <Button className="mt-6" onClick={() => setIsFeedbackDialogOpen(true)}>
-                      Leave Feedback
-                  </Button>
+                  <h3 className="mt-4 text-xl font-medium">Be the First to Share Your Story</h3>
+                  <p className="mt-2 text-muted-foreground">Your feedback helps us improve and inspires other creators.</p>
                 </div>
               )}
             </div>
