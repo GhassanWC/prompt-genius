@@ -12,15 +12,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserNav } from '@/components/user-nav';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
-import type { Project } from '@/lib/projects';
-import { getPublicProjects } from '@/lib/project-client';
-import { cn } from '@/lib/utils';
 import { FeedbackDialog } from '@/components/feedback-dialog';
+import { getPublicFeedback, type Testimonial } from '@/lib/feedback';
 
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loadingTestimonials, setLoadingTestimonials] = useState(true);
   
   const navLinks = [
     { name: 'Features', href: '#features' },
@@ -47,29 +47,26 @@ export default function LandingPage() {
     },
   ];
 
-  const testimonials = [
-    {
-      name: 'Sarah L.',
-      title: 'Product Manager',
-      quote: 'Prompt Genius AI has become my go-to for kickstarting new projects. It saves hours of brainstorming and planning. The generated prompts are shockingly accurate!',
-      avatar: 'https://placehold.co/100x100.png',
-      rating: 5,
-    },
-    {
-      name: 'Mike R.',
-      title: 'Indie Developer',
-      quote: "As a solo dev, this tool is a game-changer. I can go from a simple idea to a full development roadmap in minutes. It's like having a senior architect on my team.",
-      avatar: 'https://placehold.co/100x100.png',
-      rating: 5,
-    },
-    {
-      name: 'Jasmine K.',
-      title: 'Startup Founder',
-      quote: 'We use Prompt Genius AI to quickly validate and prototype new feature ideas. It has drastically sped up our innovation cycle. Highly recommended!',
-      avatar: 'https://placehold.co/100x100.png',
-      rating: 5,
-    },
-  ];
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+        setLoadingTestimonials(true);
+        try {
+            const fetchedTestimonials = await getPublicFeedback(3); // Fetch top 3 testimonials
+            setTestimonials(fetchedTestimonials);
+        } catch (error) {
+            console.error("Failed to fetch testimonials:", error);
+        } finally {
+            setLoadingTestimonials(false);
+        }
+    };
+    fetchTestimonials();
+  }, []);
+
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'U';
+    return name.split(' ').map((n) => n[0]).join('');
+  }
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -156,27 +153,51 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="mt-12">
-              {testimonials.length > 0 ? (
+               {loadingTestimonials ? (
+                   <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
+                       {Array.from({ length: 3 }).map((_, i) => (
+                           <Card key={i} className="flex flex-col">
+                               <CardContent className="pt-6 flex-grow">
+                                   <div className="flex gap-1 mb-2">
+                                       {[...Array(5)].map((_, j) => <Skeleton key={j} className="h-5 w-5" />)}
+                                   </div>
+                                   <Skeleton className="h-4 w-full" />
+                                   <Skeleton className="h-4 w-full mt-2" />
+                                   <Skeleton className="h-4 w-2/3 mt-2" />
+                               </CardContent>
+                               <CardHeader>
+                                   <div className="flex items-center gap-4">
+                                       <Skeleton className="h-10 w-10 rounded-full" />
+                                       <div>
+                                           <Skeleton className="h-4 w-24 mb-2" />
+                                           <Skeleton className="h-3 w-16" />
+                                       </div>
+                                   </div>
+                               </CardHeader>
+                           </Card>
+                       ))}
+                   </div>
+               ) : testimonials.length > 0 ? (
                 <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
                     {testimonials.map((testimonial) => (
-                      <Card key={testimonial.name} className="flex flex-col">
+                      <Card key={testimonial.id} className="flex flex-col">
                         <CardContent className="pt-6 flex-grow">
                           <div className="flex gap-1 mb-2">
                             {[...Array(testimonial.rating)].map((_, i) => (
                               <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                             ))}
                           </div>
-                          <p className="text-muted-foreground">"{testimonial.quote}"</p>
+                          <p className="text-muted-foreground">"{testimonial.comments}"</p>
                         </CardContent>
                         <CardHeader>
                           <div className="flex items-center gap-4">
                             <Avatar>
-                              <AvatarImage src={testimonial.avatar} alt={testimonial.name} data-ai-hint="person" />
-                              <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
+                              <AvatarImage src={testimonial.author.photoURL || undefined} alt={testimonial.author.name} data-ai-hint="person" />
+                              <AvatarFallback>{getInitials(testimonial.author.name)}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <CardTitle className="text-base font-semibold">{testimonial.name}</CardTitle>
-                              <CardDescription>{testimonial.title}</CardDescription>
+                              <CardTitle className="text-base font-semibold">{testimonial.author.name}</CardTitle>
+                              <CardDescription>User</CardDescription>
                             </div>
                           </div>
                         </CardHeader>

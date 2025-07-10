@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 
 export interface Feedback {
   id?: string;
@@ -7,6 +7,16 @@ export interface Feedback {
   rating: number;
   comments: string;
   createdAt: any; // Firestore timestamp
+}
+
+export interface Testimonial {
+  id: string;
+  rating: number;
+  comments: string;
+  author: {
+    name: string;
+    photoURL: string | null;
+  };
 }
 
 export const submitFeedback = async (
@@ -36,5 +46,61 @@ export const submitFeedback = async (
   } catch (error) {
     console.error("Error submitting feedback: ", error);
     throw new Error('Failed to submit feedback. Please try again.');
+  }
+};
+
+
+export const getPublicFeedback = async (count: number): Promise<Testimonial[]> => {
+  try {
+    const feedbackCollectionRef = collection(db, 'feedback');
+    // Get the most recent, highest-rated feedback
+    const q = query(
+      feedbackCollectionRef,
+      where('rating', '>=', 4),
+      orderBy('rating', 'desc'),
+      orderBy('createdAt', 'desc'),
+      limit(count)
+    );
+
+    const feedbackSnapshot = await getDocs(q);
+    if (feedbackSnapshot.empty) {
+      return [];
+    }
+
+    const feedbackList = feedbackSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Feedback));
+    
+    // Get all unique user IDs from the feedback
+    const userIds = [...new Set(feedbackList.map(f => f.userId))];
+    
+    if (userIds.length === 0) {
+        return [];
+    }
+
+    // Fetch all user profiles in one go
+    const usersCollectionRef = collection(db, 'users');
+    const usersQuery = query(usersCollectionRef, where('__name__', 'in', userIds));
+    const usersSnapshot = await getDocs(usersQuery);
+    
+    const usersMap = new Map(usersSnapshot.docs.map(doc => [doc.id, doc.data()]));
+
+    // Combine feedback with user data
+    const testimonials: Testimonial[] = feedbackList.map(feedback => {
+      const userData = usersMap.get(feedback.userId);
+      return {
+        id: feedback.id!,
+        rating: feedback.rating,
+        comments: feedback.comments,
+        author: {
+          name: userData?.displayName || 'Anonymous',
+          photoURL: userData?.photoURL || null,
+        }
+      };
+    });
+
+    return testimonials;
+  } catch (error) {
+    console.error("Error fetching public feedback:", error);
+    // It's better not to throw here to avoid breaking the landing page if feedback fails to load.
+    return [];
   }
 };
