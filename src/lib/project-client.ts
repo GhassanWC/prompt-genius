@@ -330,9 +330,17 @@ export const updateProjectSettings = async (currentUserId: string, projectId: st
 export const getPublicProjects = async (count: number): Promise<Project[]> => {
   const projectsCollectionRef = collection(db, 'projects');
   
-  const parseSnapshot = (querySnapshot: any) => {
+  try {
+    const q = query(
+      projectsCollectionRef, 
+      where("isPublic", "==", true), 
+      orderBy("createdAt", "desc"),
+      limit(count)
+    );
+    const querySnapshot = await getDocs(q);
+
     const projects: Project[] = [];
-    querySnapshot.forEach((doc: any) => {
+    querySnapshot.forEach((doc) => {
       const data = doc.data();
       const createdAtTimestamp = data.createdAt as Timestamp;
       projects.push({ 
@@ -347,27 +355,20 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
       });
     });
     return projects;
-  }
-
-  try {
-    const q = query(
-      projectsCollectionRef, 
-      where("isPublic", "==", true), 
-      orderBy("createdAt", "desc"),
-      limit(count)
-    );
-    const querySnapshot = await getDocs(q);
-    return parseSnapshot(querySnapshot);
+    
   } catch (err: any) {
     if (err.code === 'failed-precondition') {
       console.error(
         "Firestore query for public projects failed. This usually means a composite index is required. " +
         "Please check the developer console for a link to create the index in your Firebase project.", err
       );
-      // Let the UI show a "no projects" message, but inform the developer.
-      return [];
+      throw new Error(
+        "Database Index Required: A Firestore index is needed to display public projects. " +
+        "Please check the browser's developer console for a link to create it in your Firebase project."
+      );
     }
     console.error("Error fetching public projects:", err);
-    return []; // Return empty array on other errors
+    // Re-throw other errors, including permission denied, to be handled by the UI
+    throw err;
   }
 }
