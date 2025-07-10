@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Github } from 'lucide-react';
@@ -111,7 +112,7 @@ export default function LoginPage() {
                         <Logo className="h-12 w-12 text-primary" />
                     </Link>
                      <h1 className="font-headline text-3xl font-bold tracking-tight">
-                        PromptForge AI
+                        Prompt Genius AI
                     </h1>
                      <p className="mt-2 text-muted-foreground">
                         Sign in or create an account to start.

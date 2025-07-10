@@ -6,7 +6,7 @@ import { AuthProvider } from '@/context/auth-context';
 import { AlertTriangle } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'PromptForge AI',
+  title: 'Prompt Genius AI',
   description: 'Decompose your big ideas into actionable prompts.',
 };
 
@@ -79,7 +79,7 @@ export default function RootLayout({
 
 
   return (
-    <html lang="en" style={{scrollBehavior: 'smooth'}}>
+    <html lang="en" style={{scrollBehavior: 'smooth'}} className="light">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

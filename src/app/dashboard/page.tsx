@@ -112,7 +112,7 @@ export default function DashboardPage() {
          <Link href="/" className="flex items-center gap-2">
             <Logo className="h-8 w-8 text-primary" />
              <h1 className="font-headline text-xl font-bold tracking-tight hidden sm:block">
-                PromptForge AI
+                Prompt Genius AI
             </h1>
          </Link>
         <UserNav />

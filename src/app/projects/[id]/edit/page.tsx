@@ -190,7 +190,7 @@ export default function EditProjectPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
        <header className="container mx-auto px-4 py-4 flex justify-between items-center border-b">
-         <Link href="/" className="flex items-center gap-2"><Logo className="h-8 w-8 text-primary" /><h1 className="font-headline text-xl font-bold tracking-tight hidden sm:block">PromptForge AI</h1></Link>
+         <Link href="/" className="flex items-center gap-2"><Logo className="h-8 w-8 text-primary" /><h1 className="font-headline text-xl font-bold tracking-tight hidden sm:block">Prompt Genius AI</h1></Link>
         <UserNav />
       </header>
 

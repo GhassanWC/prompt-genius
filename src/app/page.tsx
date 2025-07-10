@@ -61,7 +61,7 @@ export default function LandingPage() {
     {
       name: 'Sarah L.',
       title: 'Product Manager',
-      quote: 'PromptForge AI has become my go-to for kickstarting new projects. It saves hours of brainstorming and planning. The generated prompts are shockingly accurate!',
+      quote: 'Prompt Genius AI has become my go-to for kickstarting new projects. It saves hours of brainstorming and planning. The generated prompts are shockingly accurate!',
       avatar: 'https://placehold.co/100x100.png',
       rating: 5,
     },
@@ -75,7 +75,7 @@ export default function LandingPage() {
     {
       name: 'Jasmine K.',
       title: 'Startup Founder',
-      quote: 'We use PromptForge AI to quickly validate and prototype new feature ideas. It has drastically sped up our innovation cycle. Highly recommended!',
+      quote: 'We use Prompt Genius AI to quickly validate and prototype new feature ideas. It has drastically sped up our innovation cycle. Highly recommended!',
       avatar: 'https://placehold.co/100x100.png',
       rating: 5,
     },
@@ -87,7 +87,7 @@ export default function LandingPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2 font-bold">
             <Logo className="h-7 w-7 text-primary" />
-            <span className="font-headline text-lg">PromptForge AI</span>
+            <span className="font-headline text-lg">Prompt Genius AI</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm">
             {navLinks.map((link) => (
@@ -119,7 +119,7 @@ export default function LandingPage() {
             Turn Your Vague Idea Into a Concrete Plan
           </h1>
           <p className="mt-6 mx-auto max-w-2xl text-lg text-muted-foreground">
-            Stop wondering where to start. PromptForge AI decomposes your biggest ideas into a clear, sequential development plan with actionable prompts for every step.
+            Stop wondering where to start. Prompt Genius AI decomposes your biggest ideas into a clear, sequential development plan with actionable prompts for every step.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" className="w-full sm:w-auto">
@@ -188,7 +188,7 @@ export default function LandingPage() {
             <div className="text-center">
               <h2 className="font-headline text-3xl font-bold md:text-4xl">Community Spotlight</h2>
               <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">
-                See what other innovators are building. Explore public projects created with PromptForge AI.
+                See what other innovators are building. Explore public projects created with Prompt Genius AI.
               </p>
             </div>
             <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -240,7 +240,7 @@ export default function LandingPage() {
             <div className="text-center">
               <h2 className="font-headline text-3xl font-bold md:text-4xl">Loved by Developers and Founders</h2>
               <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">
-                Don't just take our word for it. Here's what our users have to say about their experience with PromptForge AI.
+                Don't just take our word for it. Here's what our users have to say about their experience with Prompt Genius AI.
               </p>
             </div>
             <div className="mt-12 grid gap-8 md:grid-cols-1 lg:grid-cols-3">
@@ -346,7 +346,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
             <Logo className="h-6 w-6" />
-            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} PromptForge AI. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Prompt Genius AI. All rights reserved.</p>
           </div>
           <div className="flex gap-4">
              <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms of Service</Link>
