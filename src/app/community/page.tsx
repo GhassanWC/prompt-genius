@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/auth-context';
@@ -10,10 +10,11 @@ import { getPublicProjects } from '@/lib/project-client';
 import { Card, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Search } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
 
 function getInitials(name: string | null | undefined) {
     if (!name) return 'A';
@@ -24,6 +25,7 @@ export default function CommunityPage() {
   const { user, loading: authLoading } = useAuth();
   const [publicProjects, setPublicProjects] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchPublicProjects = async () => {
@@ -39,6 +41,17 @@ export default function CommunityPage() {
     };
     fetchPublicProjects();
   }, []);
+  
+  const filteredProjects = useMemo(() => {
+    if (!searchTerm) {
+      return publicProjects;
+    }
+    const lowercasedTerm = searchTerm.toLowerCase();
+    return publicProjects.filter(project => 
+      project.name.toLowerCase().includes(lowercasedTerm) || 
+      project.idea.toLowerCase().includes(lowercasedTerm)
+    );
+  }, [searchTerm, publicProjects]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -58,13 +71,26 @@ export default function CommunityPage() {
             {user ? 'Back to Dashboard' : 'Back to Home'}
           </Link>
         </div>
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
             <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight">
                 Community Spotlight
             </h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
                 Explore public projects created by other innovators using Prompt Genius AI.
             </p>
+        </div>
+
+        <div className="max-w-xl mx-auto mb-12">
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Search projects by name or idea..."
+                    className="w-full pl-10 text-base"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
         </div>
 
         {loadingProjects ? (
@@ -86,9 +112,9 @@ export default function CommunityPage() {
               </Card>
             ))}
           </div>
-        ) : publicProjects.length > 0 ? (
+        ) : filteredProjects.length > 0 ? (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {publicProjects.map((project) => (
+            {filteredProjects.map((project) => (
               <Link href={`/projects/${project.id}`} key={project.id} className="group block">
                 <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:border-primary hover:shadow-xl">
                   <div className="relative w-full h-40 bg-secondary">
@@ -124,7 +150,12 @@ export default function CommunityPage() {
             ))}
           </div>
         ) : (
-          <p className="text-center text-muted-foreground mt-8">No public projects have been shared yet. Be the first!</p>
+           <div className="text-center py-16 border-2 border-dashed rounded-lg">
+            <Search className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-xl font-medium">No Projects Found</h3>
+            <p className="mt-2 text-muted-foreground">Your search for "{searchTerm}" did not match any projects.</p>
+            <Button variant="outline" className="mt-6" onClick={() => setSearchTerm('')}>Clear Search</Button>
+          </div>
         )}
       </main>
     </div>
