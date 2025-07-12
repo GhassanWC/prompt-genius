@@ -227,7 +227,7 @@ export default function LandingPage() {
                         <div className="flex items-center gap-4">
                           <Avatar className="ring-2 ring-indigo-100 group-hover:ring-indigo-300 transition-all">
                             <AvatarImage src={testimonial.author.photoURL || undefined} alt={testimonial.author.name} />
-                            <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold">
+                            <AvatarFallback>
                               {getInitials(testimonial.author.name)}
                             </AvatarFallback>
                           </Avatar>
