@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Github } from 'lucide-react';
+import { Github, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [passwordVisible, setPasswordVisible] = useState(false);
 
     const handleEmailSignUp = async (e: FormEvent) => {
         e.preventDefault();
@@ -143,7 +144,26 @@ export default function LoginPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="password-in">Password</Label>
-                                    <Input id="password-in" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                                    <div className="relative">
+                                        <Input 
+                                            id="password-in" 
+                                            type={passwordVisible ? "text" : "password"} 
+                                            required 
+                                            value={password} 
+                                            onChange={(e) => setPassword(e.target.value)} 
+                                            className="pr-10"
+                                        />
+                                        <Button 
+                                            type="button" 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
+                                            onClick={() => setPasswordVisible(!passwordVisible)}
+                                        >
+                                            {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                            <span className="sr-only">{passwordVisible ? 'Hide password' : 'Show password'}</span>
+                                        </Button>
+                                    </div>
                                 </div>
                                 <Button type="submit" className="w-full" disabled={loading}>
                                     {loading ? 'Signing In...' : 'Sign In'}
@@ -178,7 +198,26 @@ export default function LoginPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="password-up">Password</Label>
-                                    <Input id="password-up" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                                     <div className="relative">
+                                        <Input 
+                                            id="password-up" 
+                                            type={passwordVisible ? "text" : "password"} 
+                                            required 
+                                            value={password} 
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="pr-10"
+                                        />
+                                        <Button 
+                                            type="button" 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
+                                            onClick={() => setPasswordVisible(!passwordVisible)}
+                                        >
+                                            {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                             <span className="sr-only">{passwordVisible ? 'Hide password' : 'Show password'}</span>
+                                        </Button>
+                                    </div>
                                 </div>
                                 <Button type="submit" className="w-full" disabled={loading}>
                                     {loading ? 'Creating Account...' : 'Create Account'}
