@@ -6,7 +6,7 @@ import {googleAI, type GoogleAIPlugin} from '@genkit-ai/googleai';
 // that the necessary API keys are present in the environment before rendering
 // the app. Therefore, we can unconditionally initialize the plugins here,
 // making the setup more robust.
-const plugins: GoogleAIPlugin[] = [
+const plugins = [
   googleAI(),
 ];
 
