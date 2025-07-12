@@ -28,8 +28,7 @@ export function UserNav() {
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
-    const names = name.split(' ');
-    return names.map((n) => n[0]).join('');
+    return name.charAt(0).toUpperCase();
   }
 
   return (

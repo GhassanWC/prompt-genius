@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 
 function getInitials(name: string | null | undefined) {
     if (!name) return 'A';
-    return name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
+    return name.charAt(0).toUpperCase();
 }
 
 export default function CommunityPage() {

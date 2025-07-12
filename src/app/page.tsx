@@ -64,7 +64,7 @@ export default function LandingPage() {
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
-    return name.split(' ').map((n) => n[0]).join('').toUpperCase();
+    return name.charAt(0).toUpperCase();
   }
 
 
@@ -190,15 +190,15 @@ export default function LandingPage() {
               <p className="mt-4 max-w-2xl mx-auto text-slate-600">
                 Don't just take our word for it. Here's what our users have to say about their experience with Prompt Genius AI.
               </p>
-            </div>
-            <div className="text-center mt-8">
-              <Button 
-                onClick={() => setIsFeedbackDialogOpen(true)}
-                className="bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-700"
-              >
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Leave a Review
-              </Button>
+              <div className="mt-8">
+                <Button 
+                  onClick={() => setIsFeedbackDialogOpen(true)}
+                  className="bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-700"
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Leave a Review
+                </Button>
+              </div>
             </div>
             <div className="mt-12">
               {loadingTestimonials ? (
@@ -227,7 +227,7 @@ export default function LandingPage() {
                         <div className="flex items-center gap-4">
                           <Avatar className="ring-2 ring-indigo-100 group-hover:ring-indigo-300 transition-all">
                             <AvatarImage src={testimonial.author.photoURL || undefined} alt={testimonial.author.name} />
-                            <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white">
+                            <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold">
                               {getInitials(testimonial.author.name)}
                             </AvatarFallback>
                           </Avatar>
@@ -283,8 +283,8 @@ export default function LandingPage() {
                 <CardContent className="flex-grow space-y-3">
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 2 projects</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Full Prompt Generation</p>
-                  <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Public Projects</p>
-                  <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Community Access</p>
+                  <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> Public Projects</p>
+                  <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> Community Access</p>
                   <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> AI Prompt Enhancement</p>
                   <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Support</p>
                 </CardContent>

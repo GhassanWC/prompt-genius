@@ -134,7 +134,7 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
   
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
-    return name.split(' ').map((n) => n[0]).join('');
+    return name.charAt(0).toUpperCase();
   }
 
   return (
