@@ -213,14 +213,7 @@ export default function LoginPage() {
                                         <Input id="email-in" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
                                     </div>
                                     <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                          <Label htmlFor="password-in">Password</Label>
-                                           <AlertDialogTrigger asChild>
-                                                <Button variant="link" size="sm" type="button" className="p-0 h-auto text-xs">
-                                                    Forgot password?
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                        </div>
+                                        <Label htmlFor="password-in">Password</Label>
                                         <div className="relative">
                                             <Input 
                                                 id="password-in" 
@@ -240,6 +233,13 @@ export default function LoginPage() {
                                                 {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                                 <span className="sr-only">{passwordVisible ? 'Hide password' : 'Show password'}</span>
                                             </Button>
+                                        </div>
+                                        <div className="text-right">
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="link" size="sm" type="button" className="p-0 h-auto text-xs">
+                                                    Forgot password?
+                                                </Button>
+                                            </AlertDialogTrigger>
                                         </div>
                                     </div>
                                     <Button type="submit" className="w-full" disabled={loading}>
