@@ -13,6 +13,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
   updatePassword,
+  sendEmailVerification,
   type User,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
@@ -52,6 +53,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateUserProfile: (data: { displayName: string }) => Promise<void>;
   changeUserPassword: (newPassword: string) => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,19 +66,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        await createUserProfileDocument(user);
+        // If the user just verified their email, they will be redirected to the login flow
+        // and onAuthStateChanged will fire again. If they are now verified, send to dashboard.
+        if (user.emailVerified && window.location.pathname.startsWith('/login')) {
+            router.push('/dashboard');
+        }
       }
       setUser(user);
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const handleSuccessfulSignIn = async (userCredential: any) => {
     if (userCredential.user) {
         await createUserProfileDocument(userCredential.user);
     }
     router.push('/dashboard');
+  }
+
+  const sendVerificationEmail = async () => {
+    if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+    } else {
+        throw new Error('No user is currently signed in to send a verification email.');
+    }
+  }
+
+  const signUpWithEmail = async (email: string, pass: string) => {
+      const result = await createUserWithEmailAndPassword(auth, email, pass);
+      await sendVerificationEmail();
+      // Don't create the user doc here yet, wait for sign-in after verification.
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+      return result;
+  }
+
+  const signInWithEmail = async (email: string, pass: string) => {
+      const result = await signInWithEmailAndPassword(auth, email, pass);
+      if (!result.user.emailVerified) {
+        // User exists but email is not verified
+        await sendVerificationEmail();
+        throw new Error(`Your email is not verified. A new verification link has been sent to ${email}.`);
+      }
+      await handleSuccessfulSignIn(result);
+      return result;
   }
 
   const signInWithGoogle = async () => {
@@ -100,18 +133,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw error;
     }
   };
-
-  const signUpWithEmail = async (email: string, pass: string) => {
-      const result = await createUserWithEmailAndPassword(auth, email, pass);
-      await handleSuccessfulSignIn(result);
-      return result;
-  }
-
-  const signInWithEmail = async (email: string, pass: string) => {
-      const result = await signInWithEmailAndPassword(auth, email, pass);
-      await handleSuccessfulSignIn(result);
-      return result;
-  }
 
   const signOut = async () => {
     try {
@@ -155,7 +176,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const value = { user, loading, signInWithGoogle, signInWithGithub, signUpWithEmail, signInWithEmail, signOut, updateUserProfile, changeUserPassword };
+  const value = { user, loading, signInWithGoogle, signInWithGithub, signUpWithEmail, signInWithEmail, signOut, updateUserProfile, changeUserPassword, sendVerificationEmail };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

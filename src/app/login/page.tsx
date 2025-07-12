@@ -28,7 +28,7 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-    const { signInWithGoogle, signInWithGithub, signUpWithEmail, signInWithEmail } = useAuth();
+    const { user, signInWithGoogle, signInWithGithub, signUpWithEmail, signInWithEmail } = useAuth();
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -42,7 +42,7 @@ export default function LoginPage() {
         setError(null);
         try {
             await signUpWithEmail(email, password);
-            router.push('/dashboard');
+            // The redirection is now handled inside the signUpWithEmail function
         } catch (err: any) {
             switch (err.code) {
                 case 'auth/email-already-in-use':
@@ -55,7 +55,7 @@ export default function LoginPage() {
                     setError('Please enter a valid email address.');
                     break;
                 default:
-                    setError('Something went wrong. Please try again.');
+                    setError(err.message || 'Something went wrong. Please try again.');
             }
         } finally {
             setLoading(false);
@@ -70,14 +70,18 @@ export default function LoginPage() {
             await signInWithEmail(email, password);
             router.push('/dashboard');
         } catch (err: any) {
-            switch (err.code) {
-                case 'auth/user-not-found':
-                case 'auth/wrong-password':
-                case 'auth/invalid-credential':
-                    setError('Invalid email or password. Please try again.');
-                    break;
-                default:
-                    setError('Something went wrong. Please try again.');
+             if (err.message && err.message.includes('Your email is not verified')) {
+                setError(err.message);
+            } else {
+                switch (err.code) {
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                    case 'auth/invalid-credential':
+                        setError('Invalid email or password. Please try again.');
+                        break;
+                    default:
+                        setError(err.message || 'Something went wrong. Please try again.');
+                }
             }
         } finally {
             setLoading(false);
@@ -126,7 +130,7 @@ export default function LoginPage() {
                 {error && (
                     <Alert variant="destructive" className="mt-4">
                         <AlertTriangle className="h-4 w-4" />
-                        <AlertTitle>Login Failed</AlertTitle>
+                        <AlertTitle>Action Required</AlertTitle>
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 )}
