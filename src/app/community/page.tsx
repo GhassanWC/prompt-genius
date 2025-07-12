@@ -59,7 +59,7 @@ export default function CommunityPage() {
         <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2">
             <Logo className="h-8 w-8 text-primary" />
              <h1 className="font-headline text-xl font-bold tracking-tight hidden sm:block">
-                PromptForge AI
+                Prompt Genius AI
             </h1>
          </Link>
         {user ? <UserNav /> : <Link href="/login"><Button>Sign In</Button></Link>}
@@ -76,7 +76,7 @@ export default function CommunityPage() {
                 Community Spotlight
             </h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                Explore public projects created by other innovators using PromptForge AI.
+                Explore public projects created by other innovators using Prompt Genius AI.
             </p>
         </div>
 

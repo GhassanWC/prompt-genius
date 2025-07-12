@@ -83,7 +83,7 @@ export default function LandingPage() {
           <Link href="/" className="flex items-center gap-2 font-bold group">
             <Logo className="h-7 w-7 text-indigo-500 group-hover:text-indigo-400 transition-colors" />
             <span className="font-headline text-lg bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
-              PromptForge AI
+              Prompt Genius AI
             </span>
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm">
@@ -127,7 +127,7 @@ export default function LandingPage() {
             Into a Concrete Plan
           </h1>
           <p className="mt-7 mx-auto max-w-2xl text-lg text-slate-600 leading-relaxed animate-fade-in-up">
-            Stop wondering where to start. PromptForge AI decomposes your biggest ideas into a clear, sequential development plan with actionable prompts for every step.
+            Stop wondering where to start. Prompt Genius AI decomposes your biggest ideas into a clear, sequential development plan with actionable prompts for every step.
           </p>
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-5 animate-fade-in-up">
             <Button asChild size="lg" className="w-full sm:w-auto bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow group active:scale-95">
@@ -188,7 +188,7 @@ export default function LandingPage() {
                 Loved by Developers and Founders
               </h2>
               <p className="mt-4 max-w-2xl mx-auto text-slate-600">
-                Don't just take our word for it. Here's what our users have to say about their experience with PromptForge AI.
+                Don't just take our word for it. Here's what our users have to say about their experience with Prompt Genius AI.
               </p>
             </div>
             <div className="text-center mt-8">
@@ -360,7 +360,7 @@ export default function LandingPage() {
               Ready to Transform Your Ideas?
             </h2>
             <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of developers who are building faster and smarter with PromptForge AI.
+              Join thousands of developers who are building faster and smarter with Prompt Genius AI.
             </p>
             <Button asChild size="lg" className="bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow group active:scale-95">
               <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
@@ -378,7 +378,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <Logo className="h-6 w-6 text-indigo-400" />
             <p className="text-sm text-slate-500">
-              &copy; {new Date().getFullYear()} PromptForge AI. All rights reserved.
+              &copy; {new Date().getFullYear()} Prompt Genius AI. All rights reserved.
             </p>
           </div>
           <div className="flex gap-6">
