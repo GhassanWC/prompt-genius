@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
 import { Logo } from '@/components/logo';
-import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageSquare, Rocket, Github, Linkedin } from 'lucide-react';
+import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageSquare, Rocket, Github, Linkedin, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserNav } from '@/components/user-nav';
@@ -122,10 +122,6 @@ export default function LandingPage() {
           <div className="absolute inset-0 flex justify-center items-start pointer-events-none -z-1">
             <div className="w-96 h-32 bg-indigo-300/30 blur-2xl rounded-full mt-[-48px]" />
           </div>
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-indigo-50/70 backdrop-blur border border-indigo-200 mb-8 shadow animate-fade-in-up">
-            <Rocket className="h-4 w-4 text-indigo-500" />
-            <span className="text-sm text-slate-700 tracking-wide">Trusted by 10,000+ developers</span>
-          </div>
           <h1 className="animate-fade-in-up font-headline text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl bg-gradient-to-b from-slate-900 via-indigo-700 to-purple-600 bg-clip-text text-transparent drop-shadow">
             Turn Your Vague Idea<br />
             Into a Concrete Plan
@@ -229,8 +225,8 @@ export default function LandingPage() {
             </div>
             <div className="mt-12">
               {loadingTestimonials ? (
-                <div className="grid gap-8 md:grid-cols-3">
-                  {Array.from({ length: 3 }).map((_, i) => (
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
                     <Card key={i} className="bg-white/80 backdrop-blur-xl border-indigo-100">
                       <CardContent className="pt-6">
                         <Skeleton className="h-20 w-full" />
@@ -242,7 +238,7 @@ export default function LandingPage() {
                   ))}
                 </div>
               ) : testimonials.length > 0 ? (
-                <div className="grid gap-8 md:grid-cols-3">
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                   {testimonials.map((testimonial) => (
                     <Card key={testimonial.id} className="relative bg-white/90 backdrop-blur-xl border border-indigo-100 hover:border-indigo-400 transition-all duration-300 group hover:shadow-lg hover:shadow-indigo-200/50">
                       <div className="absolute -top-8 -left-8 opacity-10 text-8xl pointer-events-none">
@@ -308,15 +304,12 @@ export default function LandingPage() {
                   <p className="text-4xl font-bold pt-4 text-indigo-700">Free</p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-3">
-                  <p className="flex items-center text-slate-600">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 3 projects
-                  </p>
-                  <p className="flex items-center text-slate-600">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-500" /> AI Idea Enhancement
-                  </p>
-                  <p className="flex items-center text-slate-600">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Full Prompt Generation
-                  </p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 2 projects</p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Full Prompt Generation</p>
+                  <p className="flex items-center text-slate-600 text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> AI Prompt Enhancement</p>
+                  <p className="flex items-center text-slate-600 text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Public Projects</p>
+                  <p className="flex items-center text-slate-600 text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Community Access</p>
+                  <p className="flex items-center text-slate-600 text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Support</p>
                 </CardContent>
                 <div className="p-6 pt-0">
                   <Button asChild className="w-full bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-700">
@@ -336,23 +329,15 @@ export default function LandingPage() {
                   </div>
                   <CardDescription className="text-slate-600">For individuals and small teams shipping projects.</CardDescription>
                   <p className="pt-4">
-                    <span className="text-4xl font-bold text-indigo-700">$5</span>
+                    <span className="text-4xl font-bold text-indigo-700">$8</span>
                     <span className="text-slate-500">/month</span>
                   </p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-3">
-                  <p className="flex items-center text-slate-600">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 20 projects
-                  </p>
-                  <p className="flex items-center text-slate-600">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-500" /> AI Idea Enhancement
-                  </p>
-                  <p className="flex items-center text-slate-600">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Full Prompt Generation
-                  </p>
-                  <p className="flex items-center text-slate-600">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Community Support
-                  </p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 10 projects</p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Public Projects & Sharing</p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Community Support</p>
+                  <p className="flex items-center text-slate-600 text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> AI Prompt Enhancement</p>
                 </CardContent>
                 <div className="p-6 pt-0">
                   <Button asChild className="w-full bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow">
@@ -366,23 +351,15 @@ export default function LandingPage() {
                   <CardTitle className="font-headline text-2xl text-indigo-700">Pro</CardTitle>
                   <CardDescription className="text-slate-600">For serious builders who want to ship faster.</CardDescription>
                   <p className="pt-4">
-                    <span className="text-4xl font-bold text-indigo-700">$12</span>
+                    <span className="text-4xl font-bold text-indigo-700">$20</span>
                     <span className="text-slate-500">/month</span>
                   </p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-3">
-                  <p className="flex items-center text-slate-600">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Unlimited projects
-                  </p>
-                  <p className="flex items-center text-slate-600">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-500" /> AI Idea Enhancement
-                  </p>
-                  <p className="flex items-center text-slate-600">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Full Prompt Generation
-                  </p>
-                  <p className="flex items-center text-slate-600">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Priority Support
-                  </p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 30 projects</p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> AI Prompt Enhancement</p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Public Projects & Sharing</p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Priority Support</p>
                 </CardContent>
                 <div className="p-6 pt-0">
                   <Button asChild className="w-full bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-700">
