@@ -83,7 +83,7 @@ export default function LandingPage() {
           <Link href="/" className="flex items-center gap-2 font-bold group">
             <Logo className="h-7 w-7 text-indigo-500 group-hover:text-indigo-400 transition-colors" />
             <span className="font-headline text-lg bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
-              Prompt Genius AI
+              PromptForge AI
             </span>
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm">
@@ -127,7 +127,7 @@ export default function LandingPage() {
             Into a Concrete Plan
           </h1>
           <p className="mt-7 mx-auto max-w-2xl text-lg text-slate-600 leading-relaxed animate-fade-in-up">
-            Stop wondering where to start. Prompt Genius AI decomposes your biggest ideas into a clear, sequential development plan with actionable prompts for every step.
+            Stop wondering where to start. PromptForge AI decomposes your biggest ideas into a clear, sequential development plan with actionable prompts for every step.
           </p>
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-5 animate-fade-in-up">
             <Button asChild size="lg" className="w-full sm:w-auto bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow group active:scale-95">
@@ -139,29 +139,6 @@ export default function LandingPage() {
             <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-indigo-200 text-indigo-700 hover:bg-indigo-100/40">
               <Link href="#features">Learn More</Link>
             </Button>
-          </div>
-          {/* Hero visual element */}
-          <div className="mt-24 relative animate-fade-in-up">
-            <div className="absolute inset-0 bg-gradient-to-t from-indigo-200/30 to-transparent rounded-3xl blur-3xl" />
-            <div className="relative bg-white/80 backdrop-blur-2xl rounded-3xl border border-indigo-100 p-8 max-w-4xl mx-auto shadow-lg">
-              <div className="grid grid-cols-3 gap-4 text-left">
-                <div className="space-y-2">
-                  <div className="h-2 bg-gradient-to-r from-indigo-300 to-indigo-500 rounded-full" />
-                  <div className="h-2 bg-indigo-100 rounded-full w-3/4" />
-                  <div className="h-2 bg-indigo-100 rounded-full w-1/2" />
-                </div>
-                <div className="space-y-2">
-                  <div className="h-2 bg-gradient-to-r from-purple-200 to-purple-400 rounded-full w-3/4" />
-                  <div className="h-2 bg-indigo-100 rounded-full" />
-                  <div className="h-2 bg-indigo-100 rounded-full w-2/3" />
-                </div>
-                <div className="space-y-2">
-                  <div className="h-2 bg-gradient-to-r from-pink-200 to-pink-400 rounded-full w-1/2" />
-                  <div className="h-2 bg-indigo-100 rounded-full w-3/4" />
-                  <div className="h-2 bg-indigo-100 rounded-full" />
-                </div>
-              </div>
-            </div>
           </div>
         </section>
   
@@ -211,7 +188,7 @@ export default function LandingPage() {
                 Loved by Developers and Founders
               </h2>
               <p className="mt-4 max-w-2xl mx-auto text-slate-600">
-                Don't just take our word for it. Here's what our users have to say about their experience with Prompt Genius AI.
+                Don't just take our word for it. Here's what our users have to say about their experience with PromptForge AI.
               </p>
             </div>
             <div className="text-center mt-8">
@@ -306,10 +283,10 @@ export default function LandingPage() {
                 <CardContent className="flex-grow space-y-3">
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 2 projects</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Full Prompt Generation</p>
-                  <p className="flex items-center text-slate-600 text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> AI Prompt Enhancement</p>
-                  <p className="flex items-center text-slate-600 text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Public Projects</p>
-                  <p className="flex items-center text-slate-600 text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Community Access</p>
-                  <p className="flex items-center text-slate-600 text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Support</p>
+                  <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Public Projects</p>
+                  <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Community Access</p>
+                  <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> AI Prompt Enhancement</p>
+                  <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> No Support</p>
                 </CardContent>
                 <div className="p-6 pt-0">
                   <Button asChild className="w-full bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-700">
@@ -336,8 +313,9 @@ export default function LandingPage() {
                 <CardContent className="flex-grow space-y-3">
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 10 projects</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Public Projects & Sharing</p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Community Access</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Community Support</p>
-                  <p className="flex items-center text-slate-600 text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> AI Prompt Enhancement</p>
+                  <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> AI Prompt Enhancement</p>
                 </CardContent>
                 <div className="p-6 pt-0">
                   <Button asChild className="w-full bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow">
@@ -359,6 +337,7 @@ export default function LandingPage() {
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 30 projects</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> AI Prompt Enhancement</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Public Projects & Sharing</p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Community Access</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Priority Support</p>
                 </CardContent>
                 <div className="p-6 pt-0">
@@ -379,7 +358,7 @@ export default function LandingPage() {
               Ready to Transform Your Ideas?
             </h2>
             <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of developers who are building faster and smarter with Prompt Genius AI.
+              Join thousands of developers who are building faster and smarter with PromptForge AI.
             </p>
             <Button asChild size="lg" className="bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow group active:scale-95">
               <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
@@ -397,7 +376,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <Logo className="h-6 w-6 text-indigo-400" />
             <p className="text-sm text-slate-500">
-              &copy; {new Date().getFullYear()} Prompt Genius AI. All rights reserved.
+              &copy; {new Date().getFullYear()} PromptForge AI. All rights reserved.
             </p>
           </div>
           <div className="flex gap-6">
