@@ -14,6 +14,7 @@ import {
   updateProfile,
   updatePassword,
   sendEmailVerification,
+  sendPasswordResetEmail as firebaseSendPasswordResetEmail,
   type User,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
@@ -65,6 +66,7 @@ interface AuthContextType {
   updateUserProfile: (data: { firstName: string, lastName: string }) => Promise<void>;
   changeUserPassword: (newPassword: string) => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
+  sendPasswordResetEmail: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -194,8 +196,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw new Error('User not signed in.');
     }
   };
+  
+  const sendPasswordResetEmail = async (email: string) => {
+      await firebaseSendPasswordResetEmail(auth, email);
+  }
 
-  const value = { user, loading, signInWithGoogle, signInWithGithub, signUpWithEmail, signInWithEmail, signOut, updateUserProfile, changeUserPassword, sendVerificationEmail };
+  const value = { user, loading, signInWithGoogle, signInWithGithub, signUpWithEmail, signInWithEmail, signOut, updateUserProfile, changeUserPassword, sendVerificationEmail, sendPasswordResetEmail };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
