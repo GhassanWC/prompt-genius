@@ -32,6 +32,8 @@ export default function LoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -41,7 +43,7 @@ export default function LoginPage() {
         setLoading(true);
         setError(null);
         try {
-            await signUpWithEmail(email, password);
+            await signUpWithEmail(email, password, firstName, lastName);
             // The redirection is now handled inside the signUpWithEmail function
         } catch (err: any) {
             switch (err.code) {
@@ -196,6 +198,16 @@ export default function LoginPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                              <form onSubmit={handleEmailSignUp} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="firstname-up">First Name</Label>
+                                        <Input id="firstname-up" placeholder="John" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="lastname-up">Last Name</Label>
+                                        <Input id="lastname-up" placeholder="Doe" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                                    </div>
+                                </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="email-up">Email</Label>
                                     <Input id="email-up" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />

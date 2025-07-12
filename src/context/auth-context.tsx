@@ -29,9 +29,20 @@ const createUserProfileDocument = async (user: User) => {
 
   if (!snapshot.exists()) {
     const { displayName, email, photoURL } = user;
+    let firstName = '';
+    let lastName = '';
+    
+    if (displayName) {
+      const nameParts = displayName.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+
     try {
       await setDoc(userRef, {
         displayName,
+        firstName,
+        lastName,
         email,
         photoURL,
         createdAt: serverTimestamp(),
@@ -48,10 +59,10 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithGithub: () => Promise<void>;
-  signUpWithEmail: (email: string, pass: string) => Promise<any>;
+  signUpWithEmail: (email: string, pass: string, firstName: string, lastName: string) => Promise<any>;
   signInWithEmail: (email: string, pass: string) => Promise<any>;
   signOut: () => Promise<void>;
-  updateUserProfile: (data: { displayName: string }) => Promise<void>;
+  updateUserProfile: (data: { firstName: string, lastName: string }) => Promise<void>;
   changeUserPassword: (newPassword: string) => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
 }
@@ -93,8 +104,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const signUpWithEmail = async (email: string, pass: string) => {
+  const signUpWithEmail = async (email: string, pass: string, firstName: string, lastName: string) => {
       const result = await createUserWithEmailAndPassword(auth, email, pass);
+      await updateProfile(result.user, {
+          displayName: `${firstName} ${lastName}`.trim()
+      });
       await sendVerificationEmail();
       // Don't create the user doc here yet, wait for sign-in after verification.
       router.push(`/verify-email?email=${encodeURIComponent(email)}`);
@@ -143,14 +157,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateUserProfile = async (data: { displayName: string }) => {
+  const updateUserProfile = async (data: { firstName: string, lastName: string }) => {
     if (auth.currentUser) {
-      await updateProfile(auth.currentUser, {
-        displayName: data.displayName,
-      });
+      const displayName = `${data.firstName} ${data.lastName}`.trim();
+      await updateProfile(auth.currentUser, { displayName });
+
        // Also update the user profile document in Firestore
       const userRef = doc(db, 'users', auth.currentUser.uid);
-      await setDoc(userRef, { displayName: data.displayName }, { merge: true });
+      await setDoc(userRef, { 
+        displayName,
+        firstName: data.firstName,
+        lastName: data.lastName,
+       }, { merge: true });
+       
       // The onAuthStateChanged listener will eventually handle updating the user state.
       // For immediate feedback, we can manually update the local state.
       setUser(auth.currentUser);

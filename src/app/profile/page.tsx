@@ -18,9 +18,12 @@ import { Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const profileFormSchema = z.object({
-  displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.' }),
+  firstName: z.string().min(1, { message: 'First name is required.' }),
+  lastName: z.string().min(1, { message: 'Last name is required.' }),
   email: z.string().email().describe("Email address can't be changed."),
 });
 
@@ -41,7 +44,8 @@ export default function ProfilePage() {
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      displayName: '',
+      firstName: '',
+      lastName: '',
       email: '',
     },
   });
@@ -62,17 +66,34 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      profileForm.reset({
-        displayName: user.displayName || '',
-        email: user.email || '',
-      });
+      const fetchUserData = async () => {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          profileForm.reset({
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            email: user.email || '',
+          });
+        } else {
+            // Fallback for users who might not have a firestore doc yet
+            const nameParts = user.displayName?.split(' ') || [];
+            profileForm.reset({
+              firstName: nameParts[0] || '',
+              lastName: nameParts.slice(1).join(' ') || '',
+              email: user.email || '',
+            });
+        }
+      };
+      fetchUserData();
     }
   }, [user, profileForm]);
 
   async function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
     setError(null);
     try {
-      await updateUserProfile({ displayName: values.displayName });
+      await updateUserProfile({ firstName: values.firstName, lastName: values.lastName });
       toast({
         title: 'Profile Updated',
         description: 'Your profile information has been successfully updated.',
@@ -152,19 +173,34 @@ export default function ProfilePage() {
                 <CardContent>
                   <Form {...profileForm}>
                     <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-                      <FormField
-                        control={profileForm.control}
-                        name="displayName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Display Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Your Name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                       <div className="grid grid-cols-2 gap-4">
+                         <FormField
+                            control={profileForm.control}
+                            name="firstName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>First Name</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Your First Name" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={profileForm.control}
+                            name="lastName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Last Name</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Your Last Name" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                       </div>
                       <FormField
                         control={profileForm.control}
                         name="email"
