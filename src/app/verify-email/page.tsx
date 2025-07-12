@@ -56,6 +56,8 @@ export default function VerifyEmailPage() {
                     <CardTitle className="text-2xl">Confirm Your Email</CardTitle>
                     <CardDescription>
                         We sent a verification link to <span className="font-bold text-foreground">{email || 'your email address'}</span>. Please click the link to finish signing up.
+                        <br />
+                        <strong className="mt-2 block">Don't see it? Be sure to check your spam folder.</strong>
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -73,7 +75,7 @@ export default function VerifyEmailPage() {
                         </Alert>
                     )}
                     <div className="text-center text-sm text-muted-foreground">
-                        <p>Didn't receive the email? Check your spam folder or resend it.</p>
+                        <p>Still can't find the email? You can try resending it.</p>
                     </div>
                     <Button onClick={handleResendEmail} className="w-full" disabled={loading}>
                         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
