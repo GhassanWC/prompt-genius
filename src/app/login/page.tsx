@@ -234,7 +234,7 @@ export default function LoginPage() {
                                                 <span className="sr-only">{passwordVisible ? 'Hide password' : 'Show password'}</span>
                                             </Button>
                                         </div>
-                                        <div className="text-right">
+                                        <div className="text-left">
                                             <AlertDialogTrigger asChild>
                                                 <Button variant="link" size="sm" type="button" className="p-0 h-auto text-xs">
                                                     Forgot password?
