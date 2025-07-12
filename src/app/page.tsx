@@ -312,6 +312,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="flex-grow space-y-3">
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 10 projects</p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Full Prompt Generation</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Public Projects & Sharing</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Community Access</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Community Support</p>
@@ -335,6 +336,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="flex-grow space-y-3">
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> 30 projects</p>
+                  <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Full Prompt Generation</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> AI Prompt Enhancement</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Public Projects & Sharing</p>
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Community Access</p>
