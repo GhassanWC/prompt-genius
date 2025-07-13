@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -6,7 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
 import { Logo } from '@/components/logo';
-import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageSquare, Rocket, Github, Linkedin, XCircle } from 'lucide-react';
+import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageSquare, Rocket, Github, Linkedin, XCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserNav } from '@/components/user-nav';
@@ -14,13 +13,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { FeedbackDialog } from '@/components/feedback-dialog';
 import { getPublicFeedback, type Testimonial } from '@/lib/feedback';
-
+import { createCheckout } from '@/lib/lemon';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
+
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loadingTestimonials, setLoadingTestimonials] = useState(true);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState<string | null>(null);
   
   const navLinks = [
     { name: 'Features', href: '#features' },
@@ -67,6 +72,28 @@ export default function LandingPage() {
     return name.charAt(0).toUpperCase();
   }
 
+  const handleCheckout = async (plan: 'plus' | 'pro') => {
+    if (!user) {
+        router.push('/login');
+        return;
+    }
+
+    setIsCheckoutLoading(plan);
+
+    try {
+        const checkoutUrl = await createCheckout(plan, user.uid, user.email!, user.displayName!);
+        // Redirect to Lemon Squeezy checkout
+        window.location.href = checkoutUrl;
+    } catch (error: any) {
+        console.error('Checkout error:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Checkout Error',
+            description: error.message || 'Could not create a checkout session. Please try again.',
+        });
+        setIsCheckoutLoading(null);
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-white via-indigo-100 to-purple-100 text-slate-800 relative">
@@ -319,8 +346,8 @@ export default function LandingPage() {
                   <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> AI Prompt Enhancement</p>
                 </CardContent>
                 <div className="p-6 pt-0">
-                  <Button asChild className="w-full bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow">
-                    <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>Get Plus</Link>
+                  <Button onClick={() => handleCheckout('plus')} className="w-full bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow" disabled={isCheckoutLoading === 'plus'}>
+                      {isCheckoutLoading === 'plus' ? <Loader2 className="animate-spin" /> : 'Get Plus'}
                   </Button>
                 </div>
               </Card>
@@ -343,9 +370,9 @@ export default function LandingPage() {
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Priority Support</p>
                 </CardContent>
                 <div className="p-6 pt-0">
-                  <Button asChild className="w-full bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-700">
-                    <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>Go Pro</Link>
-                  </Button>
+                   <Button onClick={() => handleCheckout('pro')} className="w-full bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-700" disabled={isCheckoutLoading === 'pro'}>
+                     {isCheckoutLoading === 'pro' ? <Loader2 className="animate-spin" /> : 'Go Pro'}
+                   </Button>
                 </div>
               </Card>
             </div>
