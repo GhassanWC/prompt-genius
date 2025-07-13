@@ -1,6 +1,6 @@
 'use server';
 
-import LemonSqueezy from '@lemonsqueezy/lemonsqueezy.js';
+import { LemonSqueezy } from '@lemonsqueezy/lemonsqueezy.js';
 
 const requiredVars = ['LEMONSQUEEZY_API_KEY', 'LEMONSQUEEZY_STORE_ID'];
 const missingVars = requiredVars.filter(
@@ -10,8 +10,6 @@ const missingVars = requiredVars.filter(
 let lemonsqueezy: LemonSqueezy | null = null;
 
 if (missingVars.length > 0) {
-  // In a real app, you'd want to handle this more gracefully.
-  // For this context, we'll log an error.
   console.error(`Lemon Squeezy is not configured. Missing environment variables: ${missingVars.join(', ')}`);
 } else {
     lemonsqueezy = new LemonSqueezy(process.env.LEMONSQUEEZY_API_KEY!);
@@ -39,31 +37,31 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
     }
 
     try {
-        const { data, error } = await lemonsqueezy.createCheckout({
-            store: parseInt(storeId, 10),
-            variant: parseInt(planId, 10),
-            checkout_data: {
+        const checkout = await lemonsqueezy.createCheckout({
+            storeId: parseInt(storeId, 10),
+            variantId: parseInt(planId, 10),
+            checkoutData: {
                 email,
                 name,
                 custom: {
                     user_id: userId,
                 },
             },
-            product_options: {
-                redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success`,
+            productOptions: {
+                redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success`,
             },
         });
 
-        if (error) {
-            console.error('Lemon Squeezy API Error:', error);
-            throw new Error(error.message || 'Failed to create a checkout session.');
+        if (checkout.error) {
+            console.error('Lemon Squeezy API Error:', checkout.error);
+            throw new Error(checkout.error.message || 'Failed to create a checkout session.');
         }
 
-        if (!data) {
+        if (!checkout.data) {
              throw new Error('No data returned from checkout creation.');
         }
 
-        return data.data.attributes.url;
+        return checkout.data.attributes.url;
     } catch (e: any) {
         console.error('Lemon Squeezy exception:', e);
         throw new Error(e.message || 'Failed to create a checkout session.');
