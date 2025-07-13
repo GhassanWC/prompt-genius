@@ -67,3 +67,44 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
         throw new Error(e.message || 'Failed to create a checkout session.');
     }
 }
+
+export async function getCustomerPortalUrl(email: string): Promise<string> {
+    if (!lemonsqueezy) {
+        throw new Error('Lemon Squeezy not configured.');
+    }
+    const storeId = process.env.LEMONSQUEEZY_STORE_ID;
+    if (!storeId) {
+        throw new Error('LEMONSQUEEZY_STORE_ID is not configured.');
+    }
+
+    try {
+        // First, find the customer by their email
+        const customers = await lemonsqueezy.listCustomers({ storeId: parseInt(storeId, 10), filter: { email }});
+        const customer = customers.data?.[0];
+
+        if (!customer) {
+            // If the customer doesn't exist in Lemon Squeezy, they haven't bought anything.
+            // We can redirect them to the pricing page.
+            return '/#pricing'; 
+        }
+
+        // If a customer is found, get their most recent subscription to generate the portal link
+        const subscriptions = await lemonsqueezy.listSubscriptions({ 
+            storeId: parseInt(storeId, 10),
+            filter: { customerId: customer.id }
+        });
+
+        const subscription = subscriptions.data?.[0];
+
+        if (!subscription) {
+            // They are a customer but have no subscriptions (e.g., a one-time purchase).
+            // This case might need specific handling, but for now, pricing is a safe default.
+            return '/#pricing';
+        }
+        
+        return subscription.attributes.urls.customer_portal;
+    } catch (e: any) {
+        console.error('Error getting customer portal URL:', e);
+        throw new Error('Could not retrieve subscription management link.');
+    }
+}

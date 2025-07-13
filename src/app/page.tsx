@@ -317,7 +317,9 @@ export default function LandingPage() {
                 </CardContent>
                 <div className="p-6 pt-0">
                   <Button asChild className="w-full bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-700">
-                    <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>Get Started</Link>
+                    <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
+                        {user ? 'Go to Dashboard' : 'Get Started'}
+                    </Link>
                   </Button>
                 </div>
               </Card>

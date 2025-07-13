@@ -12,15 +12,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, MessageSquare, User as UserIcon, LayoutDashboard, Rocket } from 'lucide-react';
+import { LogOut, MessageSquare, User as UserIcon, LayoutDashboard, Rocket, CreditCard, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { FeedbackDialog } from './feedback-dialog';
 import { useRouter } from 'next/navigation';
+import { getCustomerPortalUrl } from '@/lib/lemon';
+import { useToast } from '@/hooks/use-toast';
 
 export function UserNav() {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
+  
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
 
   if (!user) {
     return null;
@@ -29,6 +34,23 @@ export function UserNav() {
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
     return name.charAt(0).toUpperCase();
+  }
+
+  const handleManageSubscription = async () => {
+    if (!user?.email) return;
+    setIsPortalLoading(true);
+    try {
+        const portalUrl = await getCustomerPortalUrl(user.email);
+        router.push(portalUrl);
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: error.message || 'Could not load subscription details.',
+        });
+    } finally {
+        setIsPortalLoading(false);
+    }
   }
 
   return (
@@ -63,6 +85,14 @@ export function UserNav() {
            <DropdownMenuItem onClick={() => router.push('/community')}>
             <Rocket className="mr-2 h-4 w-4" />
             <span>Community</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleManageSubscription} disabled={isPortalLoading}>
+              {isPortalLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="mr-2 h-4 w-4" />
+              )}
+              <span>Manage Subscription</span>
           </DropdownMenuItem>
            <DropdownMenuItem onClick={() => setIsFeedbackDialogOpen(true)}>
             <MessageSquare className="mr-2 h-4 w-4" />
