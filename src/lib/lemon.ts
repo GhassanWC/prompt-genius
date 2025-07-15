@@ -38,17 +38,17 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
 
     try {
         const checkout = await lemonsqueezy.createCheckout({
-            storeId: parseInt(storeId, 10),
-            variantId: parseInt(planId, 10),
-            checkoutData: {
+            store: storeId,
+            variant: parseInt(planId, 10),
+            checkout_data: {
                 email,
                 name,
                 custom: {
                     user_id: userId,
                 },
             },
-            productOptions: {
-                redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success`,
+            product_options: {
+                redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success`,
             },
         });
 
@@ -79,8 +79,8 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
 
     try {
         // First, find the customer by their email
-        const customers = await lemonsqueezy.listCustomers({ storeId: parseInt(storeId, 10), filter: { email }});
-        const customer = customers.data?.[0];
+        const customers = await lemonsqueezy.listCustomers({ filter: { store_id: storeId, email }});
+        const customer = customers.data?.data[0];
 
         if (!customer) {
             // If the customer doesn't exist in Lemon Squeezy, they haven't bought anything.
@@ -90,11 +90,10 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
 
         // If a customer is found, get their most recent subscription to generate the portal link
         const subscriptions = await lemonsqueezy.listSubscriptions({ 
-            storeId: parseInt(storeId, 10),
-            filter: { customerId: customer.id }
+            filter: { store_id: storeId, customer_id: customer.id }
         });
 
-        const subscription = subscriptions.data?.[0];
+        const subscription = subscriptions.data?.data[0];
 
         if (!subscription) {
             // They are a customer but have no subscriptions (e.g., a one-time purchase).
