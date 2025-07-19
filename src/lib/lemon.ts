@@ -37,19 +37,23 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
     }
 
     try {
-        const checkout = await lemonCreateCheckout(Number(storeId), Number(planId), {
-            checkoutData: {
-                email,
-                name,
-                custom: {
-                    user_id: userId,
+        const checkout = await lemonCreateCheckout(
+            Number(storeId),
+            Number(planId),
+            {
+                checkoutData: {
+                    email,
+                    name,
+                    custom: {
+                        user_id: userId,
+                    },
+                },
+                productOptions: {
+                    redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
                 },
             },
-            productOptions: {
-                redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
-            },
-            apiKey: process.env.LEMONSQUEEZY_API_KEY!,
-        });
+            process.env.LEMONSQUEEZY_API_KEY!
+        );
 
         if (checkout.error) {
             console.error('Lemon Squeezy API Error:', checkout.error);
@@ -80,8 +84,7 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
         // First, find the customer by their email
         const { data: customersData, error: customerError } = await listCustomers({ 
             filter: { storeId: Number(storeId), email },
-            apiKey: process.env.LEMONSQUEEZY_API_KEY!,
-        });
+        }, process.env.LEMONSQUEEZY_API_KEY!);
         if (customerError) throw new Error(customerError.message);
 
         const customer = customersData?.data[0];
@@ -116,8 +119,7 @@ export async function getSubscriptions(customerId: number) {
     try {
         const { data: subscriptionsData, error: subscriptionError } = await listSubscriptions({ 
             filter: { storeId: Number(storeId), customerId: customerId },
-            apiKey: process.env.LEMONSQUEEZY_API_KEY!,
-        });
+        }, process.env.LEMONSQUEEZY_API_KEY!);
 
         if (subscriptionError) throw new Error(subscriptionError.message);
         
