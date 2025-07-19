@@ -38,7 +38,9 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
     }
 
     try {
-        const checkout = await lemonsqueezy.createCheckout(parseInt(storeId), parseInt(planId), {
+        const checkout = await lemonsqueezy.createCheckout({
+            store: parseInt(storeId),
+            variant: parseInt(planId),
             checkout_data: {
                 email,
                 name,
@@ -120,3 +122,4 @@ export async function getSubscriptions(customerId: number) {
         throw new Error('Could not retrieve subscriptions.');
     }
 }
+
