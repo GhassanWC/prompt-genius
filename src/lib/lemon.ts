@@ -1,3 +1,4 @@
+
 'use server';
 
 import { LemonSqueezy } from '@lemonsqueezy/lemonsqueezy.js';
@@ -38,17 +39,17 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
 
     try {
         const checkout = await lemonsqueezy.createCheckout({
-            store: storeId,
-            variant: parseInt(planId, 10),
-            checkout_data: {
+            storeId: parseInt(storeId, 10),
+            variantId: parseInt(planId, 10),
+            checkoutData: {
                 email,
                 name,
                 custom: {
                     user_id: userId,
                 },
             },
-            product_options: {
-                redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success`,
+            productOptions: {
+                redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success`,
             },
         });
 
@@ -79,7 +80,7 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
 
     try {
         // First, find the customer by their email
-        const customers = await lemonsqueezy.listCustomers({ filter: { store_id: storeId, email }});
+        const customers = await lemonsqueezy.listCustomers({ filter: { storeId: storeId, email }});
         const customer = customers.data?.data[0];
 
         if (!customer) {
@@ -111,7 +112,7 @@ export async function getSubscriptions(customerId: number) {
 
     try {
         const subscriptions = await lemonsqueezy.listSubscriptions({ 
-            filter: { store_id: storeId, customer_id: customerId }
+            filter: { storeId: parseInt(storeId), customerId: customerId }
         });
         
         return subscriptions.data?.data;
