@@ -38,18 +38,16 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
     }
 
     try {
-        const checkout = await lemonsqueezy.createCheckout({
-            storeId: parseInt(storeId, 10),
-            variantId: parseInt(planId, 10),
-            checkoutData: {
+        const checkout = await lemonsqueezy.createCheckout(parseInt(storeId), parseInt(planId), {
+            checkout_data: {
                 email,
                 name,
                 custom: {
                     user_id: userId,
                 },
             },
-            productOptions: {
-                redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success`,
+            product_options: {
+                redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success`,
             },
         });
 
@@ -80,7 +78,7 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
 
     try {
         // First, find the customer by their email
-        const customers = await lemonsqueezy.listCustomers({ filter: { storeId: parseInt(storeId, 10), email }});
+        const customers = await lemonsqueezy.listCustomers({ filter: { storeId: parseInt(storeId), email }});
         const customer = customers.data?.data[0];
 
         if (!customer) {
@@ -122,3 +120,4 @@ export async function getSubscriptions(customerId: number) {
         throw new Error('Could not retrieve subscriptions.');
     }
 }
+
