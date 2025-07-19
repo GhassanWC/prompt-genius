@@ -1,7 +1,7 @@
 
 'use server';
 
-import { setup, createCheckout, listCustomers, listSubscriptions } from '@lemonsqueezy/lemonsqueezy.js';
+import { createCheckout as lemonCreateCheckout, listCustomers, listSubscriptions } from '@lemonsqueezy/lemonsqueezy.js';
 
 const requiredVars = ['LEMONSQUEEZY_API_KEY', 'LEMONSQUEEZY_STORE_ID', 'LEMONSQUEEZY_PLUS_PLAN_ID', 'LEMONSQUEEZY_PRO_PLAN_ID'];
 const missingVars = requiredVars.filter(
@@ -12,7 +12,6 @@ let isLemonSqueezyConfigured = false;
 if (missingVars.length > 0) {
   console.error(`Lemon Squeezy is not configured. Missing environment variables: ${missingVars.join(', ')}`);
 } else {
-    setup({ apiKey: process.env.LEMONSQUEEZY_API_KEY! });
     isLemonSqueezyConfigured = true;
 }
 
@@ -38,21 +37,18 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
     }
 
     try {
-        const checkout = await createCheckout({
-            storeId: Number(storeId),
-            variantId: Number(planId),
-            attributes: {
-                checkoutData: {
-                    email,
-                    name,
-                    custom: {
-                        user_id: userId,
-                    },
-                },
-                productOptions: {
-                    redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
+        const checkout = await lemonCreateCheckout(Number(storeId), Number(planId), {
+            checkoutData: {
+                email,
+                name,
+                custom: {
+                    user_id: userId,
                 },
             },
+            productOptions: {
+                redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
+            },
+            apiKey: process.env.LEMONSQUEEZY_API_KEY!,
         });
 
         if (checkout.error) {
@@ -82,13 +78,18 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
 
     try {
         // First, find the customer by their email
-        const customers = await listCustomers({ filter: { storeId: Number(storeId), email }});
-        const customer = customers.data?.data[0];
+        const { data: customersData, error: customerError } = await listCustomers({ 
+            filter: { storeId: Number(storeId), email },
+            apiKey: process.env.LEMONSQUEEZY_API_KEY!,
+        });
+        if (customerError) throw new Error(customerError.message);
+
+        const customer = customersData?.data[0];
 
         if (!customer) {
             return '/#pricing'; 
         }
-
+        
         const subscriptions = await getSubscriptions(customer.id);
         const subscription = subscriptions?.[0];
 
@@ -113,11 +114,14 @@ export async function getSubscriptions(customerId: number) {
     }
 
     try {
-        const subscriptions = await listSubscriptions({ 
-            filter: { storeId: Number(storeId), customerId: customerId }
+        const { data: subscriptionsData, error: subscriptionError } = await listSubscriptions({ 
+            filter: { storeId: Number(storeId), customerId: customerId },
+            apiKey: process.env.LEMONSQUEEZY_API_KEY!,
         });
+
+        if (subscriptionError) throw new Error(subscriptionError.message);
         
-        return subscriptions.data?.data;
+        return subscriptionsData?.data;
 
     } catch (e: any) {
         console.error('Error getting subscriptions:', e);
