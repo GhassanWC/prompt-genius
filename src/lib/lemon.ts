@@ -49,7 +49,7 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
                 },
             },
             product_options: {
-                redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success`,
+                redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
             },
         });
 
@@ -122,4 +122,3 @@ export async function getSubscriptions(customerId: number) {
         throw new Error('Could not retrieve subscriptions.');
     }
 }
-
