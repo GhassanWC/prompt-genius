@@ -120,4 +120,3 @@ export async function getSubscriptions(customerId: number) {
         throw new Error('Could not retrieve subscriptions.');
     }
 }
-
