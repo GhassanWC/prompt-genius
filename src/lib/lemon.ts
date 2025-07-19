@@ -1,19 +1,19 @@
 
 'use server';
 
-import { LemonSqueezy } from '@lemonsqueezy/lemonsqueezy.js';
+import { setup, createCheckout, listCustomers, listSubscriptions } from '@lemonsqueezy/lemonsqueezy.js';
 
 const requiredVars = ['LEMONSQUEEZY_API_KEY', 'LEMONSQUEEZY_STORE_ID', 'LEMONSQUEEZY_PLUS_PLAN_ID', 'LEMONSQUEEZY_PRO_PLAN_ID'];
 const missingVars = requiredVars.filter(
   (varName) => !process.env[varName]
 );
 
-let lemonsqueezy: LemonSqueezy | null = null;
-
+let isLemonSqueezyConfigured = false;
 if (missingVars.length > 0) {
   console.error(`Lemon Squeezy is not configured. Missing environment variables: ${missingVars.join(', ')}`);
 } else {
-    lemonsqueezy = new LemonSqueezy(process.env.LEMONSQUEEZY_API_KEY!);
+    setup({ apiKey: process.env.LEMONSQUEEZY_API_KEY! });
+    isLemonSqueezyConfigured = true;
 }
 
 
@@ -23,7 +23,7 @@ const PLAN_IDS = {
 };
 
 export async function createCheckout(plan: 'plus' | 'pro', userId: string, email: string, name: string): Promise<string> {
-    if (!lemonsqueezy) {
+    if (!isLemonSqueezyConfigured) {
         throw new Error(`Cannot create checkout. Lemon Squeezy is not configured on the server.`);
     }
 
@@ -38,18 +38,20 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
     }
 
     try {
-        const checkout = await lemonsqueezy.createCheckout({
-            store: parseInt(storeId),
-            variant: parseInt(planId),
-            checkout_data: {
-                email,
-                name,
-                custom: {
-                    user_id: userId,
+        const checkout = await createCheckout({
+            storeId: Number(storeId),
+            variantId: Number(planId),
+            attributes: {
+                checkoutData: {
+                    email,
+                    name,
+                    custom: {
+                        user_id: userId,
+                    },
                 },
-            },
-            product_options: {
-                redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
+                productOptions: {
+                    redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
+                },
             },
         });
 
@@ -70,7 +72,7 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
 }
 
 export async function getCustomerPortalUrl(email: string): Promise<string> {
-    if (!lemonsqueezy) {
+    if (!isLemonSqueezyConfigured) {
         throw new Error('Lemon Squeezy not configured.');
     }
     const storeId = process.env.LEMONSQUEEZY_STORE_ID;
@@ -80,7 +82,7 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
 
     try {
         // First, find the customer by their email
-        const customers = await lemonsqueezy.listCustomers({ filter: { storeId: parseInt(storeId), email }});
+        const customers = await listCustomers({ filter: { storeId: Number(storeId), email }});
         const customer = customers.data?.data[0];
 
         if (!customer) {
@@ -102,7 +104,7 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
 }
 
 export async function getSubscriptions(customerId: number) {
-     if (!lemonsqueezy) {
+     if (!isLemonSqueezyConfigured) {
         throw new Error('Lemon Squeezy not configured.');
     }
     const storeId = process.env.LEMONSQUEEZY_STORE_ID;
@@ -111,8 +113,8 @@ export async function getSubscriptions(customerId: number) {
     }
 
     try {
-        const subscriptions = await lemonsqueezy.listSubscriptions({ 
-            filter: { storeId: parseInt(storeId), customerId: customerId }
+        const subscriptions = await listSubscriptions({ 
+            filter: { storeId: Number(storeId), customerId: customerId }
         });
         
         return subscriptions.data?.data;
