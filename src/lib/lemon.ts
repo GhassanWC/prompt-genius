@@ -80,7 +80,7 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
 
     try {
         // First, find the customer by their email
-        const customers = await lemonsqueezy.listCustomers({ filter: { storeId: storeId, email }});
+        const customers = await lemonsqueezy.listCustomers({ filter: { storeId: parseInt(storeId, 10), email }});
         const customer = customers.data?.data[0];
 
         if (!customer) {
