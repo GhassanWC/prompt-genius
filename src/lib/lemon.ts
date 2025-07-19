@@ -1,9 +1,9 @@
 
 'use server';
 
-import { createCheckout as lemonCreateCheckout, listCustomers, listSubscriptions } from '@lemonsqueezy/lemonsqueezy.js';
+import { lemonsqueezy } from './lemonsqueezy';
 
-const requiredVars = ['LEMONSQUEEZY_API_KEY', 'LEMONSQUEEZY_STORE_ID', 'LEMONSQUEEZY_PLUS_PLAN_ID', 'LEMONSQUEEZY_PRO_PLAN_ID'];
+const requiredVars = ['LEMONSQUEEZY_STORE_ID', 'LEMONSQUEEZY_PLUS_PLAN_ID', 'LEMONSQUEEZY_PRO_PLAN_ID'];
 const missingVars = requiredVars.filter(
   (varName) => !process.env[varName]
 );
@@ -37,23 +37,20 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
     }
 
     try {
-        const checkout = await lemonCreateCheckout(
-            Number(storeId),
-            Number(planId),
-            {
-                checkoutData: {
-                    email,
-                    name,
-                    custom: {
-                        user_id: userId,
-                    },
-                },
-                productOptions: {
-                    redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
+        const checkout = await lemonsqueezy.createCheckout({
+            store: Number(storeId),
+            variant: Number(planId),
+            checkout_data: {
+                email,
+                name,
+                custom: {
+                    user_id: userId,
                 },
             },
-            process.env.LEMONSQUEEZY_API_KEY!
-        );
+            product_options: {
+                redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
+            },
+        });
 
         if (checkout.error) {
             console.error('Lemon Squeezy API Error:', checkout.error);
@@ -82,9 +79,9 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
 
     try {
         // First, find the customer by their email
-        const { data: customersData, error: customerError } = await listCustomers({ 
+        const { data: customersData, error: customerError } = await lemonsqueezy.listCustomers({ 
             filter: { storeId: Number(storeId), email },
-        }, process.env.LEMONSQUEEZY_API_KEY!);
+        });
         if (customerError) throw new Error(customerError.message);
 
         const customer = customersData?.data[0];
@@ -117,9 +114,9 @@ export async function getSubscriptions(customerId: number) {
     }
 
     try {
-        const { data: subscriptionsData, error: subscriptionError } = await listSubscriptions({ 
+        const { data: subscriptionsData, error: subscriptionError } = await lemonsqueezy.listSubscriptions({ 
             filter: { storeId: Number(storeId), customerId: customerId },
-        }, process.env.LEMONSQUEEZY_API_KEY!);
+        });
 
         if (subscriptionError) throw new Error(subscriptionError.message);
         
@@ -130,3 +127,5 @@ export async function getSubscriptions(customerId: number) {
         throw new Error('Could not retrieve subscriptions.');
     }
 }
+
+    
