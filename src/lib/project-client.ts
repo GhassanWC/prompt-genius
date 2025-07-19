@@ -22,7 +22,9 @@ import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storag
 import { generateImage } from '@/ai/flows/generate-image';
 import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
 import type { Project, Prompt, Role, Collaborator } from './projects';
+import { getSubscriptions } from './lemon';
 
+export type SubscriptionPlan = 'free' | 'plus' | 'pro';
 
 // Function to get all projects for a user
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
@@ -331,10 +333,10 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
   const projectsCollectionRef = collection(db, 'projects');
   
   try {
-    // Query for public projects, but do not order by 'createdAt' to avoid needing a composite index.
     const q = query(
       projectsCollectionRef, 
       where("isPublic", "==", true),
+      orderBy('createdAt', 'desc'),
       limit(count)
     );
     const projectsSnapshot = await getDocs(q);
@@ -354,27 +356,21 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
       });
     });
     
-    // Perform the sorting on the client side after fetching
-    projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-
     if (projects.length === 0) {
         return [];
     }
     
-    // Get all owner UIDs
     const ownerUids = projects.map(p => {
         return Object.keys(p.roles).find(uid => p.roles[uid] === 'owner')!;
-    }).filter(uid => uid); // Filter out any undefineds
+    }).filter(uid => uid);
 
     if (ownerUids.length === 0) {
-      return projects; // Return projects without authors if no owners are found
+      return projects;
     }
 
-    // Fetch all owner profiles in one go
     const ownersSnapshot = await getDocs(query(collection(db, 'users'), where('__name__', 'in', ownerUids)));
     const ownersMap = new Map(ownersSnapshot.docs.map(doc => [doc.id, doc.data()]));
     
-    // Augment projects with author info
     const projectsWithAuthors = projects.map(p => {
         const ownerUid = Object.keys(p.roles).find(uid => p.roles[uid] === 'owner');
         if (ownerUid && ownersMap.has(ownerUid)) {
@@ -393,11 +389,42 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
     return projectsWithAuthors;
     
   } catch (err: any) {
-    // This specific check might still be useful if other complex queries are added later.
     if (err.code === 'failed-precondition') {
       throw new Error("Database Index Required: A query requires a composite index that has not been created. Please use the link in your browser's developer console to create it in Firestore.");
     }
     console.error("Error fetching public projects:", err);
     throw new Error("An error occurred while fetching public projects.");
   }
+}
+
+export const getUserSubscriptionPlan = async (userId: string): Promise<SubscriptionPlan> => {
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    if (!userDoc.exists()) {
+        return 'free';
+    }
+    const customerId = userDoc.data().lemonSqueezyCustomerId;
+    if (!customerId) {
+        return 'free';
+    }
+
+    const subscriptions = await getSubscriptions(customerId);
+    if (!subscriptions || subscriptions.length === 0) {
+        return 'free';
+    }
+
+    const activeSub = subscriptions.find(sub => sub.attributes.status === 'active');
+    if (!activeSub) {
+        return 'free';
+    }
+
+    const planId = activeSub.attributes.variant_id.toString();
+    
+    if (planId === process.env.LEMONSQUEEZY_PRO_PLAN_ID) {
+        return 'pro';
+    }
+    if (planId === process.env.LEMONSQUEEZY_PLUS_PLAN_ID) {
+        return 'plus';
+    }
+
+    return 'free';
 }

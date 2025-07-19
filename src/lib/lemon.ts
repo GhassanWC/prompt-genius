@@ -2,7 +2,7 @@
 
 import { LemonSqueezy } from '@lemonsqueezy/lemonsqueezy.js';
 
-const requiredVars = ['LEMONSQUEEZY_API_KEY', 'LEMONSQUEEZY_STORE_ID'];
+const requiredVars = ['LEMONSQUEEZY_API_KEY', 'LEMONSQUEEZY_STORE_ID', 'LEMONSQUEEZY_PLUS_PLAN_ID', 'LEMONSQUEEZY_PRO_PLAN_ID'];
 const missingVars = requiredVars.filter(
   (varName) => !process.env[varName]
 );
@@ -83,21 +83,13 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
         const customer = customers.data?.data[0];
 
         if (!customer) {
-            // If the customer doesn't exist in Lemon Squeezy, they haven't bought anything.
-            // We can redirect them to the pricing page.
             return '/#pricing'; 
         }
 
-        // If a customer is found, get their most recent subscription to generate the portal link
-        const subscriptions = await lemonsqueezy.listSubscriptions({ 
-            filter: { store_id: storeId, customer_id: customer.id }
-        });
-
-        const subscription = subscriptions.data?.data[0];
+        const subscriptions = await getSubscriptions(customer.id);
+        const subscription = subscriptions?.[0];
 
         if (!subscription) {
-            // They are a customer but have no subscriptions (e.g., a one-time purchase).
-            // This case might need specific handling, but for now, pricing is a safe default.
             return '/#pricing';
         }
         
@@ -105,5 +97,27 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
     } catch (e: any) {
         console.error('Error getting customer portal URL:', e);
         throw new Error('Could not retrieve subscription management link.');
+    }
+}
+
+export async function getSubscriptions(customerId: number) {
+     if (!lemonsqueezy) {
+        throw new Error('Lemon Squeezy not configured.');
+    }
+    const storeId = process.env.LEMONSQUEEZY_STORE_ID;
+    if (!storeId) {
+        throw new Error('LEMONSQUEEZY_STORE_ID is not configured.');
+    }
+
+    try {
+        const subscriptions = await lemonsqueezy.listSubscriptions({ 
+            filter: { store_id: storeId, customer_id: customerId }
+        });
+        
+        return subscriptions.data?.data;
+
+    } catch (e: any) {
+        console.error('Error getting subscriptions:', e);
+        throw new Error('Could not retrieve subscriptions.');
     }
 }

@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useState, type FormEvent, useEffect } from "react";
-import { Loader2, Sparkles, AlertTriangle } from "lucide-react";
+import { useState, type FormEvent, useEffect, useCallback } from "react";
+import { Loader2, Sparkles, AlertTriangle, Lock } from "lucide-react";
 import { decomposeIdea } from "@/ai/flows/decompose-idea";
-import { createProjectWithPrompts, generateAndSaveProjectImage } from "@/lib/project-client";
+import { createProjectWithPrompts, generateAndSaveProjectImage, getProjectsForUser } from "@/lib/project-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,8 @@ import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+
+const FREE_PLAN_PROJECT_LIMIT = 2;
 
 export default function NewProjectPage() {
   const { user, loading: authLoading } = useAuth();
@@ -38,22 +40,24 @@ export default function NewProjectPage() {
     setError(null);
 
     try {
+      // Step 0: Check if the user is on a free plan and has reached their project limit.
+      // For now, we assume anyone without a subscription is on the free plan.
+      const existingProjects = await getProjectsForUser(user.uid);
+      if (existingProjects.length >= FREE_PLAN_PROJECT_LIMIT) {
+          throw new Error(`You have reached the ${FREE_PLAN_PROJECT_LIMIT}-project limit for the free plan. Please upgrade to create more projects.`);
+      }
+
       // Step 1: Call the AI flow (a server action) to get the plan
       const plan = await decomposeIdea({ idea });
 
-      // Check if the plan is empty, which may indicate a refusal from the AI
       if (!plan.developmentPlan || plan.developmentPlan.length === 0) {
         throw new Error(plan.enhancedIdea || "The AI could not generate a plan for this idea. Please make sure it's a software development topic and try rephrasing.");
       }
       
-      // Step 2: Create the project and prompts from the client, which is authenticated
       const projectId = await createProjectWithPrompts(user.uid, projectName, plan);
 
-      // Step 3: Fire-and-forget the image generation. This is now a client-side function
-      // that calls an AI flow and then handles the upload and DB update itself.
       generateAndSaveProjectImage(user.uid, projectId, plan.enhancedIdea);
       
-      // Step 4: Redirect immediately to the new project page
       router.push(`/projects/${projectId}`);
 
     } catch (e: any) {
@@ -146,7 +150,16 @@ export default function NewProjectPage() {
             <Alert variant="destructive" className="mt-6">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Error Creating Project</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>
+                {error}
+                {error.includes('limit') && (
+                    <Link href="/#pricing" className="block mt-2">
+                        <Button variant="outline" className="border-destructive/50 text-destructive">
+                           <Lock className="mr-2 h-4 w-4"/> Upgrade Plan
+                        </Button>
+                    </Link>
+                )}
+              </AlertDescription>
             </Alert>
         )}
       </div>
