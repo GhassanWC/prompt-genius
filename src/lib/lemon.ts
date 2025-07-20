@@ -5,12 +5,12 @@ const API_BASE_URL = 'https://api.lemonsqueezy.com/v1';
 
 const requiredVars = ['LEMONSQUEEZY_API_KEY', 'LEMONSQUEEZY_STORE_ID', 'LEMONSQUEEZY_PLUS_PLAN_ID', 'LEMONSQUEEZY_PRO_PLAN_ID'];
 const missingVars = requiredVars.filter(
-  (varName) => !process.env[varName]
+    (varName) => !process.env[varName]
 );
 
 let isLemonSqueezyConfigured = false;
 if (missingVars.length > 0) {
-  console.error(`Lemon Squeezy is not configured. Missing environment variables: ${missingVars.join(', ')}`);
+    console.error(`Lemon Squeezy is not configured. Missing environment variables: ${missingVars.join(', ')}`);
 } else {
     isLemonSqueezyConfigured = true;
 }
@@ -48,18 +48,21 @@ async function apiRequest(path: string, options: RequestInit = {}) {
 }
 
 export async function createCheckout(plan: 'plus' | 'pro', userId: string, email: string, name: string): Promise<string> {
+    
     if (!isLemonSqueezyConfigured) {
         throw new Error(`Cannot create checkout. Lemon Squeezy is not configured on the server.`);
     }
-
+   
     const planId = PLAN_IDS[plan];
     const storeId = process.env.LEMONSQUEEZY_STORE_ID!;
-
+    console.log("planId", planId);
+    console.log("storeId", storeId);
     if (!planId) {
         throw new Error(`Plan ID for "${plan}" is not configured in environment variables.`);
     }
 
     try {
+        console.log('Creating checkout for plan:', plan, 'with user ID:', userId, 'and email:', email);
         const response = await apiRequest('checkouts', {
             method: 'POST',
             body: JSON.stringify({
@@ -94,7 +97,7 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
                 },
             }),
         });
-        
+
         return response.data.attributes.url;
 
     } catch (e: any) {
@@ -119,7 +122,7 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
     if (!isLemonSqueezyConfigured) {
         throw new Error('Lemon Squeezy not configured.');
     }
-    
+
     try {
         const customers = await listCustomers(email);
         const customer = customers?.[0];
@@ -127,14 +130,14 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
         if (!customer) {
             return '/#pricing';
         }
-        
+
         const subscriptions = await getSubscriptions(customer.id);
         const subscription = subscriptions?.[0];
 
         if (!subscription) {
             return '/#pricing';
         }
-        
+
         return subscription.attributes.urls.customer_portal;
     } catch (e: any) {
         console.error('Error getting customer portal URL:', e);

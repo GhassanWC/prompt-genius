@@ -81,6 +81,7 @@ export default function LandingPage() {
     setIsCheckoutLoading(plan);
 
     try {
+        console.log('Creating checkout for plan:', plan, 'with user ID:', user.uid, 'and email:', user.email, 'and display name:', user.displayName);
         const checkoutUrl = await createCheckout(plan, user.uid, user.email!, user.displayName!);
         // Redirect to Lemon Squeezy checkout
         window.location.href = checkoutUrl;
