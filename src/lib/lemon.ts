@@ -75,8 +75,8 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
                             },
                         },
                         product_options: {
-                            redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
-                        },
+                             redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
+                        }
                     },
                     relationships: {
                         store: {
@@ -86,10 +86,12 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
                             },
                         },
                         variant: {
-                            data: {
-                                type: 'variants',
-                                id: planId,
-                            },
+                            data: [
+                                {
+                                    type: 'variants',
+                                    id: planId,
+                                },
+                            ],
                         },
                     },
                 },
