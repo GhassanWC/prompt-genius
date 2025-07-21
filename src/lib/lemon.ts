@@ -55,14 +55,12 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
    
     const planId = PLAN_IDS[plan];
     const storeId = process.env.LEMONSQUEEZY_STORE_ID!;
-    console.log("planId", planId);
-    console.log("storeId", storeId);
+    
     if (!planId) {
         throw new Error(`Plan ID for "${plan}" is not configured in environment variables.`);
     }
 
     try {
-        console.log('Creating checkout for plan:', plan, 'with user ID:', userId, 'and email:', email);
         const response = await apiRequest('checkouts', {
             method: 'POST',
             body: JSON.stringify({
@@ -78,7 +76,7 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
                         },
                         product_options: {
                             redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
-                        }
+                        },
                     },
                     relationships: {
                         store: {
