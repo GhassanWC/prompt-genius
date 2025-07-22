@@ -56,7 +56,7 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
                                 user_id: userId,
                             },
                         },
-                       checkout_options: {
+                       product_options: {
                              redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
                         }
                     },
