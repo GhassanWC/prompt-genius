@@ -20,7 +20,7 @@ import { getCustomerPortalUrl } from '@/lib/lemon';
 import { useToast } from '@/hooks/use-toast';
 
 export function UserNav() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, subscriptionPlan } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -52,6 +52,8 @@ export function UserNav() {
         setIsPortalLoading(false);
     }
   }
+
+  const isFreePlan = subscriptionPlan === 'free';
 
   return (
     <>
@@ -86,14 +88,16 @@ export function UserNav() {
             <Rocket className="mr-2 h-4 w-4" />
             <span>Community</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleManageSubscription} disabled={isPortalLoading}>
-              {isPortalLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <CreditCard className="mr-2 h-4 w-4" />
-              )}
-              <span>Manage Subscription</span>
-          </DropdownMenuItem>
+          {!isFreePlan && (
+            <DropdownMenuItem onClick={handleManageSubscription} disabled={isPortalLoading}>
+                {isPortalLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="mr-2 h-4 w-4" />
+                )}
+                <span>Manage Subscription</span>
+            </DropdownMenuItem>
+          )}
            <DropdownMenuItem onClick={() => setIsFeedbackDialogOpen(true)}>
             <MessageSquare className="mr-2 h-4 w-4" />
             <span>Feedback</span>

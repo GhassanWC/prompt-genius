@@ -20,6 +20,7 @@ import {
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { getUserSubscriptionPlan, type SubscriptionPlan } from '@/lib/project-client';
 
 
 // Function to create a user profile document in Firestore if it doesn't exist
@@ -58,6 +59,7 @@ const createUserProfileDocument = async (user: User) => {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  subscriptionPlan: SubscriptionPlan | null;
   signInWithGoogle: () => Promise<void>;
   signInWithGithub: () => Promise<void>;
   signUpWithEmail: (email: string, pass: string, firstName: string, lastName: string) => Promise<any>;
@@ -74,6 +76,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -84,6 +87,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (user.emailVerified && window.location.pathname.startsWith('/login')) {
             router.push('/dashboard');
         }
+        const plan = await getUserSubscriptionPlan(user.uid);
+        setSubscriptionPlan(plan);
+      } else {
+        setSubscriptionPlan(null);
       }
       setUser(user);
       setLoading(false);
@@ -201,7 +208,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await firebaseSendPasswordResetEmail(auth, email);
   }
 
-  const value = { user, loading, signInWithGoogle, signInWithGithub, signUpWithEmail, signInWithEmail, signOut, updateUserProfile, changeUserPassword, sendVerificationEmail, sendPasswordResetEmail };
+  const value = { user, loading, subscriptionPlan, signInWithGoogle, signInWithGithub, signUpWithEmail, signInWithEmail, signOut, updateUserProfile, changeUserPassword, sendVerificationEmail, sendPasswordResetEmail };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
