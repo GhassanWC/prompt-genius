@@ -22,7 +22,7 @@ import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storag
 import { generateImage } from '@/ai/flows/generate-image';
 import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
 import type { Project, Prompt, Role, Collaborator } from './projects';
-import { getSubscriptions } from './lemon';
+import { getSubscription } from './subscriptions';
 
 export type SubscriptionPlan = 'free' | 'plus' | 'pro';
 
@@ -398,26 +398,13 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
 }
 
 export const getUserSubscriptionPlan = async (userId: string): Promise<SubscriptionPlan> => {
-    const userDoc = await getDoc(doc(db, 'users', userId));
-    if (!userDoc.exists()) {
-        return 'free';
-    }
-    const customerId = userDoc.data().lemonSqueezyCustomerId;
-    if (!customerId) {
+    const subscription = await getSubscription(userId);
+
+    if (!subscription || subscription.status !== 'active') {
         return 'free';
     }
 
-    const subscriptions = await getSubscriptions(customerId);
-    if (!subscriptions || subscriptions.length === 0) {
-        return 'free';
-    }
-
-    const activeSub = subscriptions.find(sub => sub.attributes.status === 'active');
-    if (!activeSub) {
-        return 'free';
-    }
-
-    const planId = activeSub.attributes.variant_id.toString();
+    const planId = subscription.planId;
     
     if (planId === process.env.LEMONSQUEEZY_PRO_PLAN_ID) {
         return 'pro';
