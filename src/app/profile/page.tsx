@@ -14,12 +14,14 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, BadgeCheck, Rocket, Ban } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { getCustomerPortalUrl } from '@/lib/lemon';
+import { Badge } from '@/components/ui/badge';
 
 const profileFormSchema = z.object({
   firstName: z.string().min(1, { message: 'First name is required.' }),
@@ -36,10 +38,11 @@ const passwordFormSchema = z.object({
 });
 
 export default function ProfilePage() {
-  const { user, loading: authLoading, updateUserProfile, changeUserPassword } = useAuth();
+  const { user, loading: authLoading, updateUserProfile, changeUserPassword, subscriptionPlan } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
 
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -117,6 +120,23 @@ export default function ProfilePage() {
     }
   }
 
+  const handleManageSubscription = async () => {
+    if (!user?.email) return;
+    setIsPortalLoading(true);
+    try {
+        const portalUrl = await getCustomerPortalUrl(user.email);
+        router.push(portalUrl);
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: error.message || 'Could not load subscription details.',
+        });
+    } finally {
+        setIsPortalLoading(false);
+    }
+  }
+
   if (authLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -153,9 +173,10 @@ export default function ProfilePage() {
             </p>
           </div>
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="profile">Profile Details</TabsTrigger>
               <TabsTrigger value="password">Change Password</TabsTrigger>
+              <TabsTrigger value="subscription">Subscription</TabsTrigger>
             </TabsList>
             {error && (
               <Alert variant="destructive" className="mt-4">
@@ -270,9 +291,59 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
             </TabsContent>
+            <TabsContent value="subscription">
+              <Card>
+                <CardHeader>
+                    <CardTitle>Manage Subscription</CardTitle>
+                    <CardDescription>View your current plan and manage your subscription details.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="p-4 bg-muted/50 rounded-lg flex justify-between items-center">
+                        <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Current Plan</p>
+                            <p className="text-xl font-semibold capitalize">{subscriptionPlan || 'Free'}</p>
+                        </div>
+                        <Badge variant="outline" className="text-base">
+                            <BadgeCheck className="mr-2 text-primary" /> {subscriptionPlan || 'Free'}
+                        </Badge>
+                    </div>
+
+                    {subscriptionPlan === 'free' ? (
+                       <Card className="border-primary/50">
+                           <CardHeader>
+                            <CardTitle>Upgrade Your Plan</CardTitle>
+                            <CardDescription>Unlock more projects, advanced features, and priority support.</CardDescription>
+                           </CardHeader>
+                           <CardContent>
+                               <Link href="/#pricing">
+                                    <Button className="w-full">
+                                        <Rocket className="mr-2 h-4 w-4" />
+                                        View Upgrade Options
+                                    </Button>
+                               </Link>
+                           </CardContent>
+                       </Card>
+                    ) : (
+                        <div className="space-y-4">
+                            <p className="text-sm text-muted-foreground">Need to make changes? You can manage your billing details, view invoices, or cancel your subscription at any time.</p>
+                             <Button onClick={handleManageSubscription} disabled={isPortalLoading} className="w-full">
+                                {isPortalLoading ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                <Ban className="mr-2 h-4 w-4" />
+                                )}
+                                Cancel or Manage Subscription
+                            </Button>
+                        </div>
+                    )}
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </div>
       </main>
     </div>
   );
 }
+
+    

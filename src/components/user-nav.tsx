@@ -37,23 +37,9 @@ export function UserNav() {
   }
 
   const handleManageSubscription = async () => {
-    if (!user?.email) return;
-    setIsPortalLoading(true);
-    try {
-        const portalUrl = await getCustomerPortalUrl(user.email);
-        router.push(portalUrl);
-    } catch (error: any) {
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: error.message || 'Could not load subscription details.',
-        });
-    } finally {
-        setIsPortalLoading(false);
-    }
+    // This function is now just a convenient way to navigate
+    router.push('/profile');
   }
-
-  const isFreePlan = subscriptionPlan === 'free';
 
   return (
     <>
@@ -84,20 +70,14 @@ export function UserNav() {
             <UserIcon className="mr-2 h-4 w-4" />
             <span>Profile</span>
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleManageSubscription}>
+              <CreditCard className="mr-2 h-4 w-4" />
+              <span>Subscription</span>
+          </DropdownMenuItem>
            <DropdownMenuItem onClick={() => router.push('/community')}>
             <Rocket className="mr-2 h-4 w-4" />
             <span>Community</span>
           </DropdownMenuItem>
-          {!isFreePlan && (
-            <DropdownMenuItem onClick={handleManageSubscription} disabled={isPortalLoading}>
-                {isPortalLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <CreditCard className="mr-2 h-4 w-4" />
-                )}
-                <span>Manage Subscription</span>
-            </DropdownMenuItem>
-          )}
            <DropdownMenuItem onClick={() => setIsFeedbackDialogOpen(true)}>
             <MessageSquare className="mr-2 h-4 w-4" />
             <span>Feedback</span>
@@ -113,3 +93,5 @@ export function UserNav() {
     </>
   );
 }
+
+    
