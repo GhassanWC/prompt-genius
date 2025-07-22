@@ -74,7 +74,7 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
                                 user_id: userId,
                             },
                         },
-                        checkout_options: {
+                       checkout_options: {
                              redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
                         }
                     },
@@ -128,17 +128,23 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
         const customer = customers?.[0];
 
         if (!customer) {
+            console.log(`No Lemon Squeezy customer found for email: ${email}. Redirecting to pricing.`);
             return '/#pricing';
         }
+        
+        console.log(`Found customer ID: ${customer.id} for email: ${email}.`);
 
         const subscriptions = await getSubscriptions(customer.id);
-        const subscription = subscriptions?.[0];
+        const activeSub = subscriptions.find(sub => sub.attributes.status === 'active' || sub.attributes.status === 'on_trial');
 
-        if (!subscription) {
+        if (!activeSub) {
+            console.log(`No active or trial subscription found for customer ID: ${customer.id}. Redirecting to pricing.`);
             return '/#pricing';
         }
+        
+        console.log(`Found active subscription for customer ID: ${customer.id}. Portal URL: ${activeSub.attributes.urls.customer_portal}`);
 
-        return subscription.attributes.urls.customer_portal;
+        return activeSub.attributes.urls.customer_portal;
     } catch (e: any) {
         console.error('Error getting customer portal URL:', e);
         throw new Error('Could not retrieve subscription management link.');
