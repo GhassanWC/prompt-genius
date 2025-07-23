@@ -20,16 +20,24 @@ export async function POST(req: NextRequest) {
     const signature = Buffer.from(req.headers.get('x-signature') || '', 'utf8');
 
     if (!crypto.timingSafeEqual(digest, signature)) {
+      console.warn('Invalid webhook signature.');
       return new NextResponse('Invalid signature.', { status: 400 });
     }
 
     const payload = JSON.parse(rawBody);
+    console.log('--- Lemon Squeezy Webhook Received ---');
+    console.log('Payload:', JSON.stringify(payload, null, 2));
+
     const { meta, data } = payload;
     const { event_name: eventName, custom_data: customData } = meta;
     const { attributes: subscriptionData, id: lemonSqueezyId } = data;
     
     // The user_id is passed in the `custom_data` during checkout creation
     const userId = customData?.user_id;
+
+    console.log(`Event Name: ${eventName}`);
+    console.log(`User ID from custom_data: ${userId}`);
+    console.log(`Lemon Squeezy Subscription ID: ${lemonSqueezyId}`);
 
     if (!userId) {
         console.warn('Webhook received without a user_id in custom_data. Skipping.');
@@ -40,7 +48,7 @@ export async function POST(req: NextRequest) {
     switch (eventName) {
       case 'subscription_created':
       case 'subscription_updated':
-        // For 'subscription_updated', this will also create one if it doesn't exist yet (resilience).
+        console.log(`Executing 'createSubscription' for user ${userId}...`);
         await createSubscription({
           userId: userId,
           lemonSqueezyId: lemonSqueezyId, // Use the top-level ID from the data object
@@ -50,17 +58,22 @@ export async function POST(req: NextRequest) {
           endsAt: subscriptionData.ends_at,
           trialEndsAt: subscriptionData.trial_ends_at,
         });
+        console.log(`'createSubscription' completed for user ${userId}.`);
         break;
 
       case 'subscription_cancelled':
+        console.log(`Executing 'updateSubscription' for Lemon Squeezy ID ${lemonSqueezyId} with status 'cancelled'.`);
         await updateSubscription(lemonSqueezyId, {
           status: 'cancelled',
           endsAt: subscriptionData.ends_at,
         });
+        console.log(`'updateSubscription' completed for Lemon Squeezy ID ${lemonSqueezyId}.`);
         break;
       
       case 'subscription_expired':
+         console.log(`Executing 'deleteSubscriptionByLemonSqueezyId' for Lemon Squeezy ID ${lemonSqueezyId}.`);
          await deleteSubscriptionByLemonSqueezyId(lemonSqueezyId);
+         console.log(`'deleteSubscriptionByLemonSqueezyId' completed for Lemon Squeezy ID ${lemonSqueezyId}.`);
         break;
 
       default:
