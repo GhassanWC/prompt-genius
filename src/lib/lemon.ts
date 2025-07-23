@@ -68,12 +68,12 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
                             },
                         },
                         variant: {
-                            data: [
+                            data: 
                                 {
                                     type: 'variants',
                                     id: planId,
                                 },
-                            ],
+                            
                         },
                     },
                 },

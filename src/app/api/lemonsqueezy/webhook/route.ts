@@ -9,6 +9,7 @@ const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET!;
 
 export async function POST(req: NextRequest) {
   if (!secret) {
+    console.error('LEMONSQUEEZY_WEBHOOK_SECRET is not configured.');
     return new NextResponse('Webhook secret is not configured.', { status: 500 });
   }
 
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
     const payload = JSON.parse(rawBody);
     const { meta, data } = payload;
     const { event_name: eventName, custom_data: customData } = meta;
-    const { attributes: subscriptionData } = data;
+    const { attributes: subscriptionData, id: lemonSqueezyId } = data;
     
     // The user_id is passed in the `custom_data` during checkout creation
     const userId = customData?.user_id;
@@ -39,11 +40,10 @@ export async function POST(req: NextRequest) {
     switch (eventName) {
       case 'subscription_created':
       case 'subscription_updated':
-        // For 'subscription_updated', this will either update an existing subscription
-        // or create one if it somehow doesn't exist yet (resilience).
+        // For 'subscription_updated', this will also create one if it doesn't exist yet (resilience).
         await createSubscription({
           userId: userId,
-          lemonSqueezyId: subscriptionData.id,
+          lemonSqueezyId: lemonSqueezyId, // Use the top-level ID from the data object
           status: subscriptionData.status,
           planId: subscriptionData.variant_id.toString(),
           renewsAt: subscriptionData.renews_at,
@@ -53,14 +53,14 @@ export async function POST(req: NextRequest) {
         break;
 
       case 'subscription_cancelled':
-        await updateSubscription(subscriptionData.id, {
+        await updateSubscription(lemonSqueezyId, {
           status: 'cancelled',
           endsAt: subscriptionData.ends_at,
         });
         break;
       
       case 'subscription_expired':
-         await deleteSubscriptionByLemonSqueezyId(subscriptionData.id);
+         await deleteSubscriptionByLemonSqueezyId(lemonSqueezyId);
         break;
 
       default:
