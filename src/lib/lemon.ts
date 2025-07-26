@@ -68,12 +68,12 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
                             },
                         },
                         variant: {
-                            data: [
+                            data: 
                                 {
                                     type: 'variants',
                                     id: planId,
                                 },
-                            ],
+                            
                         },
                     },
                 },
@@ -95,7 +95,20 @@ async function listCustomers(email: string): Promise<any[]> {
 }
 
 export async function getSubscriptions(customerId: string): Promise<any[]> {
-    const response = await apiRequest(`subscriptions?filter[customer_id]=${customerId}`);
+    console.log("Getting subscriptions for customerId:", customerId);
+
+    const query = new URLSearchParams();
+    query.append('filter[customer_id]', customerId);
+
+    const response = await apiRequest(
+        `subscriptions?${customerId}`,
+        { method: 'GET' }
+    );
+
+    if (!response?.data || !Array.isArray(response.data)) {
+        throw new Error("Failed to retrieve subscriptions");
+    }
+
     return response.data;
 }
 
@@ -114,7 +127,7 @@ export async function getCustomerPortalUrl(email: string): Promise<string> {
 
         const subscriptions = await getSubscriptions(customer.id);
         const activeSub = subscriptions.find(sub => sub.attributes.status === 'active' || sub.attributes.status === 'on_trial');
-
+        console.log(subscriptions);
         if (!activeSub) {
             console.log(`No active or trial subscription found for customer ID: ${customer.id}. Redirecting to pricing.`);
             return '/#pricing';

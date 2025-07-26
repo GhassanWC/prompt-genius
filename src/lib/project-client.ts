@@ -399,17 +399,16 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
 
 export const getUserSubscriptionPlan = async (userId: string): Promise<SubscriptionPlan> => {
     const subscription = await getSubscription(userId);
-
+    console.log("subscription:", subscription);
     if (!subscription || subscription.status !== 'active') {
         return 'free';
     }
 
     const planId = subscription.planId;
-    
-    if (planId === process.env.LEMONSQUEEZY_PRO_PLAN_ID) {
+    if (planId === process.env.NEXT_PUBLIC_LEMONSQUEEZY_PRO_PLAN_ID) {
         return 'pro';
     }
-    if (planId === process.env.LEMONSQUEEZY_PLUS_PLAN_ID) {
+    if (planId === process.env.NEXT_PUBLIC_LEMONSQUEEZY_PLUS_PLAN_ID) {
         return 'plus';
     }
 

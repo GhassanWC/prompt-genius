@@ -88,6 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             router.push('/dashboard');
         }
         const plan = await getUserSubscriptionPlan(user.uid);
+        console.log("plan:", plan);
         setSubscriptionPlan(plan);
       } else {
         setSubscriptionPlan(null);

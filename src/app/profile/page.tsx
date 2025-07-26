@@ -124,7 +124,9 @@ export default function ProfilePage() {
     if (!user?.email) return;
     setIsPortalLoading(true);
     try {
+  
         const portalUrl = await getCustomerPortalUrl(user.email);
+        console.log("portalUrl:", portalUrl);
         router.push(portalUrl);
     } catch (error: any) {
         toast({
