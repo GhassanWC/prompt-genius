@@ -4,7 +4,7 @@
 import { useState, type FormEvent, useEffect, useCallback } from "react";
 import { Loader2, Sparkles, AlertTriangle, Lock } from "lucide-react";
 import { decomposeIdea } from "@/ai/flows/decompose-idea";
-import { createProjectWithPrompts, generateAndSaveProjectImage, getProjectsForUser } from "@/lib/project-client";
+import { createProjectWithPrompts, generateAndSaveProjectImage, getProjectsForUser, getUserSubscriptionPlan, PLAN_LIMITS } from "@/lib/project-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,10 +15,8 @@ import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-const FREE_PLAN_PROJECT_LIMIT = 2;
-
 export default function NewProjectPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, subscriptionPlan } = useAuth();
   const router = useRouter();
 
   const [projectName, setProjectName] = useState("");
@@ -40,11 +38,13 @@ export default function NewProjectPage() {
     setError(null);
 
     try {
-      // Step 0: Check if the user is on a free plan and has reached their project limit.
-      // For now, we assume anyone without a subscription is on the free plan.
+      // Step 0: Check if the user has reached their project limit.
+      const currentPlan = subscriptionPlan || 'free';
+      const planLimit = PLAN_LIMITS[currentPlan];
       const existingProjects = await getProjectsForUser(user.uid);
-      if (existingProjects.length >= FREE_PLAN_PROJECT_LIMIT) {
-          throw new Error(`You have reached the ${FREE_PLAN_PROJECT_LIMIT}-project limit for the free plan. Please upgrade to create more projects.`);
+      
+      if (existingProjects.length >= planLimit) {
+          throw new Error(`You have reached the ${planLimit}-project limit for the ${currentPlan} plan. Please upgrade to create more projects.`);
       }
 
       // Step 1: Call the AI flow (a server action) to get the plan

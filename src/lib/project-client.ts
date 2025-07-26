@@ -26,6 +26,13 @@ import { getSubscription } from './subscriptions';
 
 export type SubscriptionPlan = 'free' | 'plus' | 'pro';
 
+export const PLAN_LIMITS: Record<SubscriptionPlan, number> = {
+  free: 2,
+  plus: 10,
+  pro: 30,
+};
+
+
 // Function to get all projects for a user
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
@@ -404,11 +411,11 @@ export const getUserSubscriptionPlan = async (userId: string): Promise<Subscript
         return 'free';
     }
 
-    const planId = subscription.planId;
-    if (planId === process.env.NEXT_PUBLIC_LEMONSQUEEZY_PRO_PLAN_ID) {
+    const planId = subscription.planId.toString();
+    if (planId === process.env.LEMONSQUEEZY_PRO_PLAN_ID) {
         return 'pro';
     }
-    if (planId === process.env.NEXT_PUBLIC_LEMONSQUEEZY_PLUS_PLAN_ID) {
+    if (planId === process.env.LEMONSQUEEZY_PLUS_PLAN_ID) {
         return 'plus';
     }
 

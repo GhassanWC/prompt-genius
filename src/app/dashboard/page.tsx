@@ -6,10 +6,10 @@ import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { deleteProject, updateProject } from '@/lib/project-client';
 import type { Project } from '@/lib/projects';
-import { getProjectsForUser } from '@/lib/project-client';
+import { getProjectsForUser, PLAN_LIMITS } from '@/lib/project-client';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Loader2, PlusCircle, FolderOpen, AlertTriangle, MoreVertical, Trash2, Globe, Lock } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Loader2, PlusCircle, FolderOpen, AlertTriangle, MoreVertical, Trash2, Globe, Lock, Rocket } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
@@ -19,10 +19,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Progress } from '@/components/ui/progress';
 
 
 export default function DashboardPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, subscriptionPlan } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -114,6 +115,12 @@ export default function DashboardPage() {
     }
   };
 
+  const currentPlanLimit = subscriptionPlan ? PLAN_LIMITS[subscriptionPlan] : PLAN_LIMITS.free;
+  const projectsUsed = projects.length;
+  const projectsRemaining = currentPlanLimit - projectsUsed;
+  const usagePercentage = (projectsUsed / currentPlanLimit) * 100;
+  const atLimit = projectsRemaining <= 0;
+
 
   if (authLoading || !user) {
     return (
@@ -135,10 +142,10 @@ export default function DashboardPage() {
         <UserNav />
       </header>
       <main className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold font-headline">My Projects</h2>
           <Link href="/projects/new">
-            <Button>
+            <Button disabled={atLimit}>
               <PlusCircle className="mr-2 h-5 w-5" />
               New Project
             </Button>
@@ -153,6 +160,29 @@ export default function DashboardPage() {
                     <p>{error}</p>
                 </AlertDescription>
             </Alert>
+        )}
+
+        {subscriptionPlan && (
+            <Card className="mb-8">
+                <CardHeader>
+                    <CardTitle className="capitalize">{subscriptionPlan} Plan</CardTitle>
+                    <CardDescription>You have created {projectsUsed} of {currentPlanLimit} available projects.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Progress value={usagePercentage} className="h-2" />
+                </CardContent>
+                {atLimit && (
+                    <CardFooter>
+                       <div className="w-full text-center text-sm text-muted-foreground mt-4">
+                           You've reached your project limit.
+                           <Link href="/#pricing" className="ml-1 text-primary hover:underline font-medium">
+                               Upgrade your plan
+                           </Link>
+                           to create more.
+                       </div>
+                    </CardFooter>
+                )}
+            </Card>
         )}
 
         {loadingProjects ? (

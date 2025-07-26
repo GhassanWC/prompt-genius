@@ -6,7 +6,6 @@ const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET!;
 
 export async function POST(req: NextRequest) {
   if (!secret) {
-    console.error('LEMONSQUEEZY_WEBHOOK_SECRET is not configured.');
     return new NextResponse('Webhook secret is not configured.', { status: 500 });
   }
 
@@ -35,29 +34,18 @@ export async function POST(req: NextRequest) {
       digestBuffer.length !== signatureBuffer.length ||
       !crypto.timingSafeEqual(digestBuffer, signatureBuffer)
     ) {
-
-
-  
+      return new NextResponse('Invalid signature.', { status: 400 });
+    }
 
     // 5. Only now, parse the body
     const bodyText = rawBodyBuffer.toString('utf8');
     const payload = JSON.parse(bodyText);
-    
-    console.log('--- Lemon Squeezy Webhook Received ---');
-    console.log('Payload:', JSON.stringify(payload, null, 2));
-
     const { meta, data } = payload;
     const { event_name: eventName, custom_data: customData } = meta;
     const { attributes: subscriptionData } = data;
 
-    
-    
-    // The user_id is passed in the `custom_data` during checkout creation
+    // The user_id is passed in the custom_data during checkout creation
     const userId = customData?.user_id;
-
-    console.log(`Event Name: ${eventName}`);
-    console.log(`User ID from custom_data: ${userId}`);
-
 
     if (!userId) {
       console.warn('Webhook received without a user_id in custom_data. Skipping.');
@@ -68,18 +56,17 @@ export async function POST(req: NextRequest) {
     switch (eventName) {
       case 'subscription_created':
       case 'subscription_updated':
-        console.log(`Executing 'createSubscription' for user ${userId}...`);
+        // For 'subscription_updated', this will either update an existing subscription
+        // or create one if it somehow doesn't exist yet (resilience).
         await createSubscription({
           userId: userId,
           lemonSqueezyId: data.id, // <<--- THIS FIXES THE ERROR
-  
           status: subscriptionData.status,
           planId: subscriptionData.variant_id?.toString() ?? '', // Defensive: avoid undefined
           renewsAt: subscriptionData.renews_at ?? null,
           endsAt: subscriptionData.ends_at ?? null,
           trialEndsAt: subscriptionData.trial_ends_at ?? null,
         });
-        console.log(`'createSubscription' completed for user ${userId}.`);
         break;
 
       case 'subscription_cancelled':
@@ -91,9 +78,8 @@ export async function POST(req: NextRequest) {
 
       case 'subscription_expired':
         await deleteSubscriptionByLemonSqueezyId(subscriptionData.id);
-         console.log(`Executing 'deleteSubscriptionByLemonSqueezyId' for Lemon Squeezy ID ${lemonSqueezyId}.`);
-   
         break;
+
       default:
         console.log(`Unhandled Lemon Squeezy webhook event: ${eventName}`);
         break;
