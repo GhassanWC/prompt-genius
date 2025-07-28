@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, MessageSquare, User as UserIcon, LayoutDashboard, Rocket, CreditCard, Loader2 } from 'lucide-react';
+import { LogOut, MessageSquare, User as UserIcon, LayoutDashboard, Rocket, CreditCard, Loader2, PlusCircle, Crown } from 'lucide-react';
 import { useState } from 'react';
 import { FeedbackDialog } from './feedback-dialog';
 import { useRouter } from 'next/navigation';
@@ -45,11 +45,21 @@ export function UserNav() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Button variant="ghost" className="relative h-9 w-9 rounded-full">
             <Avatar className="h-9 w-9">
               <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
               <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
             </Avatar>
+            {subscriptionPlan === 'plus' && (
+                <div className="absolute top-0 right-0 h-3.5 w-3.5 rounded-full bg-primary text-primary-foreground flex items-center justify-center border-2 border-background">
+                    <PlusCircle className="h-2.5 w-2.5" />
+                </div>
+            )}
+            {subscriptionPlan === 'pro' && (
+                 <div className="absolute top-0 right-0 h-3.5 w-3.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white flex items-center justify-center border-2 border-background">
+                    <Crown className="h-2.5 w-2.5" />
+                </div>
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -93,5 +103,3 @@ export function UserNav() {
     </>
   );
 }
-
-    
