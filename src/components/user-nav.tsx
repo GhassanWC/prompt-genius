@@ -51,13 +51,14 @@ export function UserNav() {
               <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
             </Avatar>
             {subscriptionPlan === 'plus' && (
-                <div className="absolute top-0 right-0 h-3.5 w-3.5 rounded-full bg-primary text-primary-foreground flex items-center justify-center border-2 border-background">
-                    <PlusCircle className="h-2.5 w-2.5" />
-                </div>
+               <div className="absolute bottom-5 left-6 h-5.9 w-5.9 rounded-full bg-primary text-primary-foreground flex items-center justify-center border-2 border-background">
+               <PlusCircle className="w-5.9 h-5.9" />
+             </div>
+             
             )}
             {subscriptionPlan === 'pro' && (
-                 <div className="absolute top-0 right-0 h-3.5 w-3.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white flex items-center justify-center border-2 border-background">
-                    <Crown className="h-2.5 w-2.5" />
+                 <div className="absolute bottom-5 left-6 h-5.9 w-5.9 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white flex items-center justify-center border-2 border-background">
+                    <Crown className="w-5.9 h-5.9" />
                 </div>
             )}
           </Button>
