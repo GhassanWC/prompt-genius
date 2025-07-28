@@ -10,37 +10,73 @@ import { getPublicProjects } from '@/lib/project-client';
 import { Card, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, ArrowRight, Search } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Search, Lock, Rocket } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 function getInitials(name: string | null | undefined) {
     if (!name) return 'A';
     return name.charAt(0).toUpperCase();
 }
 
+function AccessDenied() {
+  return (
+      <div className="max-w-2xl mx-auto">
+          <Card className="text-center p-8 border-primary/20 shadow-lg">
+              <CardContent className="p-0">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 mb-6">
+                    <Lock className="h-8 w-8 text-primary" />
+                  </div>
+                  <h2 className="font-headline text-2xl font-bold text-foreground">
+                      Exclusive Feature
+                  </h2>
+                  <p className="mt-2 text-muted-foreground">
+                      Access to the community showcase is available for Plus and Pro members.
+                  </p>
+                  <Link href="/#pricing">
+                      <Button className="mt-6">
+                          <Rocket className="mr-2 h-4 w-4" />
+                          Upgrade Your Plan
+                      </Button>
+                  </Link>
+              </CardContent>
+          </Card>
+      </div>
+  );
+}
+
+
 export default function CommunityPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, subscriptionPlan, loading: authLoading } = useAuth();
   const [publicProjects, setPublicProjects] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
+  const canAccessCommunity = useMemo(() => {
+    return subscriptionPlan === 'plus' || subscriptionPlan === 'pro';
+  }, [subscriptionPlan]);
+
   useEffect(() => {
-    const fetchPublicProjects = async () => {
-      setLoadingProjects(true);
-      try {
-        const projects = await getPublicProjects(50); // Fetch up to 50 public projects
-        setPublicProjects(projects);
-      } catch (error) {
-        console.error("Failed to fetch public projects:", error);
-      } finally {
+    if (canAccessCommunity) {
+      const fetchPublicProjects = async () => {
+        setLoadingProjects(true);
+        try {
+          const projects = await getPublicProjects(50);
+          setPublicProjects(projects);
+        } catch (error) {
+          console.error("Failed to fetch public projects:", error);
+        } finally {
+          setLoadingProjects(false);
+        }
+      };
+      fetchPublicProjects();
+    } else {
         setLoadingProjects(false);
-      }
-    };
-    fetchPublicProjects();
-  }, []);
+    }
+  }, [canAccessCommunity]);
   
   const filteredProjects = useMemo(() => {
     if (!searchTerm) {
@@ -80,82 +116,110 @@ export default function CommunityPage() {
             </p>
         </div>
 
-        <div className="max-w-xl mx-auto mb-12">
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                    type="search"
-                    placeholder="Search projects by name or idea..."
-                    className="w-full pl-10 text-base"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-        </div>
-
-        {loadingProjects ? (
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i}>
-                <div className="w-full h-40 bg-muted rounded-t-lg animate-pulse" />
-                <CardContent className="pt-4">
-                  <Skeleton className="h-6 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3 mt-2" />
-                </CardContent>
-                 <CardFooter>
-                    <div className="flex items-center gap-2">
-                        <Skeleton className="h-8 w-8 rounded-full" />
-                        <Skeleton className="h-4 w-24" />
-                    </div>
-                 </CardFooter>
-              </Card>
-            ))}
-          </div>
-        ) : filteredProjects.length > 0 ? (
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {filteredProjects.map((project) => (
-              <Link href={`/projects/${project.id}`} key={project.id} className="group block">
-                <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:border-primary hover:shadow-xl">
-                  <div className="relative w-full h-40 bg-secondary">
-                    {project.imageUrl ? (
-                      <Image src={project.imageUrl} alt={project.name} fill className="object-cover" />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                          <Logo className="h-12 w-12 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <CardTitle className="font-headline text-xl text-white absolute bottom-4 left-4 right-4">{project.name}</CardTitle>
-                  </div>
-                  <div className="p-4 flex-grow flex flex-col">
-                      <p className="text-sm text-muted-foreground line-clamp-3 flex-grow">{project.idea}</p>
-                      <div className="mt-4 text-sm font-semibold text-primary flex items-center group-hover:underline">
-                          View Project <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </div>
-                  </div>
-                   <CardFooter className="border-t pt-4">
-                        {project.author && (
+        {authLoading ? (
+            <div className="text-center">
+                 <Skeleton className="h-10 w-full max-w-xl mx-auto mb-12" />
+                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <Card key={i}>
+                        <div className="w-full h-40 bg-muted rounded-t-lg animate-pulse" />
+                        <CardContent className="pt-4">
+                          <Skeleton className="h-6 w-3/4 mb-2" />
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-2/3 mt-2" />
+                        </CardContent>
+                         <CardFooter>
                             <div className="flex items-center gap-2">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={project.author.photoURL || undefined} />
-                                    <AvatarFallback>{getInitials(project.author.displayName)}</AvatarFallback>
-                                </Avatar>
-                                <span className="text-xs text-muted-foreground">By {project.author.displayName}</span>
+                                <Skeleton className="h-8 w-8 rounded-full" />
+                                <Skeleton className="h-4 w-24" />
                             </div>
-                        )}
-                   </CardFooter>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                         </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+            </div>
+        ) : !canAccessCommunity ? (
+            <AccessDenied />
         ) : (
-           <div className="text-center py-16 border-2 border-dashed rounded-lg">
-            <Search className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-xl font-medium">No Projects Found</h3>
-            <p className="mt-2 text-muted-foreground">Your search for "{searchTerm}" did not match any projects.</p>
-            <Button variant="outline" className="mt-6" onClick={() => setSearchTerm('')}>Clear Search</Button>
-          </div>
+          <>
+            <div className="max-w-xl mx-auto mb-12">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="Search projects by name or idea..."
+                        className="w-full pl-10 text-base"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
+
+            {loadingProjects ? (
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Card key={i}>
+                    <div className="w-full h-40 bg-muted rounded-t-lg animate-pulse" />
+                    <CardContent className="pt-4">
+                      <Skeleton className="h-6 w-3/4 mb-2" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-2/3 mt-2" />
+                    </CardContent>
+                     <CardFooter>
+                        <div className="flex items-center gap-2">
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                            <Skeleton className="h-4 w-24" />
+                        </div>
+                     </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            ) : filteredProjects.length > 0 ? (
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {filteredProjects.map((project) => (
+                  <Link href={`/projects/${project.id}`} key={project.id} className="group block">
+                    <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:border-primary hover:shadow-xl">
+                      <div className="relative w-full h-40 bg-secondary">
+                        {project.imageUrl ? (
+                          <Image src={project.imageUrl} alt={project.name} fill className="object-cover" />
+                        ) : (
+                          <div className="flex items-center justify-center h-full">
+                              <Logo className="h-12 w-12 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <CardTitle className="font-headline text-xl text-white absolute bottom-4 left-4 right-4">{project.name}</CardTitle>
+                      </div>
+                      <div className="p-4 flex-grow flex flex-col">
+                          <p className="text-sm text-muted-foreground line-clamp-3 flex-grow">{project.idea}</p>
+                          <div className="mt-4 text-sm font-semibold text-primary flex items-center group-hover:underline">
+                              View Project <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                          </div>
+                      </div>
+                       <CardFooter className="border-t pt-4">
+                            {project.author && (
+                                <div className="flex items-center gap-2">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={project.author.photoURL || undefined} />
+                                        <AvatarFallback>{getInitials(project.author.displayName)}</AvatarFallback>
+                                    </Avatar>
+                                    <span className="text-xs text-muted-foreground">By {project.author.displayName}</span>
+                                </div>
+                            )}
+                       </CardFooter>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+               <div className="text-center py-16 border-2 border-dashed rounded-lg">
+                <Search className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-xl font-medium">No Projects Found</h3>
+                <p className="mt-2 text-muted-foreground">Your search for "{searchTerm}" did not match any projects.</p>
+                <Button variant="outline" className="mt-6" onClick={() => setSearchTerm('')}>Clear Search</Button>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
