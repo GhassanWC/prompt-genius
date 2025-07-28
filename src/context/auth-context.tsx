@@ -173,11 +173,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await updateProfile(auth.currentUser, { displayName });
 
        // Also update the user profile document in Firestore
+       console.log(auth.currentUser.uid);
       const userRef = doc(db, 'users', auth.currentUser.uid);
       await setDoc(userRef, { 
         displayName,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        firstName:data.firstName,
+        lastName: data.lastName
        }, { merge: true });
        
       // The onAuthStateChanged listener will eventually handle updating the user state.

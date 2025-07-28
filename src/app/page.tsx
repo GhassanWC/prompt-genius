@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, subscriptionPlan } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -319,7 +319,7 @@ export default function LandingPage() {
                 <div className="p-6 pt-0">
                   <Button asChild className="w-full bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-700">
                     <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
-                        {user ? 'Go to Dashboard' : 'Get Started'}
+                        {user ? subscriptionPlan == 'free'? 'Go to Dashboard':`You are subscribed to ${subscriptionPlan} plan` : 'Get Started'}
                     </Link>
                   </Button>
                 </div>
@@ -349,8 +349,19 @@ export default function LandingPage() {
                   <p className="flex items-center text-muted-foreground"><XCircle className="h-5 w-5 mr-2 text-muted-foreground" /> AI Prompt Enhancement</p>
                 </CardContent>
                 <div className="p-6 pt-0">
-                  <Button onClick={() => handleCheckout('plus')} className="w-full bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow" disabled={isCheckoutLoading === 'plus'}>
-                      {isCheckoutLoading === 'plus' ? <Loader2 className="animate-spin" /> : 'Get Plus'}
+                  <Button onClick={() => {
+                    if(user && subscriptionPlan == 'plus'){
+                      router.push('/dashboard');
+                    }else{
+                      handleCheckout('plus');
+                    }
+                   }} className="w-full bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow" disabled={isCheckoutLoading === 'plus'}>
+                      {isCheckoutLoading === 'plus' ? <Loader2 className="animate-spin" /> : 
+                       user ? subscriptionPlan == 'plus'? 'Go to Dashboard':
+                       subscriptionPlan == 'pro'?
+                       `You are subscribed to ${subscriptionPlan} plan`
+                       :'Get Plus'
+                       : 'Get Started'}
                   </Button>
                 </div>
               </Card>
@@ -373,8 +384,15 @@ export default function LandingPage() {
                   <p className="flex items-center text-slate-600"><CheckCircle className="h-5 w-5 mr-2 text-green-500" /> Priority Support</p>
                 </CardContent>
                 <div className="p-6 pt-0">
-                   <Button onClick={() => handleCheckout('pro')} className="w-full bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-700" disabled={isCheckoutLoading === 'pro'}>
-                     {isCheckoutLoading === 'pro' ? <Loader2 className="animate-spin" /> : 'Go Pro'}
+                   <Button onClick={() => {
+                    if(user && subscriptionPlan == 'pro'){
+                      router.push('/dashboard');
+                    }else{
+                      handleCheckout('pro');
+                    }
+                   }} className="w-full bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-700" disabled={isCheckoutLoading === 'pro'}>
+                   {isCheckoutLoading === 'pro' ? <Loader2 className="animate-spin" /> : 
+                       user && subscriptionPlan == 'pro'? 'Go to Dashboard':`Get Pro`}
                    </Button>
                 </div>
               </Card>

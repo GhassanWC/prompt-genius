@@ -412,10 +412,11 @@ export const getUserSubscriptionPlan = async (userId: string): Promise<Subscript
     }
 
     const planId = subscription.planId.toString();
-    if (planId === process.env.LEMONSQUEEZY_PRO_PLAN_ID) {
+    console.log(planId)
+    if (planId === process.env.NEXT_PUBLIC_LEMONSQUEEZY_PRO_PLAN_ID) {
         return 'pro';
     }
-    if (planId === process.env.LEMONSQUEEZY_PLUS_PLAN_ID) {
+    if (planId === process.env.NEXT_PUBLIC_LEMONSQUEEZY_PLUS_PLAN_ID) {
         return 'plus';
     }
 
