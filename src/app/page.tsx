@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -131,14 +132,9 @@ export default function LandingPage() {
             ) : user ? (
               <UserNav />
             ) : (
-              <>
-                <Button asChild variant="ghost" className="text-slate-700 hover:text-indigo-600 hover:bg-indigo-100/40">
-                  <Link href="/login">Sign In</Link>
-                </Button>
-                <Button asChild className="bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow active:scale-95 transition-transform">
-                  <Link href="/login">Get Started</Link>
-                </Button>
-              </>
+              <Button asChild className="bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-500 hover:to-purple-500 text-white border-0 shadow active:scale-95 transition-transform">
+                <Link href="/login">Get Started</Link>
+              </Button>
             )}
           </div>
         </div>
