@@ -26,7 +26,7 @@ export default function DashboardPage() {
   const { user, loading: authLoading, subscriptionPlan } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -106,19 +106,19 @@ export default function DashboardPage() {
     const newVisibility = !project.isPublic;
 
     try {
-        await updateProject(user.uid, project.id, { isPublic: newVisibility });
-        toast({
-            title: "Visibility Updated",
-            description: `"${project.name}" is now ${newVisibility ? 'public' : 'private'}.`,
-        });
-        fetchProjects(); // Refresh the list to show the new state
+      await updateProject(user.uid, project.id, { isPublic: newVisibility });
+      toast({
+        title: "Visibility Updated",
+        description: `"${project.name}" is now ${newVisibility ? 'public' : 'private'}.`,
+      });
+      fetchProjects(); // Refresh the list to show the new state
     } catch (err: any) {
-        console.error("Failed to update visibility:", err);
-        toast({
-            variant: 'destructive',
-            title: 'Update Failed',
-            description: err.message,
-        });
+      console.error("Failed to update visibility:", err);
+      toast({
+        variant: 'destructive',
+        title: 'Update Failed',
+        description: err.message,
+      });
     }
   };
 
@@ -140,12 +140,12 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="container mx-auto px-4 py-4 flex justify-between items-center border-b">
-         <Link href="/" className="flex items-center gap-2">
-            <Logo className="h-8 w-8 text-primary" />
-             <h1 className="font-headline text-xl font-bold tracking-tight hidden sm:block">
-                Prompt Genius AI
-            </h1>
-         </Link>
+        <Link href="/" className="flex items-center gap-2">
+          <Logo className="h-8 w-8 text-primary" />
+          <h1 className="font-headline text-xl font-bold tracking-tight hidden sm:block">
+            Prompt Genius AI
+          </h1>
+        </Link>
         <UserNav />
       </header>
       <main className="container mx-auto px-4 py-8">
@@ -160,54 +160,54 @@ export default function DashboardPage() {
         </div>
 
         {error && (
-            <Alert variant="destructive" className="mb-6">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Could Not Load Projects</AlertTitle>
-                <AlertDescription>
-                    {error}
-                </AlertDescription>
-            </Alert>
+          <Alert variant="destructive" className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Could Not Load Projects</AlertTitle>
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
         )}
 
         {subscriptionPlan && (
-            <Card className="mb-8">
-                <CardHeader>
-                    <CardTitle className="capitalize">{subscriptionPlan} Plan</CardTitle>
-                    <CardDescription>You have created {projectsUsed} of {currentPlanLimit} available projects.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Progress value={usagePercentage} className="h-2" />
-                </CardContent>
-                {atLimit && (
-                    <CardFooter>
-                       <div className="w-full text-center text-sm text-muted-foreground mt-4">
-                           You've reached your project limit.
-                           <Link href="/#pricing" className="ml-1 text-primary hover:underline font-medium">
-                               Upgrade your plan
-                           </Link>
-                           to create more.
-                       </div>
-                    </CardFooter>
-                )}
-            </Card>
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="capitalize">{subscriptionPlan} Plan</CardTitle>
+              <CardDescription>You have created {projectsUsed} of {currentPlanLimit} available projects.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Progress value={usagePercentage} className="h-2" />
+            </CardContent>
+            {atLimit && (
+              <CardFooter>
+                <div className="w-full text-center text-sm text-muted-foreground mt-4">
+                  You've reached your project limit.
+                  <Link href="/#pricing" className="ml-1 mr-1 text-primary hover:underline font-medium">
+                    Upgrade your plan
+                  </Link>
+                  to create more.
+                </div>
+              </CardFooter>
+            )}
+          </Card>
         )}
 
         {loadingProjects ? (
-           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Card><CardHeader><div className="h-5 w-3/4 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/2 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
-              <Card><CardHeader><div className="h-5 w-2/3 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/3 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
-              <Card><CardHeader><div className="h-5 w-3/5 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/2 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
-           </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <Card><CardHeader><div className="h-5 w-3/4 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/2 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
+            <Card><CardHeader><div className="h-5 w-2/3 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/3 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
+            <Card><CardHeader><div className="h-5 w-3/5 bg-muted rounded animate-pulse" /><CardDescription><div className="h-4 w-1/2 bg-muted rounded animate-pulse mt-1" /></CardDescription></CardHeader></Card>
+          </div>
         ) : projects.length === 0 && !error ? (
           <div className="text-center py-16 border-2 border-dashed rounded-lg">
             <FolderOpen className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-xl font-medium">No projects yet</h3>
             <p className="mt-2 text-muted-foreground">Get started by creating your first project.</p>
             <Link href="/projects/new" className="mt-6 inline-block">
-                <Button>
-                    <PlusCircle className="mr-2 h-5 w-5" />
-                    Create Project
-                </Button>
+              <Button>
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Create Project
+              </Button>
             </Link>
           </div>
         ) : (
@@ -217,57 +217,54 @@ export default function DashboardPage() {
               return (
                 <div key={project.id} className="relative">
                   <Link href={`/projects/${project.id}`} className="block group h-full">
-                      <Card className="h-full hover:shadow-lg hover:border-primary/50 transition-all flex flex-col overflow-hidden">
-                        {project.imageUrl ? (
-                          <div className="relative w-full h-40">
-                            <Image
-                              src={project.imageUrl}
-                              alt={project.name}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="h-40 w-full bg-secondary rounded-t-lg flex items-center justify-center">
-                              <Logo className="h-12 w-12 text-muted-foreground" />
-                          </div>
-                        )}
-                        <div className="flex flex-col flex-grow p-6">
-                            <CardTitle className="font-headline">{project.name}</CardTitle>
-                            <CardDescription className="mt-1">
-                              Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
-                            </CardDescription>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-4 flex-grow">{project.idea}</p>
+                    <Card className="h-full hover:shadow-lg hover:border-primary/50 transition-all flex flex-col overflow-hidden">
+                      {project.imageUrl ? (
+                        <div className="relative w-full h-40">
+                          <Image
+                            src={project.imageUrl}
+                            alt={project.name}
+                            fill
+                            className="object-cover"
+                          />
                         </div>
-                      </Card>
+                      ) : (
+                        <div className="h-40 w-full bg-secondary rounded-t-lg flex items-center justify-center">
+                          <Logo className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex flex-col flex-grow p-6">
+                        <CardTitle className="font-headline">{project.name}</CardTitle>
+                        <CardDescription className="mt-1">
+                          Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
+                        </CardDescription>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mt-4 flex-grow">{project.idea}</p>
+                      </div>
+                    </Card>
                   </Link>
                   <div className="absolute top-3 right-3">
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                                <MoreVertical className="h-5 w-5" />
-                                <span className="sr-only">Project options</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                            {isOwner && (
-                                <>
-                                    <DropdownMenuItem onClick={(e) => handleToggleVisibility(project, e)}>
-                                        {project.isPublic ? (
-                                            <><Lock className="mr-2 h-4 w-4" /><span>Make Private</span></>
-                                        ) : (
-                                            <><Globe className="mr-2 h-4 w-4" /><span>Make Public</span></>
-                                        )}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={(e) => openDeleteDialog(project, e)}>
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        <span>Delete</span>
-                                    </DropdownMenuItem>
-                                </>
-                            )}
-                        </DropdownMenuContent>
+                    {isOwner && <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                          <MoreVertical className="h-5 w-5" />
+                          <span className="sr-only">Project options</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                        <DropdownMenuItem onClick={(e) => handleToggleVisibility(project, e)}>
+                          {project.isPublic ? (
+                            <><Lock className="mr-2 h-4 w-4" /><span>Make Private</span></>
+                          ) : (
+                            <><Globe className="mr-2 h-4 w-4" /><span>Make Public</span></>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={(e) => openDeleteDialog(project, e)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
                     </DropdownMenu>
+                    }
                   </div>
                 </div>
               );
