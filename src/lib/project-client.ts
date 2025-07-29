@@ -63,11 +63,11 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
   } catch (err: any) {
      console.error("Error fetching projects:", err);
      if (err.code === 'permission-denied') {
-        throw new Error("Permission Denied: Your security rules are blocking access. Please ensure they allow you to read your own projects.");
+        throw new Error("We couldn't load your projects. Please check your internet connection and try again.");
      } else if (err.code === 'failed-precondition') {
-        throw new Error("Database Index Required: This query requires an index. Please check your browser's developer console for a link to create it.");
+        throw new Error("Something went wrong on our end while trying to fetch your projects. Please contact support if this continues.");
      } else {
-       throw new Error(err.message || "An unknown error occurred while fetching projects.");
+       throw new Error("An unexpected error occurred while fetching your projects. Please refresh the page.");
      }
   }
 };
@@ -111,7 +111,7 @@ export const getPromptsForProject = async (userId: string | null, projectId: str
     // getProject handles the public/private access logic
     const project = await getProject(userId, projectId);
     if (!project) {
-        throw new Error("Permission denied or project not found.");
+        throw new Error("You don't have permission to view this project, or the project does not exist.");
     }
     
     const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
@@ -184,7 +184,7 @@ export const generateAndSaveProjectImage = async (
 ): Promise<void> => {
     try {
         const role = await getProjectRole(userId, projectId);
-        if (!role) throw new Error("Permission denied for image generation.");
+        if (!role) throw new Error("You don't have permission to generate an image for this project.");
         
         const imageResult = await generateImage({ idea });
         const dataUri = imageResult.imageUrl;
@@ -205,7 +205,7 @@ export const generateAndSaveProjectImage = async (
 // Function to update a project's details
 export const updateProject = async (userId: string, projectId: string, data: Partial<Omit<Project, 'id' | 'roles' | 'createdAt'>>): Promise<void> => {
     const role = await getProjectRole(userId, projectId);
-    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
+    if (role !== 'owner' && role !== 'editor') throw new Error("You don't have permission to edit this project.");
     
     const projectRef = doc(db, 'projects', projectId);
     await updateDoc(projectRef, data);
@@ -214,7 +214,7 @@ export const updateProject = async (userId: string, projectId: string, data: Par
 // Function to update a prompt
 export const updatePrompt = async (userId: string, projectId: string, promptId: string, data: Partial<Omit<Prompt, 'id'>>): Promise<void> => {
     const role = await getProjectRole(userId, projectId);
-    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
+    if (role !== 'owner' && role !== 'editor') throw new Error("You don't have permission to edit prompts in this project.");
 
     const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
     await updateDoc(promptRef, data);
@@ -223,7 +223,7 @@ export const updatePrompt = async (userId: string, projectId: string, promptId: 
 // Function to update a prompt's status
 export const updatePromptStatus = async (userId: string, projectId: string, promptId: string, isDone: boolean): Promise<void> => {
     const role = await getProjectRole(userId, projectId);
-    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
+    if (role !== 'owner' && role !== 'editor') throw new Error("You don't have permission to update prompts in this project.");
 
     const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
     await updateDoc(promptRef, { isDone });
@@ -232,7 +232,7 @@ export const updatePromptStatus = async (userId: string, projectId: string, prom
 // Function to delete a prompt
 export const deletePrompt = async (userId: string, projectId: string, promptId: string): Promise<void> => {
     const role = await getProjectRole(userId, projectId);
-    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
+    if (role !== 'owner' && role !== 'editor') throw new Error("You don't have permission to delete prompts in this project.");
 
     const promptRef = doc(db, 'projects', projectId, 'prompts', promptId);
     await deleteDoc(promptRef);
@@ -241,7 +241,7 @@ export const deletePrompt = async (userId: string, projectId: string, promptId: 
 // Function to delete a project and all its associated prompts
 export const deleteProject = async (userId: string, projectId: string): Promise<void> => {
     const role = await getProjectRole(userId, projectId);
-    if (role !== 'owner') throw new Error("Permission denied. Only the owner can delete a project.");
+    if (role !== 'owner') throw new Error("You don't have permission to delete this project. Only the owner can do this.");
 
     const batch = writeBatch(db);
     const projectRef = doc(db, 'projects', projectId);
@@ -259,7 +259,7 @@ export const deleteProject = async (userId: string, projectId: string): Promise<
 // Function to add a new prompt to a project
 export const addPrompt = async (userId: string, projectId: string, promptData: Omit<Prompt, 'id' | 'order'>): Promise<string> => {
     const role = await getProjectRole(userId, projectId);
-    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
+    if (role !== 'owner' && role !== 'editor') throw new Error("You don't have permission to add prompts to this project.");
     
     const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
     const allPromptsSnapshot = await getDocs(promptsCollectionRef);
@@ -276,7 +276,7 @@ export const addPrompt = async (userId: string, projectId: string, promptData: O
 // Function to update the order of prompts
 export const updatePromptsOrder = async (userId: string, projectId: string, prompts: { id: string; order: number }[]): Promise<void> => {
     const role = await getProjectRole(userId, projectId);
-    if (role !== 'owner' && role !== 'editor') throw new Error("Permission denied.");
+    if (role !== 'owner' && role !== 'editor') throw new Error("You don't have permission to reorder prompts in this project.");
 
     const batch = writeBatch(db);
     prompts.forEach(prompt => {
@@ -320,12 +320,12 @@ export const getUsers = async (userIds: string[]): Promise<Omit<Collaborator, 'r
 export const updateProjectSettings = async (currentUserId: string, projectId: string, settings: { roles: Record<string, Role>, isPublic: boolean }): Promise<void> => {
     const role = await getProjectRole(currentUserId, projectId);
     if (role !== 'owner') {
-        throw new Error("Permission denied. Only the project owner can change settings.");
+        throw new Error("You don't have permission to change settings. Only the project owner can do this.");
     }
 
     const { roles, isPublic } = settings;
     if (!roles[currentUserId] || roles[currentUserId] !== 'owner') {
-        throw new Error("The project must always have an owner.");
+        throw new Error("A project must always have an owner.");
     }
     
     // Create the members array from the keys of the roles map
@@ -397,10 +397,10 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
     
   } catch (err: any) {
     if (err.code === 'failed-precondition') {
-      throw new Error("Database Index Required: A query requires a composite index that has not been created. Please use the link in your browser's developer console to create it in Firestore.");
+      throw new Error("We're having trouble fetching community projects right now due to a configuration issue. Please contact support if this continues.");
     }
     console.error("Error fetching public projects:", err);
-    throw new Error("An error occurred while fetching public projects.");
+    throw new Error("An unexpected error occurred while fetching community projects.");
   }
 }
 

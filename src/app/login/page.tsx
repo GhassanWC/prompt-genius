@@ -83,19 +83,7 @@ export default function LoginPage() {
             await signUpWithEmail(email, password, firstName, lastName);
             // The redirection is now handled inside the signUpWithEmail function
         } catch (err: any) {
-            switch (err.code) {
-                case 'auth/email-already-in-use':
-                    setError('An account with this email already exists. Try signing in instead.');
-                    break;
-                case 'auth/weak-password':
-                    setError('Password must be at least 6 characters long.');
-                    break;
-                case 'auth/invalid-email':
-                    setError('Please enter a valid email address.');
-                    break;
-                default:
-                    setError(err.message || 'Something went wrong. Please try again.');
-            }
+            setError(err.message || 'Something went wrong while creating your account. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -110,19 +98,7 @@ export default function LoginPage() {
             await signInWithEmail(email, password);
             router.push('/dashboard');
         } catch (err: any) {
-             if (err.message && err.message.includes('Your email is not verified')) {
-                setError(err.message);
-            } else {
-                switch (err.code) {
-                    case 'auth/user-not-found':
-                    case 'auth/wrong-password':
-                    case 'auth/invalid-credential':
-                        setError('Invalid email or password. Please try again.');
-                        break;
-                    default:
-                        setError(err.message || 'Something went wrong. Please try again.');
-                }
-            }
+             setError(err.message || 'Something went wrong while signing in. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -139,11 +115,7 @@ export default function LoginPage() {
                 await signInWithGithub();
             }
         } catch (err: any) {
-            if (err.code === 'auth/account-exists-with-different-credential') {
-                setError('This email is already in use. Please sign in with the method you used to create your account.');
-            } else {
-                setError('Something went wrong. Please try again.');
-            }
+             setError(err.message || 'Something went wrong. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -157,8 +129,6 @@ export default function LoginPage() {
             await sendPasswordResetEmail(resetEmail);
             setInfo("If an account exists for this email, a password reset link has been sent. Please check your inbox.");
         } catch (error: any) {
-            // We generally don't show an error to prevent email enumeration,
-            // but you could log it or handle specific cases if needed.
             console.error(error);
             setInfo("If an account exists for this email, a password reset link has been sent. Please check your inbox.");
         } finally {
@@ -190,7 +160,7 @@ export default function LoginPage() {
                     {error && (
                         <Alert variant="destructive" className="mt-4">
                             <AlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Action Required</AlertTitle>
+                            <AlertTitle>Login Failed</AlertTitle>
                             <AlertDescription>{error}</AlertDescription>
                         </Alert>
                     )}

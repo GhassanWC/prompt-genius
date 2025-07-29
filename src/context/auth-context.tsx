@@ -115,25 +115,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const signUpWithEmail = async (email: string, pass: string, firstName: string, lastName: string) => {
-      const result = await createUserWithEmailAndPassword(auth, email, pass);
-      await updateProfile(result.user, {
-          displayName: `${firstName} ${lastName}`.trim()
-      });
-      await sendVerificationEmail();
-      // Don't create the user doc here yet, wait for sign-in after verification.
-      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
-      return result;
+    try {
+        const result = await createUserWithEmailAndPassword(auth, email, pass);
+        await updateProfile(result.user, {
+            displayName: `${firstName} ${lastName}`.trim()
+        });
+        await sendVerificationEmail();
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        return result;
+    } catch (err: any) {
+        switch (err.code) {
+            case 'auth/email-already-in-use':
+                throw new Error('An account with this email already exists. Try signing in instead.');
+            case 'auth/weak-password':
+                throw new Error('Your password must be at least 6 characters long.');
+            case 'auth/invalid-email':
+                throw new Error('Please enter a valid email address.');
+            default:
+                throw new Error('Something went wrong while creating your account. Please try again.');
+        }
+    }
   }
 
   const signInWithEmail = async (email: string, pass: string) => {
-      const result = await signInWithEmailAndPassword(auth, email, pass);
-      if (!result.user.emailVerified) {
-        // User exists but email is not verified
-        await sendVerificationEmail();
-        throw new Error(`Your email is not verified. A new verification link has been sent to ${email}.`);
+      try {
+        const result = await signInWithEmailAndPassword(auth, email, pass);
+        if (!result.user.emailVerified) {
+            await sendVerificationEmail();
+            throw new Error(`Your email is not verified. A new verification link has been sent to ${email}.`);
+        }
+        await handleSuccessfulSignIn(result);
+        return result;
+      } catch (err: any) {
+        // Re-throw specific, user-friendly messages
+        if (err.message && err.message.includes('Your email is not verified')) {
+            throw err;
+        }
+        switch (err.code) {
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+                throw new Error('Invalid email or password. Please check your details and try again.');
+            default:
+                throw new Error('An unexpected error occurred during sign-in. Please try again later.');
+        }
       }
-      await handleSuccessfulSignIn(result);
-      return result;
   }
 
   const signInWithGoogle = async () => {
@@ -141,9 +167,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const result = await signInWithPopup(auth, provider);
       await handleSuccessfulSignIn(result);
-    } catch (error) {
-      console.error("Error signing in with Google", error);
-      throw error;
+    } catch (error: any) {
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        throw new Error('This email is already linked to an account using a different sign-in method.');
+      }
+      throw new Error("We couldn't sign you in with Google. Please try again.");
     }
   };
 
@@ -152,9 +180,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const result = await signInWithPopup(auth, provider);
       await handleSuccessfulSignIn(result);
-    } catch (error) {
-      console.error("Error signing in with Github", error);
-      throw error;
+    } catch (error: any) {
+        if (error.code === 'auth/account-exists-with-different-credential') {
+            throw new Error('This email is already linked to an account using a different sign-in method.');
+        }
+        throw new Error("We couldn't sign you in with GitHub. Please try again.");
     }
   };
 
@@ -169,23 +199,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const updateUserProfile = async (data: { firstName: string, lastName: string }) => {
     if (auth.currentUser) {
-      const displayName = `${data.firstName} ${data.lastName}`.trim();
-      await updateProfile(auth.currentUser, { displayName });
+        const displayName = `${data.firstName} ${data.lastName}`.trim();
+        await updateProfile(auth.currentUser, { displayName });
 
-       // Also update the user profile document in Firestore
-       console.log(auth.currentUser.uid);
-      const userRef = doc(db, 'users', auth.currentUser.uid);
-      await setDoc(userRef, { 
-        displayName,
-        firstName:data.firstName,
-        lastName: data.lastName
-       }, { merge: true });
-       
-      // The onAuthStateChanged listener will eventually handle updating the user state.
-      // For immediate feedback, we can manually update the local state.
-      setUser(auth.currentUser);
+        const userRef = doc(db, 'users', auth.currentUser.uid);
+        await setDoc(userRef, { 
+            displayName,
+            firstName: data.firstName,
+            lastName: data.lastName
+        }, { merge: true });
+        
+        setUser(auth.currentUser);
     } else {
-      throw new Error('User not signed in.');
+        throw new Error("You must be signed in to update your profile.");
     }
   };
 
@@ -196,13 +222,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch (error: any) {
         if (error.code === 'auth/requires-recent-login') {
           throw new Error(
-            'This action is sensitive and requires a recent login. Please sign out and sign in again to change your password.'
+            'For your security, please sign out and sign back in before changing your password.'
           );
         }
-        throw error;
+        throw new Error("We couldn't update your password. Please try again.");
       }
     } else {
-      throw new Error('User not signed in.');
+      throw new Error('You must be signed in to change your password.');
     }
   };
   

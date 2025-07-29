@@ -35,12 +35,13 @@ export default function ProjectPage() {
 
   const fetchProjectData = useCallback(async () => {
     if (!projectId) return;
+    setLoading(true);
     setError(null);
     try {
       // Pass user?.uid which can be null if logged out
       const projectData = await getProject(user?.uid || null, projectId);
       if (!projectData) {
-        setError("Project not found or you don't have permission to view it.");
+        setError("This project could not be found. It may be private or have been deleted.");
         setProject(null);
         setPrompts([]);
         setUserRole(null);
@@ -54,7 +55,9 @@ export default function ProjectPage() {
 
     } catch (e: any) {
       console.error("Error fetching project data:", e);
-      setError(e.message || "Failed to load project data. Please try again later.");
+      setError(e.message || "An unexpected error occurred while loading the project. Please try again later.");
+    } finally {
+        setLoading(false);
     }
   }, [projectId, user]);
 
@@ -63,8 +66,7 @@ export default function ProjectPage() {
     // We don't redirect if the user is not logged in, because they might be viewing a public project.
     // The fetchProjectData function handles access control.
     if (!authLoading) {
-        setLoading(true);
-        fetchProjectData().finally(() => setLoading(false));
+        fetchProjectData();
     }
   }, [authLoading, fetchProjectData]);
 
@@ -141,8 +143,8 @@ export default function ProjectPage() {
         <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
              <Alert variant="destructive" className="max-w-2xl mx-auto">
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error || "Project not found."}</AlertDescription>
+              <AlertTitle>Cannot Load Project</AlertTitle>
+              <AlertDescription>{error || "This project could not be found."}</AlertDescription>
             </Alert>
             <Link href={user ? "/dashboard" : "/"} className="mt-4">
                 <Button variant="outline">{user ? 'Back to Dashboard' : 'Back to Home'}</Button>

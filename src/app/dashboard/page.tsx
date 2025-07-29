@@ -46,8 +46,7 @@ export default function DashboardPage() {
       setProjects(userProjects);
     } catch (err: any) {
       console.error("Failed to fetch projects:", err);
-      // Display the full error message from the caught error object
-      setError(err.message || "An unknown error occurred while fetching projects.");
+      setError(err.message || "An unknown error occurred. Please refresh the page.");
       setProjects([]);
     } finally {
       setLoadingProjects(false);
@@ -87,7 +86,11 @@ export default function DashboardPage() {
       fetchProjects(); // Refresh the list
     } catch (err: any) {
       console.error("Failed to delete project:", err);
-      setError(err.message || "An unknown error occurred while deleting the project.");
+      toast({
+        variant: 'destructive',
+        title: 'Delete Failed',
+        description: err.message,
+      });
     } finally {
       setIsDeleting(false);
       setDialogOpen(false);
@@ -111,7 +114,11 @@ export default function DashboardPage() {
         fetchProjects(); // Refresh the list to show the new state
     } catch (err: any) {
         console.error("Failed to update visibility:", err);
-        setError(err.message || "An unknown error occurred while updating visibility.");
+        toast({
+            variant: 'destructive',
+            title: 'Update Failed',
+            description: err.message,
+        });
     }
   };
 
@@ -155,9 +162,9 @@ export default function DashboardPage() {
         {error && (
             <Alert variant="destructive" className="mb-6">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Could not load projects</AlertTitle>
+                <AlertTitle>Could Not Load Projects</AlertTitle>
                 <AlertDescription>
-                    <p>{error}</p>
+                    {error}
                 </AlertDescription>
             </Alert>
         )}
