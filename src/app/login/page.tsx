@@ -139,165 +139,262 @@ export default function LoginPage() {
 
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background p-4">
-            <AlertDialog open={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen}>
-                <Tabs defaultValue="signin" className="w-full max-w-md">
-                    <div className="flex flex-col items-center mb-6 text-center">
-                        <Link href="/" className="mb-3">
-                            <Logo className="h-12 w-12 text-primary" />
-                        </Link>
-                        <h1 className="font-headline text-3xl font-bold tracking-tight">
-                            Prompt Genius AI
-                        </h1>
-                        <p className="mt-2 text-muted-foreground">
-                            Sign in or create an account to start.
-                        </p>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 relative overflow-hidden">
+          {/* Enhanced animated background */}
+          <div className="fixed inset-0 pointer-events-none z-0">
+            <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] bg-gradient-to-br from-blue-300/40 via-indigo-300/30 to-purple-300/20 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-[-20%] right-[-15%] w-[50vw] h-[50vw] bg-gradient-to-tl from-purple-300/30 via-pink-300/20 to-indigo-300/10 rounded-full blur-3xl animate-pulse delay-1000" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-gradient-to-r from-cyan-200/20 to-blue-200/15 rounded-full blur-2xl animate-pulse delay-500" />
+          </div>
+
+          <AlertDialog open={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen}>
+            <Tabs defaultValue="signin" className="w-full max-w-md relative z-10">
+              {/* Enhanced header section */}
+              <div className="flex flex-col items-center mb-8 text-center">
+                <Link href="/" className="mb-4 group">
+                  <img
+                   src="/logo.png"
+                   alt="Prompt Genius Logo"
+                   width={60}
+                   height={60}
+                   className="ml-1 mr-1"
+                  />
+                  </Link>
+                <h1 className="font-headline text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
+                  Prompt Genius AI
+                </h1>
+                <p className="mt-3 text-lg text-slate-600 font-medium">
+                  Sign in or create an account to start.
+                </p>
+              </div>
+
+              {/* Enhanced tabs */}
+              <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-lg shadow-black/5 p-1 mb-6">
+                <TabsTrigger value="signin" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium">Sign Up</TabsTrigger>
+              </TabsList>
+
+              {error && (
+                <Alert variant="destructive" className="mb-6 bg-red-50 border-red-200 text-red-800 rounded-2xl">
+                  <AlertTriangle className="h-5 w-5" />
+                  <AlertTitle className="font-semibold">Login Failed</AlertTitle>
+                  <AlertDescription className="font-medium">{error}</AlertDescription>
+                </Alert>
+              )}
+              {info && (
+                <Alert className="mb-6 bg-green-50 border-green-200 text-green-800 rounded-2xl">
+                  <AlertTitle className="font-semibold">Check Your Email</AlertTitle>
+                  <AlertDescription className="font-medium">{info}</AlertDescription>
+                </Alert>
+              )}
+
+              <TabsContent value="signin">
+                <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
+                    <CardTitle className="text-2xl font-bold text-indigo-800">Sign In</CardTitle>
+                    <CardDescription className="text-slate-600 font-medium">Enter your credentials to access your account.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-8 space-y-6">
+                    <form onSubmit={handleEmailSignIn} className="space-y-6">
+                      <div className="space-y-3">
+                        <Label htmlFor="email-in" className="text-slate-700 font-semibold">Email</Label>
+                        <Input 
+                          id="email-in" 
+                          type="email" 
+                          placeholder="m@example.com" 
+                          required 
+                          value={email} 
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label htmlFor="password-in" className="text-slate-700 font-semibold">Password</Label>
+                        <div className="relative">
+                          <Input 
+                            id="password-in" 
+                            type={passwordVisible ? "text" : "password"} 
+                            required 
+                            value={password} 
+                            onChange={(e) => setPassword(e.target.value)} 
+                            className="pr-12 bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                          />
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon" 
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200"
+                            onClick={() => setPasswordVisible(!passwordVisible)}
+                          >
+                            {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                            <span className="sr-only">{passwordVisible ? 'Hide password' : 'Show password'}</span>
+                          </Button>
+                        </div>
+                        <div className="text-left">
+                          <AlertDialogTrigger asChild>
+                            <Button variant="link" size="sm" type="button" className="p-0 h-auto text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                              Forgot password?
+                            </Button>
+                          </AlertDialogTrigger>
+                        </div>
+                      </div>
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold py-3 rounded-full transition-all duration-200" 
+                        disabled={loading}
+                      >
+                        {loading ? 'Signing In...' : 'Sign In'}
+                      </Button>
+                    </form>
+
+                    {/* Enhanced divider */}
+                    <div className="relative my-8">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-white/50" />
+                      </div>
+                      <div className="relative flex justify-center text-sm uppercase">
+                        <span className="bg-white/90 backdrop-blur-xl px-4 text-slate-500 font-medium">Or continue with</span>
+                      </div>
                     </div>
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="signin">Sign In</TabsTrigger>
-                        <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                    </TabsList>
-                    {error && (
-                        <Alert variant="destructive" className="mt-4">
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Login Failed</AlertTitle>
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    )}
-                    {info && (
-                        <Alert className="mt-4">
-                             <AlertTitle>Check Your Email</AlertTitle>
-                             <AlertDescription>{info}</AlertDescription>
-                        </Alert>
-                    )}
-                    <TabsContent value="signin">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Sign In</CardTitle>
-                                <CardDescription>Enter your credentials to access your account.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <form onSubmit={handleEmailSignIn} className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email-in">Email</Label>
-                                        <Input id="email-in" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password-in">Password</Label>
-                                        <div className="relative">
-                                            <Input 
-                                                id="password-in" 
-                                                type={passwordVisible ? "text" : "password"} 
-                                                required 
-                                                value={password} 
-                                                onChange={(e) => setPassword(e.target.value)} 
-                                                className="pr-10"
-                                            />
-                                            <Button 
-                                                type="button" 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
-                                                onClick={() => setPasswordVisible(!passwordVisible)}
-                                            >
-                                                {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                                <span className="sr-only">{passwordVisible ? 'Hide password' : 'Show password'}</span>
-                                            </Button>
-                                        </div>
-                                        <div className="text-left">
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="link" size="sm" type="button" className="p-0 h-auto text-xs">
-                                                    Forgot password?
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                        </div>
-                                    </div>
-                                    <Button type="submit" className="w-full" disabled={loading}>
-                                        {loading ? 'Signing In...' : 'Sign In'}
-                                    </Button>
-                                </form>
-                                <div className="relative">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <span className="w-full border-t" />
-                                    </div>
-                                    <div className="relative flex justify-center text-xs uppercase">
-                                        <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <Button variant="outline" onClick={() => handleProviderSignIn('google')} disabled={loading}><GoogleIcon /> <span className="ml-2">Google</span></Button>
-                                    <Button variant="outline" onClick={() => handleProviderSignIn('github')} disabled={loading}><Github className="mr-2 h-5 w-5" />GitHub</Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="signup">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Sign Up</CardTitle>
-                                <CardDescription>Create an account to get started.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <form onSubmit={handleEmailSignUp} className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="firstname-up">First Name</Label>
-                                            <Input id="firstname-up" placeholder="John" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="lastname-up">Last Name</Label>
-                                            <Input id="lastname-up" placeholder="Doe" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email-up">Email</Label>
-                                        <Input id="email-up" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password-up">Password</Label>
-                                        <div className="relative">
-                                            <Input 
-                                                id="password-up" 
-                                                type={passwordVisible ? "text" : "password"} 
-                                                required 
-                                                value={password} 
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                className="pr-10"
-                                            />
-                                            <Button 
-                                                type="button" 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
-                                                onClick={() => setPasswordVisible(!passwordVisible)}
-                                            >
-                                                {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                                <span className="sr-only">{passwordVisible ? 'Hide password' : 'Show password'}</span>
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <Button type="submit" className="w-full" disabled={loading}>
-                                        {loading ? 'Creating Account...' : 'Create Account'}
-                                    </Button>
-                                </form>
-                                <div className="relative">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <span className="w-full border-t" />
-                                    </div>
-                                    <div className="relative flex justify-center text-xs uppercase">
-                                        <span className="bg-background px-2 text-muted-foreground">Or sign up with</span>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <Button variant="outline" onClick={() => handleProviderSignIn('google')} disabled={loading}><GoogleIcon /> <span className="ml-2">Google</span></Button>
-                                    <Button variant="outline" onClick={() => handleProviderSignIn('github')} disabled={loading}><Github className="mr-2 h-5 w-5" />GitHub</Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
-                <ForgotPasswordDialog onSendResetLink={handleSendResetLink} />
-            </AlertDialog>
+
+                    {/* Enhanced social buttons */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => handleProviderSignIn('google')} 
+                        disabled={loading}
+                        className="bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
+                      >
+                        <GoogleIcon /> 
+                        <span className="ml-2">Google</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => handleProviderSignIn('github')} 
+                        disabled={loading}
+                        className="bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
+                      >
+                        <Github className="mr-2 h-5 w-5" />
+                        GitHub
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="signup">
+                <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
+                    <CardTitle className="text-2xl font-bold text-indigo-800">Sign Up</CardTitle>
+                    <CardDescription className="text-slate-600 font-medium">Create an account to get started.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-8 space-y-6">
+                    <form onSubmit={handleEmailSignUp} className="space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <Label htmlFor="firstname-up" className="text-slate-700 font-semibold">First Name</Label>
+                          <Input 
+                            id="firstname-up" 
+                            placeholder="John" 
+                            required 
+                            value={firstName} 
+                            onChange={(e) => setFirstName(e.target.value)}
+                            className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <Label htmlFor="lastname-up" className="text-slate-700 font-semibold">Last Name</Label>
+                          <Input 
+                            id="lastname-up" 
+                            placeholder="Doe" 
+                            required 
+                            value={lastName} 
+                            onChange={(e) => setLastName(e.target.value)}
+                            className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <Label htmlFor="email-up" className="text-slate-700 font-semibold">Email</Label>
+                        <Input 
+                          id="email-up" 
+                          type="email" 
+                          placeholder="m@example.com" 
+                          required 
+                          value={email} 
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label htmlFor="password-up" className="text-slate-700 font-semibold">Password</Label>
+                        <div className="relative">
+                          <Input 
+                            id="password-up" 
+                            type={passwordVisible ? "text" : "password"} 
+                            required 
+                            value={password} 
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="pr-12 bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                          />
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon" 
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200"
+                            onClick={() => setPasswordVisible(!passwordVisible)}
+                          >
+                            {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                            <span className="sr-only">{passwordVisible ? 'Hide password' : 'Show password'}</span>
+                          </Button>
+                        </div>
+                      </div>
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold py-3 rounded-full transition-all duration-200" 
+                        disabled={loading}
+                      >
+                        {loading ? 'Creating Account...' : 'Create Account'}
+                      </Button>
+                    </form>
+
+                    {/* Enhanced divider */}
+                    <div className="relative my-8">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-white/50" />
+                      </div>
+                      <div className="relative flex justify-center text-sm uppercase">
+                        <span className="bg-white/90 backdrop-blur-xl px-4 text-slate-500 font-medium">Or sign up with</span>
+                      </div>
+                    </div>
+
+                    {/* Enhanced social buttons */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => handleProviderSignIn('google')} 
+                        disabled={loading}
+                        className="bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
+                      >
+                        <GoogleIcon /> 
+                        <span className="ml-2">Google</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => handleProviderSignIn('github')} 
+                        disabled={loading}
+                        className="bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
+                      >
+                        <Github className="mr-2 h-5 w-5" />
+                        GitHub
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+            <ForgotPasswordDialog onSendResetLink={handleSendResetLink} />
+          </AlertDialog>
         </div>
     );
 }

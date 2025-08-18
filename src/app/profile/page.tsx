@@ -20,7 +20,7 @@ import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { getCustomerPortalUrl } from '@/lib/lemon';
+import { getSubscription } from '@/lib/subscriptions';
 import { Badge } from '@/components/ui/badge';
 
 const profileFormSchema = z.object({
@@ -124,10 +124,16 @@ export default function ProfilePage() {
     if (!user?.email) return;
     setIsPortalLoading(true);
     try {
-  
-        const portalUrl = await getCustomerPortalUrl(user.email);
-        console.log("portalUrl:", portalUrl);
-        router.push(portalUrl);
+        const subscription = await getSubscription(user.uid);
+        if (!subscription) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'No subscription found.',
+            });
+            return;
+        }
+        router.push(subscription.urls.customer_portal);
     } catch (error: any) {
         toast({
             variant: 'destructive',
@@ -148,201 +154,256 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="container mx-auto px-4 py-4 flex justify-between items-center border-b">
-         <Link href="/" className="flex items-center gap-2">
-            <Logo className="h-8 w-8 text-primary" />
-             <h1 className="font-headline text-xl font-bold tracking-tight hidden sm:block">
-                Prompt Genius AI
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 text-slate-900 relative overflow-x-hidden">
+      {/* Enhanced animated background */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] bg-gradient-to-br from-blue-300/40 via-indigo-300/30 to-purple-300/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-15%] w-[50vw] h-[50vw] bg-gradient-to-tl from-purple-300/30 via-pink-300/20 to-indigo-300/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-gradient-to-r from-cyan-200/20 to-blue-200/15 rounded-full blur-2xl animate-pulse delay-500" />
+      </div>
+
+      {/* Modern header with glassmorphism */}
+      <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/70 backdrop-blur-xl shadow-lg shadow-black/5">
+        <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-0 font-bold group">
+            <img
+              src="/logo.png"
+              alt="Prompt Genius Logo"
+              width={60}
+              height={60}
+              className="ml-1 mr-1"
+            />
+            <h1 className="font-headline text-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hidden sm:block">
+              Prompt Genius AI
             </h1>
-         </Link>
-        <UserNav />
+          </Link>
+          <UserNav />
+        </div>
       </header>
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+
+      <main className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="mb-8">
+          <Link href="/dashboard" className="inline-flex items-center text-sm text-slate-600 hover:text-indigo-600 transition-all duration-200 font-medium group">
+            <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back to Dashboard
           </Link>
         </div>
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight">
-              My Profile
-            </h1>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Manage your account settings and preferences.
-            </p>
-          </div>
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="profile">Profile Details</TabsTrigger>
-              <TabsTrigger value="password">Change Password</TabsTrigger>
-              <TabsTrigger value="subscription">Subscription</TabsTrigger>
-            </TabsList>
-            {error && (
-              <Alert variant="destructive" className="mt-4">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>An Error Occurred</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <TabsContent value="profile">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>Update your display name and view your email address.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...profileForm}>
-                    <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-                       <div className="grid grid-cols-2 gap-4">
-                         <FormField
-                            control={profileForm.control}
-                            name="firstName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>First Name</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Your First Name" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={profileForm.control}
-                            name="lastName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Last Name</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Your Last Name" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                       </div>
+
+        {/* Enhanced hero section */}
+        <div className="text-center mb-12 sm:mb-16">
+          <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
+            My Profile
+          </h1>
+          <p className="mt-6 text-lg sm:text-xl text-slate-600 font-medium leading-relaxed">
+            Manage your account settings and preferences.
+          </p>
+        </div>
+
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-lg shadow-black/5 p-1">
+            <TabsTrigger value="profile" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium">Profile Details</TabsTrigger>
+            <TabsTrigger value="password" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium">Change Password</TabsTrigger>
+            <TabsTrigger value="subscription" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium">Subscription</TabsTrigger>
+          </TabsList>
+
+          {error && (
+            <Alert variant="destructive" className="mt-6 bg-red-50 border-red-200 text-red-800 rounded-2xl">
+              <AlertTriangle className="h-5 w-5" />
+              <AlertTitle className="font-semibold">An Error Occurred</AlertTitle>
+              <AlertDescription className="font-medium">{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <TabsContent value="profile" className="mt-8">
+            <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
+                <CardTitle className="text-2xl font-bold text-indigo-800">Profile Information</CardTitle>
+                <CardDescription className="text-slate-600 font-medium">Update your display name and view your email address.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-8">
+                <Form {...profileForm}>
+                  <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <FormField
                         control={profileForm.control}
-                        name="email"
+                        name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email</FormLabel>
+                            <FormLabel className="text-slate-700 font-semibold">First Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="your@email.com" {...field} disabled />
-                            </FormControl>
-                            <FormDescription>
-                              Your email address cannot be changed.
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit" disabled={profileForm.formState.isSubmitting}>
-                        {profileForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Save Changes
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="password">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Change Password</CardTitle>
-                  <CardDescription>Enter a new password for your account.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...passwordForm}>
-                    <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6">
-                      <FormField
-                        control={passwordForm.control}
-                        name="newPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>New Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" {...field} />
+                              <Input 
+                                placeholder="Your First Name" 
+                                {...field} 
+                                className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                       <FormField
-                        control={passwordForm.control}
-                        name="confirmPassword"
+                        control={profileForm.control}
+                        name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Confirm New Password</FormLabel>
+                            <FormLabel className="text-slate-700 font-semibold">Last Name</FormLabel>
                             <FormControl>
-                              <Input type="password" {...field} />
+                              <Input 
+                                placeholder="Your Last Name" 
+                                {...field} 
+                                className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
-                        {passwordForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Update Password
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="subscription">
-              <Card>
-                <CardHeader>
-                    <CardTitle>Manage Subscription</CardTitle>
-                    <CardDescription>View your current plan and manage your subscription details.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="p-4 bg-muted/50 rounded-lg flex justify-between items-center">
-                        <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Current Plan</p>
-                            <p className="text-xl font-semibold capitalize">{subscriptionPlan || 'Free'}</p>
-                        </div>
-                        <Badge variant="outline" className="text-base">
-                            <BadgeCheck className="mr-2 text-primary" /> {subscriptionPlan || 'Free'}
-                        </Badge>
                     </div>
+                    <FormField
+                      control={profileForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-700 font-semibold">Email</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="your@email.com" 
+                              {...field} 
+                              disabled 
+                              className="bg-slate-50/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-sm font-medium"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-slate-500 font-medium">
+                            Your email address cannot be changed.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button 
+                      type="submit" 
+                      disabled={profileForm.formState.isSubmitting}
+                      className="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold px-8 py-3 rounded-full transition-all duration-200"
+                    >
+                      {profileForm.formState.isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                      Save Changes
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                    {subscriptionPlan === 'free' ? (
-                       <Card className="border-primary/50">
-                           <CardHeader>
-                            <CardTitle>Upgrade Your Plan</CardTitle>
-                            <CardDescription>Unlock more projects, advanced features, and priority support.</CardDescription>
-                           </CardHeader>
-                           <CardContent>
-                               <Link href="/#pricing">
-                                    <Button className="w-full">
-                                        <Rocket className="mr-2 h-4 w-4" />
-                                        View Upgrade Options
-                                    </Button>
-                               </Link>
-                           </CardContent>
-                       </Card>
-                    ) : (
-                        <div className="space-y-4">
-                            <p className="text-sm text-muted-foreground">Need to make changes? You can manage your billing details, view invoices, or cancel your subscription at any time.</p>
-                             <Button onClick={handleManageSubscription} disabled={isPortalLoading} className="w-full">
-                                {isPortalLoading ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                <Ban className="mr-2 h-4 w-4" />
-                                )}
-                                Cancel or Manage Subscription
-                            </Button>
-                        </div>
-                    )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+          <TabsContent value="password" className="mt-8">
+            <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
+                <CardTitle className="text-2xl font-bold text-indigo-800">Change Password</CardTitle>
+                <CardDescription className="text-slate-600 font-medium">Enter a new password for your account.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-8">
+                <Form {...passwordForm}>
+                  <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-8">
+                    <FormField
+                      control={passwordForm.control}
+                      name="newPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-700 font-semibold">New Password</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="password" 
+                              {...field} 
+                              className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={passwordForm.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-700 font-semibold">Confirm New Password</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="password" 
+                              {...field} 
+                              className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button 
+                      type="submit" 
+                      disabled={passwordForm.formState.isSubmitting}
+                      className="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold px-8 py-3 rounded-full transition-all duration-200"
+                    >
+                      {passwordForm.formState.isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                      Update Password
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="subscription" className="mt-8">
+            <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
+                <CardTitle className="text-2xl font-bold text-indigo-800">Manage Subscription</CardTitle>
+                <CardDescription className="text-slate-600 font-medium">View your current plan and manage your subscription details.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-8 space-y-8">
+                <div className="p-6 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 backdrop-blur-xl border border-indigo-100 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-slate-600 font-medium">Current Plan</p>
+                    <p className="text-2xl font-bold text-indigo-800 capitalize">{subscriptionPlan || 'Free'}</p>
+                  </div>
+                  <Badge variant="outline" className="text-base bg-white/80 backdrop-blur-xl border-indigo-200 text-indigo-700 font-semibold px-4 py-2 rounded-full">
+                    <BadgeCheck className="mr-2 text-indigo-600" /> {subscriptionPlan || 'Free'}
+                  </Badge>
+                </div>
+
+                {subscriptionPlan === 'free' ? (
+                  <Card className="border-2 border-indigo-200 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 backdrop-blur-xl rounded-2xl overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 border-b border-indigo-200">
+                      <CardTitle className="text-xl font-bold text-indigo-800">Upgrade Your Plan</CardTitle>
+                      <CardDescription className="text-slate-600 font-medium">Unlock more projects, advanced features, and priority support.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <Link href="/#pricing">
+                        <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold py-3 rounded-full transition-all duration-200">
+                          <Rocket className="mr-2 h-5 w-5" />
+                          View Upgrade Options
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-6">
+                    <p className="text-sm text-slate-600 font-medium leading-relaxed">Need to make changes? You can manage your billing details, view invoices, or cancel your subscription at any time.</p>
+                    <Button 
+                      onClick={handleManageSubscription} 
+                      disabled={isPortalLoading} 
+                      className="w-full bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white border-0 shadow-xl shadow-slate-500/25 font-semibold py-3 rounded-full transition-all duration-200"
+                    >
+                      {isPortalLoading ? (
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      ) : (
+                        <Ban className="mr-2 h-5 w-5" />
+                      )}
+                      Cancel or Manage Subscription
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

@@ -34,10 +34,13 @@ async function apiRequest(path: string, options: RequestInit = {}) {
     return data;
 }
 
-export async function createCheckout(plan: 'plus' | 'pro', userId: string, email: string, name: string): Promise<string> {
+export async function createCheckout(plan: 'plus' | 'pro', userId: string, email: string, name: string, subscriptionPlan:string): Promise<string> {
     const planId = PLAN_IDS[plan];
     const storeId = process.env.LEMONSQUEEZY_STORE_ID!;
     
+    if(subscriptionPlan == 'plus' || subscriptionPlan == 'pro'){
+        throw new Error(`Please unsubscribe from the ${subscriptionPlan} plan to upgrade to the new ${plan} plan.`);
+    }
     if (!planId) {
         throw new Error(`Plan ID for "${plan}" is not configured in environment variables.`);
     }
@@ -57,7 +60,7 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
                             },
                         },
                        product_options: {
-                             redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
+                             redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/profile?checkout=success`,
                         }
                     },
                     relationships: {
@@ -88,14 +91,7 @@ export async function createCheckout(plan: 'plus' | 'pro', userId: string, email
     }
 }
 
-async function listCustomers(email: string): Promise<any[]> {
-    const storeId = process.env.LEMONSQUEEZY_STORE_ID!;
-    const response = await apiRequest(`customers?filter[store_id]=${storeId}&filter[email]=${email}`);
-    return response.data;
-}
-
 export async function getSubscriptions(customerId: string): Promise<any[]> {
-    console.log("Getting subscriptions for customerId:", customerId);
 
     const query = new URLSearchParams();
     query.append('filter[customer_id]', customerId);
@@ -113,31 +109,45 @@ export async function getSubscriptions(customerId: string): Promise<any[]> {
 }
 
 
-export async function getCustomerPortalUrl(email: string): Promise<string> {
+export async function getCustomerPortalUrl(lemonSqueezyId: string): Promise<string> {
     try {
-        const customers = await listCustomers(email);
-        const customer = customers?.[0];
-
-        if (!customer) {
-            console.log(`No Lemon Squeezy customer found for email: ${email}. Redirecting to pricing.`);
-            return '/#pricing';
-        }
-        
-        console.log(`Found customer ID: ${customer.id} for email: ${email}.`);
-
-        const subscriptions = await getSubscriptions(customer.id);
-        const activeSub = subscriptions.find(sub => sub.attributes.status === 'active' || sub.attributes.status === 'on_trial');
-        console.log(subscriptions);
-        if (!activeSub) {
-            console.log(`No active or trial subscription found for customer ID: ${customer.id}. Redirecting to pricing.`);
-            return '/#pricing';
-        }
-        
-        console.log(`Found active subscription for customer ID: ${customer.id}. Portal URL: ${activeSub.attributes.urls.customer_portal}`);
-
-        return activeSub.attributes.urls.customer_portal;
+        const portalUrl = await createCustomerPortal(lemonSqueezyId);
+        return portalUrl;
     } catch (e: any) {
         console.error('Error getting customer portal URL:', e);
         throw new Error('Could not retrieve subscription management link.');
     }
 }
+
+async function createCustomerPortal(customerId: string): Promise<string> {
+    const response = await apiRequest(
+        `customers/${customerId}/customer-portal`,
+        {
+            method: 'POST',
+            body: JSON.stringify({
+                data: {
+                    type: 'customer-portals',
+                    attributes: {
+                        return_url: `${process.env.NEXT_PUBLIC_APP_URL}/profile`
+                    }
+                }
+            }),
+        }
+    );
+
+    return response?.data?.attributes?.url;
+}
+
+export async function deleteSubscription(subscriptionId: string): Promise<boolean> {
+    try {
+        await apiRequest(`subscriptions/${subscriptionId}`, {
+            method: 'DELETE',
+        });
+        
+        return true;
+    } catch (e: any) {
+        console.error('Error deleting subscription:', e);
+        throw new Error(e.message || 'Failed to delete subscription.');
+    }
+}
+

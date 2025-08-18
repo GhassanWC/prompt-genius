@@ -110,48 +110,73 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>{prompt?.id ? 'Edit Prompt' : 'Add New Prompt'}</DialogTitle>
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col bg-white border-0 shadow-2xl rounded-2xl p-6">
+        <DialogHeader className="pb-6">
+          <DialogTitle className="text-2xl font-bold text-gray-900">
+            {prompt?.id ? 'Edit Prompt' : 'Add New Prompt'}
+          </DialogTitle>
         </DialogHeader>
-        <div className="grid gap-x-8 gap-y-4 py-4 overflow-y-auto pr-4 md:grid-cols-2">
+        <div className="grid gap-6 py-4 overflow-y-auto pl-2 pr-2 md:grid-cols-2">
            <div className="space-y-4 md:col-span-2">
              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Create Login Form" />
+                <Label htmlFor="title" className="text-sm font-medium text-gray-700">Title</Label>
+                <Input 
+                  id="title" 
+                  value={title} 
+                  onChange={(e) => setTitle(e.target.value)} 
+                  placeholder="e.g., Create Login Form"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
              </div>
            </div>
 
           <div className="space-y-2">
-            <Label htmlFor="complexity">Complexity</Label>
+            <Label htmlFor="complexity" className="text-sm font-medium text-gray-700">Complexity</Label>
              <Select value={complexity} onValueChange={(v) => setComplexity(v as Prompt['complexity'])}>
-                <SelectTrigger id="complexity"><SelectValue placeholder="Select complexity" /></SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
+                <SelectTrigger 
+                  id="complexity"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                  <SelectValue placeholder="Select complexity" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border border-gray-200 shadow-lg rounded-lg">
+                    <SelectItem value="low" className="hover:bg-gray-50">Low</SelectItem>
+                    <SelectItem value="medium" className="hover:bg-gray-50">Medium</SelectItem>
+                    <SelectItem value="high" className="hover:bg-gray-50">High</SelectItem>
                 </SelectContent>
             </Select>
           </div>
 
            <div className="space-y-2">
-            <Label htmlFor="time">Time Estimate</Label>
-            <Input id="time" value={timeEstimate} onChange={(e) => setTimeEstimate(e.target.value)} placeholder="e.g., 30m, 1h" />
+            <Label htmlFor="time" className="text-sm font-medium text-gray-700">Time Estimate</Label>
+            <Input 
+              id="time" 
+              value={timeEstimate} 
+              onChange={(e) => setTimeEstimate(e.target.value)} 
+              placeholder="e.g., 30m, 1h"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
           </div>
 
-           <div className="space-y-4 md:col-span-2">
+           <div className="space-y-6 md:col-span-2">
               <div className="space-y-2">
-                <Label htmlFor="mapflow-text">Logic Map</Label>
-                <Textarea id="mapflow-text" value={mapFlow} onChange={(e) => setMapFlow(e.target.value)} className="min-h-[80px]" placeholder="Explain the logic behind this prompt..." />
+                <Label htmlFor="mapflow-text" className="text-sm font-medium text-gray-700">Logic Map</Label>
+                <Textarea 
+                  id="mapflow-text" 
+                  value={mapFlow} 
+                  onChange={(e) => setMapFlow(e.target.value)} 
+                  className="w-full min-h-[100px] px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                  placeholder="Explain the logic behind this prompt..."
+                />
               </div>
                <div className="space-y-2">
-                <Label htmlFor="userprompt-text">User Prompt</Label>
+                <Label htmlFor="userprompt-text" className="text-sm font-medium text-gray-700">User Prompt</Label>
                  <div className="relative">
                     <Textarea 
                         id="userprompt-text" 
                         value={userPrompt} 
                         onChange={(e) => setUserPrompt(e.target.value)} 
-                        className="min-h-[160px] pr-12"
+                        className="w-full min-h-[180px] px-3 py-2 pr-12 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
                         placeholder="Enter the plain-English user prompt..." 
                     />
                     <TooltipProvider>
@@ -161,7 +186,7 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
                               type="button" 
                               variant="ghost" 
                               size="icon" 
-                              className="absolute top-2 right-2 h-8 w-8 text-muted-foreground"
+                              className="absolute top-2 right-2 h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                               onClick={handleEnhancePrompt}
                               disabled={isEnhancing}
                             >
@@ -169,30 +194,42 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
                               <span className="sr-only">Enhance prompt with AI</span>
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Enhance with AI</p>
+                        <TooltipContent className="bg-gray-900 text-white rounded-md">
+                          <p className="text-sm">Enhance with AI</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="acceptance-criteria-text">Acceptance Criteria (one per line)</Label>
+                <Label htmlFor="acceptance-criteria-text" className="text-sm font-medium text-gray-700">Acceptance Criteria (one per line)</Label>
                 <Textarea 
                     id="acceptance-criteria-text" 
                     value={acceptanceCriteria} 
                     onChange={(e) => setAcceptanceCriteria(e.target.value)} 
-                    className="min-h-[100px]" 
+                    className="w-full min-h-[120px] px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
                     placeholder="e.g., Renders on mobile&#x0a;Handles empty state" 
                 />
               </div>
            </div>
         </div>
-        <DialogFooter className="mt-auto pt-4 border-t">
+        <DialogFooter className="pt-6 border-t border-gray-200">
           <DialogClose asChild>
-            <Button type="button" variant="secondary">Cancel</Button>
+            <Button 
+              type="button" 
+              variant="outline"
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </Button>
           </DialogClose>
-          <Button type="button" onClick={handleSave}>Save Changes</Button>
+          <Button 
+            type="button" 
+            onClick={handleSave}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            Save Changes
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -188,56 +188,125 @@ export default function EditProjectPage() {
   }
   
   return (
-    <div className="min-h-screen bg-background text-foreground">
-       <header className="container mx-auto px-4 py-4 flex justify-between items-center border-b">
-         <Link href="/" className="flex items-center gap-2"><Logo className="h-8 w-8 text-primary" /><h1 className="font-headline text-xl font-bold tracking-tight hidden sm:block">Prompt Genius AI</h1></Link>
-        <UserNav />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 text-slate-900 relative overflow-x-hidden">
+      {/* Enhanced animated background */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] bg-gradient-to-br from-blue-300/40 via-indigo-300/30 to-purple-300/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-15%] w-[50vw] h-[50vw] bg-gradient-to-tl from-purple-300/30 via-pink-300/20 to-indigo-300/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-gradient-to-r from-cyan-200/20 to-blue-200/15 rounded-full blur-2xl animate-pulse delay-500" />
+      </div>
+
+      {/* Modern header with glassmorphism */}
+      <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/70 backdrop-blur-xl shadow-lg shadow-black/5">
+        <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-0 font-bold group">
+            <img
+              src="/logo.png"
+              alt="Prompt Genius Logo"
+              width={60}
+              height={60}
+              className="ml-1 mr-1"
+            />
+            <h1 className="font-headline text-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hidden sm:block">
+              Prompt Genius AI
+            </h1>
+          </Link>
+          <UserNav />
+        </div>
       </header>
 
-      <main className="container mx-auto px-4 pb-8 md:pb-16">
-        <div className="my-6">
-            <Link href={`/projects/${projectId}`} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft className="mr-2 h-4 w-4" />Back to Project</Link>
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-16">
+        {/* Enhanced navigation section */}
+        <div className="my-8">
+          <Link href={`/projects/${projectId}`} className="inline-flex items-center text-sm text-slate-600 hover:text-indigo-600 transition-all duration-200 font-medium group">
+            <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Project
+          </Link>
         </div>
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
+
+        {/* Enhanced header section */}
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-6 mb-8">
           <div>
-            <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight">Edit Project</h1>
-            <p className="mt-2 text-lg text-muted-foreground">{project?.name}</p>
+            <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
+              Edit Project
+            </h1>
+            <p className="mt-3 text-lg sm:text-xl text-slate-600 font-medium">{project?.name}</p>
           </div>
-          <Button variant="outline" onClick={() => setIsProjectDetailsDialogOpen(true)} disabled={!canEdit}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Details
+          <Button 
+            variant="outline" 
+            onClick={() => setIsProjectDetailsDialogOpen(true)} 
+            disabled={!canEdit}
+            className="bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-3 px-6 rounded-xl transition-all duration-200 hover:shadow-lg"
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            Edit Details
           </Button>
         </div>
         
         {!canEdit && (
-            <Alert variant="destructive" className="max-w-4xl mx-auto mt-8">
-                <ShieldAlert className="h-4 w-4" />
-                <AlertTitle>View-Only Mode</AlertTitle>
-                <AlertDescription>
-                    You have view-only permissions for this project. You cannot make any changes.
-                </AlertDescription>
-            </Alert>
+          <Alert variant="destructive" className="max-w-4xl mx-auto mb-8 bg-red-50 border-red-200 text-red-800 rounded-2xl">
+            <ShieldAlert className="h-5 w-5" />
+            <AlertTitle className="font-semibold">View-Only Mode</AlertTitle>
+            <AlertDescription className="font-medium">
+              You have view-only permissions for this project. You cannot make any changes.
+            </AlertDescription>
+          </Alert>
         )}
 
+        {/* Enhanced content section */}
         <div className="max-w-4xl mx-auto mt-12 space-y-12">
-            <div>
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold font-headline">Development Plan</h2>
-                    {isPromptsOrderDirty && canEdit && <Button onClick={handleSaveOrder} disabled={isSavingPromptsOrder}><Save className="mr-2 h-4 w-4" />{isSavingPromptsOrder ? 'Saving...' : 'Save Prompt Order'}</Button>}
-                </div>
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} >
-                    <div className="space-y-4">
-                        <Card className="p-4">
-                            <SortableContext items={prompts} strategy={verticalListSortingStrategy} disabled={!canEdit}>
-                                {prompts.length > 0 ? prompts.map((p, index) => (
-                                    <SortablePromptItem key={p.id} prompt={p} stepNumber={index + 1} onEdit={() => handleOpenPromptDialog(p)} onDelete={handleOpenDeleteDialog} isReadOnly={!canEdit} />
-                                )) : <p className="text-muted-foreground text-center p-4">No prompts yet.</p>}
-                            </SortableContext>
-                        </Card>
-                        <Button variant="outline" className="w-full" onClick={() => handleOpenPromptDialog(null)} disabled={!canEdit}><PlusCircle className="mr-2 h-4 w-4" />Add Prompt</Button>
-                    </div>
-                </DndContext>
+          <div>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+              <h2 className="text-2xl sm:text-3xl font-bold font-headline bg-gradient-to-b from-slate-900 to-indigo-700 bg-clip-text text-transparent">
+                Development Plan
+              </h2>
+              {isPromptsOrderDirty && canEdit && (
+                <Button 
+                  onClick={handleSaveOrder} 
+                  disabled={isSavingPromptsOrder}
+                  className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold px-6 py-3 rounded-full transition-all duration-200"
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  {isSavingPromptsOrder ? 'Saving...' : 'Save Prompt Order'}
+                </Button>
+              )}
             </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <div className="space-y-6">
+                <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden p-6">
+                  <SortableContext items={prompts} strategy={verticalListSortingStrategy} disabled={!canEdit}>
+                    {prompts.length > 0 ? (
+                      <div className="space-y-4">
+                        {prompts.map((p, index) => (
+                          <SortablePromptItem 
+                            key={p.id} 
+                            prompt={p} 
+                            stepNumber={index + 1} 
+                            onEdit={() => handleOpenPromptDialog(p)} 
+                            onDelete={handleOpenDeleteDialog} 
+                            isReadOnly={!canEdit} 
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 border-2 border-dashed border-indigo-200 rounded-2xl bg-indigo-50/50">
+                        <p className="text-slate-600 font-medium">No prompts yet.</p>
+                      </div>
+                    )}
+                  </SortableContext>
+                </Card>
+                <Button 
+                  variant="outline" 
+                  className="w-full bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-4 rounded-xl transition-all duration-200 hover:shadow-lg" 
+                  onClick={() => handleOpenPromptDialog(null)} 
+                  disabled={!canEdit}
+                >
+                  <PlusCircle className="mr-2 h-5 w-5" />
+                  Add Prompt
+                </Button>
+              </div>
+            </DndContext>
+          </div>
         </div>
       </main>
 
@@ -252,11 +321,23 @@ export default function EditProjectPage() {
       <PromptEditDialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen} prompt={currentPrompt} onSave={handleSavePrompt} />
       
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this prompt. This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-bold text-slate-800">Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-600 font-medium leading-relaxed">
+              This will permanently delete this prompt. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeletePrompt} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogCancel className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-all duration-200">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeletePrompt} 
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-xl shadow-red-500/25 font-semibold px-6 py-3 rounded-xl transition-all duration-200"
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

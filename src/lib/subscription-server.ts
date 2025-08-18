@@ -1,36 +1,59 @@
 // /lib/subscriptions.ts
 import { firestore } from './firebase-admin';
+import { deleteSubscription } from './lemon';
 
 export interface Subscription {
-  userId: string;
-  lemonSqueezyId: string;
+  user_id: string;
+  subscription_id: string;
+  store_id: number;
+  customer_id: number;
+  order_id: number;
+  order_item_id: number;
+  product_id: number;
+  variant_id: number;
+  product_name: string;
+  variant_name: string;
+  user_name: string;
+  user_email: string;
   status: 'active' | 'cancelled' | 'expired' | 'on_trial' | 'unpaid' | 'paused';
-  planId: string; // e.g., the plan variant ID from Lemon Squeezy
-  renewsAt: string | null;
-  endsAt: string | null;
-  trialEndsAt: string | null;
-  createdAt?: any;
-  updatedAt?: any;
+  status_formatted: string;
+  card_brand: string;
+  card_last_four: string;
+  payment_processor: string;
+  pause: any | null;
+  cancelled: boolean;
+  trial_ends_at: string | null;
+  billing_anchor: number;
+  renews_at: string | null;
+  ends_at: string | null;
+  created_at: string;
+  updated_at: string;
+  test_mode: boolean;
+  first_subscription_item: {
+    id: number;
+    subscription_id: number;
+    price_id: number;
+    quantity: number;
+    is_usage_based: boolean;
+    created_at: string;
+    updated_at: string;
+  };
+  urls: {
+    update_payment_method: string;
+    customer_portal: string;
+    customer_portal_update_subscription: string;
+  };
 }
+
+
 
 export async function createSubscription(sub: Subscription) {
-  const now = new Date().toISOString();
-
-  // Always overwrite with up-to-date timestamps
-  const data: Subscription = {
-    ...sub,
-    createdAt: sub.createdAt ?? now,
-    updatedAt: now,
-  };
-  return firestore.collection('subscriptions').doc(sub.userId).set(data, { merge: true });
+  
+  return firestore.collection('subscriptions').doc(sub.user_id).set(sub, { merge: true });
 }
 
-export async function updateSubscription(userId: string, updates: Partial<Subscription>) {
-  const now = new Date().toISOString();
-  return firestore.collection('subscriptions').doc(userId).update({
-    ...updates,
-    updatedAt: now,
-  });
+export async function updateSubscription(sub: Subscription) {
+  return firestore.collection('subscriptions').doc(sub.user_id).set(sub, { merge: true });
 }
 
 // This assumes lemonSqueezyId is not the doc ID, so we query for it:

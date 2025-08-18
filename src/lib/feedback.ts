@@ -73,7 +73,6 @@ export const getPublicFeedback = async (count: number): Promise<Testimonial[]> =
     if (userIds.length === 0) {
         return [];
     }
-    console.log('userIds', userIds);
     // Fetch all user profiles in one go
     const usersCollectionRef = collection(db, 'users');
     const usersQuery = query(usersCollectionRef, where('__name__', 'in', userIds));
@@ -89,7 +88,7 @@ export const getPublicFeedback = async (count: number): Promise<Testimonial[]> =
         rating: feedback.rating,
         comments: feedback.comments,
         author: {
-          name: userData?.email || 'Anonymous',
+          name: userData?.displayName || 'Anonymous',
           photoURL: userData?.photoURL || null,
         }
       };

@@ -2,16 +2,48 @@ import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, setDoc, updateDoc, query, where, getDocs, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
 export interface Subscription {
-  userId: string;
-  lemonSqueezyId: string;
+  user_id: string;
+  subscription_id: string;
+  store_id: number;
+  customer_id: number;
+  order_id: number;
+  order_item_id: number;
+  product_id: number;
+  variant_id: number;
+  product_name: string;
+  variant_name: string;
+  user_name: string;
+  user_email: string;
   status: 'active' | 'cancelled' | 'expired' | 'on_trial' | 'unpaid' | 'paused';
-  planId: string; // e.g., the plan variant ID from Lemon Squeezy
-  renewsAt: string | null;
-  endsAt: string | null;
-  trialEndsAt: string | null;
-  createdAt?: any;
-  updatedAt?: any;
+  status_formatted: string;
+  card_brand: string;
+  card_last_four: string;
+  payment_processor: string;
+  pause: any | null;
+  cancelled: boolean;
+  trial_ends_at: string | null;
+  billing_anchor: number;
+  renews_at: string | null;
+  ends_at: string | null;
+  created_at: string;
+  updated_at: string;
+  test_mode: boolean;
+  first_subscription_item: {
+    id: number;
+    subscription_id: number;
+    price_id: number;
+    quantity: number;
+    is_usage_based: boolean;
+    created_at: string;
+    updated_at: string;
+  };
+  urls: {
+    update_payment_method: string;
+    customer_portal: string;
+    customer_portal_update_subscription: string;
+  };
 }
+
 
 const subscriptionsRef = collection(db, 'subscriptions');
 
@@ -29,7 +61,7 @@ export const getSubscription = async (userId: string): Promise<Subscription | nu
 // Create or update a subscription in Firestore.
 // We use the Lemon Squeezy subscription ID as the primary way to find and update.
 export const createSubscription = async (subscriptionData: Subscription): Promise<void> => {
-  const subDocRef = doc(subscriptionsRef, subscriptionData.userId);
+  const subDocRef = doc(subscriptionsRef, subscriptionData.user_id);
   await setDoc(subDocRef, { 
       ...subscriptionData,
       createdAt: serverTimestamp(),

@@ -24,12 +24,7 @@ export async function POST(req: NextRequest) {
     // 4. Compare signature (base64)
     const digestBuffer = Buffer.from(digestBase64, 'base64');
     const signatureBuffer = Buffer.from(signatureHeader, 'hex');
-
-    console.log("digestBase64:", digestBase64);
-    console.log("signatureHeader:", signatureHeader);
-    console.log("Buffer.equals:", digestBuffer.equals(signatureBuffer));
-
-
+    
     if (
       digestBuffer.length !== signatureBuffer.length ||
       !crypto.timingSafeEqual(digestBuffer, signatureBuffer)
@@ -51,29 +46,25 @@ export async function POST(req: NextRequest) {
       console.warn('Webhook received without a user_id in custom_data. Skipping.');
       return new NextResponse('Webhook processed (no user_id)', { status: 200 });
     }
-
     // Handle different subscription events
     switch (eventName) {
       case 'subscription_created':
       case 'subscription_updated':
-        // For 'subscription_updated', this will either update an existing subscription
-        // or create one if it somehow doesn't exist yet (resilience).
         await createSubscription({
-          userId: userId,
-          lemonSqueezyId: data.id, // <<--- THIS FIXES THE ERROR
-          status: subscriptionData.status,
-          planId: subscriptionData.variant_id?.toString() ?? '', // Defensive: avoid undefined
-          renewsAt: subscriptionData.renews_at ?? null,
-          endsAt: subscriptionData.ends_at ?? null,
-          trialEndsAt: subscriptionData.trial_ends_at ?? null,
+          user_id: userId,
+          subscription_id: data.id,
+          ...subscriptionData,
         });
         break;
 
       case 'subscription_cancelled':
-        await updateSubscription(subscriptionData.id, {
-          status: 'cancelled',
-          endsAt: subscriptionData.ends_at,
-        });
+        await updateSubscription(
+          {
+            user_id: userId,
+            subscription_id: data.id,
+            ...subscriptionData,
+          }
+        );
         break;
 
       case 'subscription_expired':
@@ -81,7 +72,6 @@ export async function POST(req: NextRequest) {
         break;
 
       default:
-        console.log(`Unhandled Lemon Squeezy webhook event: ${eventName}`);
         break;
     }
 
