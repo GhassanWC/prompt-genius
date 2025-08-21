@@ -4,7 +4,7 @@
 import { useState, type FormEvent, useEffect, useCallback } from "react";
 import { Loader2, Sparkles, AlertTriangle, Lock } from "lucide-react";
 import { decomposeIdea } from "@/ai/flows/decompose-idea";
-import { createProjectWithPrompts, generateAndSaveProjectImage, getProjectsForUser, getUserSubscriptionPlan, PLAN_LIMITS } from "@/lib/project-client";
+import { createProjectWithPrompts, generateAndSaveProjectImage, getProjectsForUser } from "@/lib/project-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { getTier } from "@/lib/tiers";
 
 export default function NewProjectPage() {
   const { user, loading: authLoading, subscriptionPlan } = useAuth();
@@ -40,7 +41,8 @@ export default function NewProjectPage() {
     try {
       // Step 0: Check if the user has reached their project limit.
       const currentPlan = subscriptionPlan || 'free';
-      const planLimit = PLAN_LIMITS[currentPlan];
+      const tier = await getTier(currentPlan);
+      const planLimit = tier?.features.projectLimit ?? 0;
       const existingProjects = await getProjectsForUser(user.uid);
       
       if (existingProjects.length >= planLimit) {

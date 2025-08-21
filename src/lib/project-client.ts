@@ -27,7 +27,7 @@ import { getSubscription } from './subscriptions';
 export type SubscriptionPlan = 'free' | 'plus' | 'pro';
 
 export const PLAN_LIMITS: Record<SubscriptionPlan, number> = {
-  free: 2,
+  free: 1,
   plus: 10,
   pro: 30,
 };
@@ -411,10 +411,10 @@ export const getUserSubscriptionPlan = async (userId: string): Promise<Subscript
     }
 
     const planId = subscription.variant_id.toString();
-    if (planId === process.env.NEXT_PUBLIC_LEMONSQUEEZY_PRO_PLAN_ID) {
+    if (planId === process.env.LEMONSQUEEZY_PRO_PLAN_ID) {
         return 'pro';
     }
-    if (planId === process.env.NEXT_PUBLIC_LEMONSQUEEZY_PLUS_PLAN_ID) {
+    if (planId === process.env.LEMONSQUEEZY_PLUS_PLAN_ID) {
         return 'plus';
     }
     return 'free';

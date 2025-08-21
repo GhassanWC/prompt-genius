@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getTier, Tier } from '@/lib/tiers';
 
 function getInitials(name: string | null | undefined) {
     if (!name) return 'A';
@@ -54,9 +55,20 @@ export default function CommunityPage() {
   const [publicProjects, setPublicProjects] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [tier, setTier] = useState<Tier | null>(null);
 
   const canAccessCommunity = useMemo(() => {
-    return subscriptionPlan === 'plus' || subscriptionPlan === 'pro';
+    return tier?.features.communityAccess === true;
+  }, [tier]);
+  
+  useEffect(() => {
+    const fetchTierInfo = async () => {
+      if (subscriptionPlan) {
+        const tierData = await getTier(subscriptionPlan);
+        setTier(tierData);
+      }
+    };
+    fetchTierInfo();
   }, [subscriptionPlan]);
 
   useEffect(() => {

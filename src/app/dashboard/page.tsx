@@ -6,7 +6,7 @@ import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { deleteProject, updateProject } from '@/lib/project-client';
 import type { Project } from '@/lib/projects';
-import { getProjectsForUser, PLAN_LIMITS } from '@/lib/project-client';
+import { getProjectsForUser } from '@/lib/project-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Loader2, PlusCircle, FolderOpen, AlertTriangle, MoreVertical, Trash2, Globe, Lock, Rocket } from 'lucide-react';
@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Progress } from '@/components/ui/progress';
+import { getTier, Tier } from '@/lib/tiers';
 
 
 export default function DashboardPage() {
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [tier, setTier] = useState<Tier | null>(null);
 
 
   const fetchProjects = useCallback(async () => {
@@ -51,6 +53,12 @@ export default function DashboardPage() {
       setLoadingProjects(false);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (subscriptionPlan) {
+      getTier(subscriptionPlan).then(setTier);
+    }
+  }, [subscriptionPlan]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -121,10 +129,10 @@ export default function DashboardPage() {
     }
   };
 
-  const currentPlanLimit = subscriptionPlan ? PLAN_LIMITS[subscriptionPlan] : PLAN_LIMITS.free;
   const projectsUsed = projects.length;
-  const projectsRemaining = currentPlanLimit - projectsUsed;
-  const usagePercentage = (projectsUsed / currentPlanLimit) * 100;
+  const projectLimit = tier?.features.projectLimit ?? 0;
+  const projectsRemaining = projectLimit - projectsUsed;
+  const usagePercentage = projectLimit > 0 ? (projectsUsed / projectLimit) * 100 : 0;
   const atLimit = projectsRemaining <= 0;
 
 
@@ -191,11 +199,11 @@ export default function DashboardPage() {
           </Alert>
         )}
 
-        {subscriptionPlan && (
+        {tier && (
           <Card className="mb-10 bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
-              <CardTitle className="text-2xl font-bold text-indigo-800 capitalize">{subscriptionPlan} Plan</CardTitle>
-              <CardDescription className="text-slate-600 font-medium">You have created {projectsUsed} of {currentPlanLimit} available projects.</CardDescription>
+              <CardTitle className="text-2xl font-bold text-indigo-800 capitalize">{tier.name}</CardTitle>
+              <CardDescription className="text-slate-600 font-medium">You have created {projectsUsed} of {projectLimit} available projects.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <Progress value={usagePercentage} className="h-3 bg-slate-100 rounded-full overflow-hidden">
