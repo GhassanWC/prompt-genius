@@ -3,6 +3,7 @@ import { collection, doc, getDoc, setDoc, updateDoc, query, where, getDocs, dele
 
 export interface Subscription {
   user_id: string;
+  tier_id: 'plus' | 'pro' | 'free'; // Added tier_id
   subscription_id: string;
   store_id: number;
   customer_id: number;

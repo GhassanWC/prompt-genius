@@ -26,6 +26,7 @@ import { getSubscription } from './subscriptions';
 
 export type SubscriptionPlan = 'free' | 'plus' | 'pro';
 
+// This is no longer the source of truth, but can be a fallback.
 export const PLAN_LIMITS: Record<SubscriptionPlan, number> = {
   free: 1,
   plus: 10,
@@ -410,12 +411,5 @@ export const getUserSubscriptionPlan = async (userId: string): Promise<Subscript
         return 'free';
     }
 
-    const planId = subscription.variant_id.toString();
-    if (planId === process.env.LEMONSQUEEZY_PRO_PLAN_ID) {
-        return 'pro';
-    }
-    if (planId === process.env.LEMONSQUEEZY_PLUS_PLAN_ID) {
-        return 'plus';
-    }
-    return 'free';
+    return subscription.tier_id || 'free';
 }

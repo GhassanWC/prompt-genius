@@ -4,6 +4,7 @@ import { deleteSubscription } from './lemon';
 
 export interface Subscription {
   user_id: string;
+  tier_id: 'plus' | 'pro'; // Added tier_id
   subscription_id: string;
   store_id: number;
   customer_id: number;

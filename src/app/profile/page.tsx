@@ -20,7 +20,6 @@ import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { getSubscription } from '@/lib/subscriptions';
 import { Badge } from '@/components/ui/badge';
 
 const profileFormSchema = z.object({
@@ -124,16 +123,20 @@ export default function ProfilePage() {
     if (!user?.email) return;
     setIsPortalLoading(true);
     try {
-        const subscription = await getSubscription(user.uid);
-        if (!subscription) {
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'No subscription found.',
-            });
-            return;
+        const response = await fetch('/api/lemonsqueezy/portal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.uid }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Could not create portal session.');
         }
-        router.push(subscription.urls.customer_portal);
+
+        const { url } = await response.json();
+        router.push(url);
+
     } catch (error: any) {
         toast({
             variant: 'destructive',
@@ -408,5 +411,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
