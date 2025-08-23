@@ -456,7 +456,7 @@ export default function LandingPage() {
               Privacy Policy
             </Link>
             {/* Social icons */}
-            <a href="mailto:support@prompt-genius-ai.com" className="text-slate-400 hover:text-indigo-600 transition-colors"><Mail className="h-5 w-5" /></a>
+            <a href="" className="text-slate-400 hover:text-indigo-600 transition-colors"><Mail className="h-5 w-5" /></a>
           </div>
         </div>
       </footer>
