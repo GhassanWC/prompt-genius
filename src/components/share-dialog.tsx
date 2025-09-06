@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/auth-context';
 import type { User } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +19,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, X, AlertCircle, Lock, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Project, Role, Collaborator } from '@/lib/projects';
-import { findUserByEmail, getUsers, updateProjectSettings } from '@/lib/project-client';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 
@@ -52,8 +50,18 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
         setError(null);
         try {
           const userIds = Object.keys(project.roles);
-          const userProfiles = await getUsers(userIds);
-          const collaboratorData = userProfiles.map(profile => ({
+          const res = await fetch('/api/projects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'getUsers', userIds }),
+          });
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.message || 'Failed to fetch user profiles.');
+          }
+          const userProfiles = await res.json();
+          
+          const collaboratorData = userProfiles.map((profile: any) => ({
             ...profile,
             role: project.roles[profile.uid],
           }));
@@ -96,7 +104,20 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
     setIsInviting(true);
     setError(null);
     try {
-      const userToInvite = await findUserByEmail(inviteEmail);
+      const url = `$/api/projects?action=findUserByEmail&email=${encodeURIComponent(inviteEmail)}`;
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+      });
+      if (res.status === 404) {
+        throw new Error("User with that email address not found.");
+      }
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to find user.');
+      }
+      const userToInvite = await res.json();
       if (!userToInvite) {
         throw new Error("User with that email address not found.");
       }
@@ -120,7 +141,15 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
     setIsSaving(true);
     setError(null);
     try {
-      await updateProjectSettings(currentUser.uid, project.id, { roles, isPublic });
+      const res = await fetch('/api/projects', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateSettings', projectId:project.id, settings:{ roles, isPublic } }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to save project settings.');
+      }
       toast({ title: 'Success', description: 'Project settings have been updated.' });
       onRolesChange(); // Trigger data refresh on the parent page
       onOpenChange(false);

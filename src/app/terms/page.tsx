@@ -102,7 +102,7 @@ export default function TermsOfServicePage() {
                 <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-3">13. Contact</h2>
                 <p className="text-slate-700 leading-relaxed">
                   If you have any questions about these Terms, contact us at:<br />
-                  <span className="text-indigo-600 font-medium">📧 support@prompt-genius-ai.com</span>
+                  <span className="text-indigo-600 font-medium">📧 <a href="mailto:support@prompt-genius-ai.com" className="hover:text-indigo-800 transition-colors">support@prompt-genius-ai.com</a></span>
                 </p>
               </div>
             </div>

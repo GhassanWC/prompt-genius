@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/auth-context';
 import type { Project } from '@/lib/projects';
-import { getPublicProjects } from '@/lib/project-client';
 import { Card, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -76,7 +75,11 @@ export default function CommunityPage() {
       const fetchPublicProjects = async () => {
         setLoadingProjects(true);
         try {
-          const projects = await getPublicProjects(50);
+          const res = await fetch('/api/projects?public=true&count=50');
+          if (!res.ok) {
+            throw new Error(`HTTP error ${res.status}`);
+          }
+          const {projects} = await res.json();
           setPublicProjects(projects);
         } catch (error) {
           console.error("Failed to fetch public projects:", error);

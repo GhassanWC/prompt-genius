@@ -7,7 +7,6 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { type Project, type Prompt as PromptType, type Role } from '@/lib/projects';
-import { getProject, getPromptsForProject, updatePromptStatus } from '@/lib/project-client';
 import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Copy, Lock, Globe } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
@@ -17,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ShareDialog } from '@/components/share-dialog';
 import { Badge } from '@/components/ui/badge';
+import { auth } from '@/lib/firebase';
 
 export default function ProjectPage() {
   const { user, loading: authLoading } = useAuth();
@@ -39,19 +39,48 @@ export default function ProjectPage() {
     setError(null);
     try {
       // Pass user?.uid which can be null if logged out
-      const projectData = await getProject(user?.uid || null, projectId);
-      if (!projectData) {
+      // const projectData = await getProject(user?.uid || null, projectId);
+      const token = await auth.currentUser?.getIdToken();
+
+      const res = await fetch(`/api/projects?projectId=${encodeURIComponent(projectId)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        cache: 'no-store',
+      });
+      if (res.status === 404){
+        setError("This project could not be found. It may be private or have been deleted.");
+        setProject(null);
+        setPrompts([]);
+        setUserRole(null);
+        return;
+      };
+      if (!res.ok) {
+        throw new Error(`Error fetching project: ${res.statusText}`);
+      }
+      const {project}  = await res.json();
+      if (!project) {
         setError("This project could not be found. It may be private or have been deleted.");
         setProject(null);
         setPrompts([]);
         setUserRole(null);
         return;
       }
-      setProject(projectData);
-      setUserRole(user ? projectData.roles[user.uid] : null);
+      setProject(project);
+      setUserRole(user ? project.roles[user.uid] : null);
 
-      const promptsData = await getPromptsForProject(user?.uid || null, projectId);
-      setPrompts(promptsData);
+      // const promptsData = await getPromptsForProject(user?.uid || null, projectId);
+      const url = `/api/projects?projectId=${encodeURIComponent(projectId)}&prompts=true`;
+      const result = await fetch(url, {
+        method: 'GET',
+        headers:  {...(token ? { Authorization: `Bearer ${token}` } : {})},
+        cache: 'no-store',
+      });
+      if (!result.ok) throw new Error(`HTTP ${result.status}`);
+      const promptsData  = await result.json();
+      setPrompts(promptsData.prompts);
 
     } catch (e: any) {
       console.error("Error fetching project data:", e);
@@ -78,7 +107,20 @@ export default function ProjectPage() {
     setPrompts(prompts.map(p => p.id === promptId ? { ...p, isDone: newStatus } : p));
 
     try {
-      await updatePromptStatus(user.uid, projectId, promptId, newStatus);
+      // await updatePromptStatus(user.uid, projectId, promptId, newStatus);
+      const res = await fetch('/api/projects', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updatePromptStatus',
+          projectId,
+          promptId,
+          isDone:newStatus,
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const { ok } = await res.json();
+      if(!ok) throw new Error('Failed to update prompt status');
       toast({
         title: `Prompt marked as ${newStatus ? 'done' : 'not done'}`,
       });

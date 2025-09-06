@@ -13,16 +13,43 @@ import { Loader2, Sparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { enhancePrompt } from "@/ai/flows/enhance-prompt";
 
+
 type PromptData = Partial<Prompt>;
 
 interface PromptEditDialogProps {
   prompt: PromptData | null;
   open: boolean;
+  userId:string;
   onOpenChange: (open: boolean) => void;
   onSave: (promptData: PromptData) => void;
 }
 
-export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptEditDialogProps) {
+
+type FeatureKey =
+  | 'projectLimit'
+  | 'fullPromptGeneration'
+  | 'publicProjects'
+  | 'communityAccess'
+  | 'aiPromptEnhancement'
+  | 'support';
+
+
+
+async function isFeatureEnabled(userId: string, feature: FeatureKey): Promise<boolean> {
+  const res = await fetch('/api/subscription/features', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    // Important: disable caching for “current” entitlement checks
+    cache: 'no-store',
+    body: JSON.stringify({ userId, feature }),
+  });
+
+  if (!res.ok) return false;
+  const data: { enabled: boolean } = await res.json();
+  return data.enabled === true;
+}
+
+export function PromptEditDialog({ prompt, userId, open, onOpenChange, onSave }: PromptEditDialogProps) {
   const { toast } = useToast();
   
   const [title, setTitle] = useState('');
@@ -80,6 +107,15 @@ export function PromptEditDialog({ prompt, open, onOpenChange, onSave }: PromptE
   }
 
   const handleEnhancePrompt = async () => {
+    const isAiPromptEnhancementAllowed = await isFeatureEnabled(userId, 'aiPromptEnhancement');
+    if(!isAiPromptEnhancementAllowed){
+      toast({
+        variant: "destructive",
+        title: "Feature Unavailable",
+        description: "AI Prompt Enhancement is not available on your current plan. Please upgrade to access this feature.",
+      });
+      return;
+    }
     if (!userPrompt.trim()) {
       toast({
         variant: "destructive",

@@ -29,6 +29,8 @@ export interface Subscription {
   created_at: string;
   updated_at: string;
   test_mode: boolean;
+  cumulative_quantity: number;
+  last_processed_updated_at:string | null;
   first_subscription_item: {
     id: number;
     subscription_id: number;

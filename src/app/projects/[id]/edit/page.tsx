@@ -6,7 +6,6 @@ import { useAuth } from '@/context/auth-context';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import type { Project, Prompt, Role } from '@/lib/projects';
-import { updatePromptsOrder, addPrompt, updatePrompt, deletePrompt, updateProject, getProject, getPromptsForProject, getProjectRole } from '@/lib/project-client';
 import { Loader2, ArrowLeft, AlertTriangle, PlusCircle, Save, Edit, ShieldAlert } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
@@ -20,6 +19,29 @@ import { SortablePromptItem } from '@/components/sortable-prompt-item';
 import { PromptEditDialog } from '@/components/prompt-edit-dialog';
 import { ProjectEditDialog } from '@/components/project-edit-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { auth } from '@/lib/firebase';
+
+type FeatureKey =
+  | 'projectLimit'
+  | 'fullPromptGeneration'
+  | 'publicProjects'
+  | 'communityAccess'
+  | 'aiPromptEnhancement'
+  | 'support';
+
+async function isFeatureEnabled(userId: string, feature: FeatureKey): Promise<boolean> {
+  const res = await fetch('/api/subscription/features', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    // Important: disable caching for “current” entitlement checks
+    cache: 'no-store',
+    body: JSON.stringify({ userId, feature }),
+  });
+
+  if (!res.ok) return false;
+  const data: { enabled: boolean } = await res.json();
+  return data.enabled === true;
+}
 
 export default function EditProjectPage() {
   const { user, loading: authLoading } = useAuth();
@@ -58,17 +80,44 @@ export default function EditProjectPage() {
     setLoading(true);
     setError(null);
     try {
-      const projectData = await getProject(user.uid, projectId);
-      if (!projectData) {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch(`/api/projects?projectId=${encodeURIComponent(projectId)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        cache: 'no-store',
+      });
+      if (res.status === 404) {
+        setError("Project not found or you don't have permission to view it.");
+        setProject(null);
+        setPrompts([]);
+        setUserRole(null);
+        return;
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const {project}  = await res.json();
+      if (!project) {
         setError("Project not found or you don't have permission to view it.");
         return;
       }
-      setProject(projectData);
-      const role = await getProjectRole(user.uid, projectId);
+      setProject(project);
+      const role = project.roles[user.uid] || null;
       setUserRole(role);
-
-      const promptsData = await getPromptsForProject(user.uid, projectId);
-      setPrompts(promptsData);
+      const result = await fetch(
+        `/api/projects?projectId=${encodeURIComponent(projectId)}&prompts=true`,
+        { method: 'GET', 
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          cache: 'no-store' 
+        }
+      );
+      if (!result.ok) throw new Error(`HTTP ${result.status}`);
+      const promptsData = await result.json();
+      setPrompts(promptsData.prompts);
 
     } catch (e: any) {
       setError(e.message || "Failed to load project data.");
@@ -106,7 +155,17 @@ export default function EditProjectPage() {
     setIsSavingPromptsOrder(true);
     try {
       const promptUpdates = prompts.map((p, index) => ({ id: p.id, order: index }));
-      await updatePromptsOrder(user.uid, projectId, promptUpdates);
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch('/api/projects', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: 'reorderPrompts', projectId, prompts:promptUpdates }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
       toast({ title: 'Success', description: 'Prompt order has been saved.' });
       setIsPromptsOrderDirty(false);
     } catch (error: any) {
@@ -125,12 +184,29 @@ export default function EditProjectPage() {
   const handleSavePrompt = async (promptData: Partial<Prompt>) => {
     if (!user || !canEdit) return;
     try {
+      const token = await auth.currentUser?.getIdToken();
       if (promptData.id) {
         const { id, ...updateData } = promptData;
-        await updatePrompt(user.uid, projectId, id, updateData);
+        const res = await fetch('/api/projects', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ action: 'updatePrompt', projectId, promptId:id, data:updateData }),
+        });
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
         toast({ title: "Prompt Updated" });
       } else {
-        await addPrompt(user.uid, projectId, promptData as Omit<Prompt, 'id' | 'order'>);
+        const res = await fetch('/api/projects', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ action: 'addPrompt', projectId, prompt:promptData }),
+        });
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
         toast({ title: "Prompt Added" });
       }
       fetchProjectData();
@@ -149,7 +225,16 @@ export default function EditProjectPage() {
   const handleDeletePrompt = async () => {
     if (!user || !promptToDelete || !canEdit) return;
     try {
-      await deletePrompt(user.uid, projectId, promptToDelete);
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch('/api/projects', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: 'deletePrompt', projectId, promptId:promptToDelete }),
+      });
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
       toast({ title: 'Prompt Deleted' });
       fetchProjectData(); // Refresh list
     } catch (error: any) {
@@ -164,7 +249,16 @@ export default function EditProjectPage() {
     if (!user || !project || !canEdit) return;
     setError(null);
     try {
-      await updateProject(user.uid, projectId, { name: data.name, idea: data.idea });
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch('/api/projects', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: 'updateProject', projectId, data:{ name: data.name, idea: data.idea } }),
+      });
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
       toast({ title: "Project Updated", description: "Your project details have been saved." });
       fetchProjectData(); // Refreshes the project data on the page
     } catch (e: any) {
@@ -318,7 +412,7 @@ export default function EditProjectPage() {
         isReadOnly={!canEdit}
       />
 
-      <PromptEditDialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen} prompt={currentPrompt} onSave={handleSavePrompt} />
+      <PromptEditDialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen} prompt={currentPrompt} userId={user.uid} onSave={handleSavePrompt} />
       
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl">

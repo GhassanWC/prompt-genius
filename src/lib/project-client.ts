@@ -38,7 +38,8 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, number> = {
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
     const projectsCollectionRef = collection(db, 'projects');
-    const q = query(projectsCollectionRef, where("members", "array-contains", userId));
+    // Query for projects where the user is a member (using the members object)
+    const q = query(projectsCollectionRef, where(`members.${userId}`, "==", true));
     const querySnapshot = await getDocs(q);
     const projects: Project[] = [];
     querySnapshot.forEach((doc) => {
@@ -53,7 +54,7 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         isPublic: data.isPublic || false,
         createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
         roles: data.roles || {},
-        members: data.members || [],
+        members: data.members || {},
         clarificationSteps: data.clarificationSteps,
       });
     });
@@ -88,7 +89,7 @@ export const getProject = async (userId: string | null, projectId: string): Prom
             imageUrl: data.imageUrl,
             createdAt: (data.createdAt as Timestamp) ? (data.createdAt as Timestamp).toDate() : new Date(),
             roles: data.roles,
-            members: data.members || [],
+                         members: data.members || {},
             clarificationSteps: data.clarificationSteps,
         };
 
@@ -98,7 +99,7 @@ export const getProject = async (userId: string | null, projectId: string): Prom
         }
 
         // Private projects are only readable by collaborators
-        if (userId && projectData.members.includes(userId)) {
+        if (userId && projectData.members && projectData.members[userId] === true) {
             return projectData;
         }
     }
@@ -144,7 +145,16 @@ export const createProjectWithPrompts = async (
   projectName: string,
   plan: DecomposeIdeaOutput
 ): Promise<string> => {
-  const projectDocRef = await addDoc(collection(db, 'projects'), {
+  // Create a new document reference first
+  const projectDocRef = doc(collection(db, 'projects'));
+  const projectId = projectDocRef.id;
+  console.log("projectId: ", projectId)
+  // Create a batch to write both project and prompts atomically
+  const batch = writeBatch(db);
+  console.log("projectId2: ", projectId)
+
+  // Add the project document to the batch
+  batch.set(projectDocRef, {
     name: projectName,
     idea: plan.enhancedIdea,
     isPublic: false, // Projects are private by default
@@ -154,13 +164,14 @@ export const createProjectWithPrompts = async (
     roles: {
       [userId]: 'owner' // Set the creator as the owner
     },
-    members: [userId], // Add the owner to the members array
+    members: {
+      [userId]: true // Add the owner to the members object
+    },
   });
+  console.log("projectId3: ", projectId)
 
-  const projectId = projectDocRef.id;
-
+  // Add prompts to the batch if they exist
   if (plan.developmentPlan && plan.developmentPlan.length > 0) {
-    const batch = writeBatch(db);
     const promptsCollectionRef = collection(db, 'projects', projectId, 'prompts');
     plan.developmentPlan.forEach((step, index) => {
       const promptDocRef = doc(promptsCollectionRef); 
@@ -170,8 +181,11 @@ export const createProjectWithPrompts = async (
         isDone: false,
       });
     });
-    await batch.commit();
   }
+  console.log("projectId4: ", projectId)
+
+  // Commit the entire batch atomically
+  await batch.commit();
 
   return projectId;
 };
@@ -329,8 +343,11 @@ export const updateProjectSettings = async (currentUserId: string, projectId: st
         throw new Error("A project must always have an owner.");
     }
     
-    // Create the members array from the keys of the roles map
-    const members = Object.keys(roles);
+    // Create the members object from the keys of the roles map
+    const members = Object.keys(roles).reduce((acc, uid) => {
+      acc[uid] = true;
+      return acc;
+    }, {} as Record<string, boolean>);
 
     const projectRef = doc(db, 'projects', projectId);
     await updateDoc(projectRef, { roles, isPublic, members });
@@ -360,7 +377,7 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
         isPublic: data.isPublic,
         createdAt: (data.createdAt as Timestamp).toDate(),
         roles: data.roles || {},
-        members: data.members || [],
+        members: data.members || {},
       });
     });
     
@@ -413,3 +430,4 @@ export const getUserSubscriptionPlan = async (userId: string): Promise<Subscript
 
     return subscription.tier_id || 'free';
 }
+

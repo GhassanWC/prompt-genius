@@ -76,10 +76,10 @@ export function PromptCard({
         <div className="p-6 space-y-8">
             {mapFlow && (
                 <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 backdrop-blur-xl border border-blue-100 rounded-2xl p-5">
-                    <p className="font-bold text-indigo-800 mb-3 flex items-center gap-2">
+                    <div className="font-bold text-indigo-800 mb-3 flex items-center gap-2">
                       <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
                       Logic Map
-                    </p>
+                    </div>
                     <p className="text-slate-600 font-medium leading-relaxed">{mapFlow}</p>
                 </div>
             )}
@@ -94,10 +94,10 @@ export function PromptCard({
                 >
                 {hasCopied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
                 </Button>
-                <p className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                <div className="font-bold text-slate-800 mb-3 flex items-center gap-2">
                   <div className="w-2 h-2 bg-slate-500 rounded-full"></div>
                   User Prompt
-                </p>
+                </div>
                 <p className="whitespace-pre-wrap text-sm sm:text-base text-slate-600 font-medium leading-relaxed pr-14">
                 {userPrompt}
                 </p>
@@ -105,10 +105,10 @@ export function PromptCard({
 
             {acceptanceCriteria && acceptanceCriteria.length > 0 && (
                 <div className="space-y-4 bg-gradient-to-r from-green-50/80 to-emerald-50/80 backdrop-blur-xl border border-green-100 rounded-2xl p-5">
-                <p className="font-bold text-green-800 flex items-center gap-2">
+                <div className="font-bold text-green-800 flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   Acceptance Criteria
-                </p>
+                </div>
                 <ul className="space-y-3">
                     {acceptanceCriteria.map((criterion, index) => (
                     <li key={index} className="flex items-start gap-3 text-sm sm:text-base text-slate-600 font-medium leading-relaxed">

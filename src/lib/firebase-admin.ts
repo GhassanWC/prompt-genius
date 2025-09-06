@@ -1,5 +1,6 @@
 import { initializeApp, cert, getApps, App, ServiceAccount } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 // You should set these environment variables in your deployment environment
 const serviceAccount = {
@@ -18,6 +19,6 @@ if (!getApps().length) {
   adminApp = getApps()[0];
 }
 
+const adminAuth = getAuth(adminApp);
 const firestore = getFirestore(adminApp);
-
-export { adminApp, firestore }; 
+export { adminApp, firestore, adminAuth }; 

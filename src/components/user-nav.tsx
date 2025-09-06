@@ -16,7 +16,6 @@ import { LogOut, MessageSquare, User as UserIcon, LayoutDashboard, Rocket, Credi
 import { useState } from 'react';
 import { FeedbackDialog } from './feedback-dialog';
 import { useRouter } from 'next/navigation';
-import { getCustomerPortalUrl } from '@/lib/lemon';
 import { useToast } from '@/hooks/use-toast';
 
 export function UserNav() {

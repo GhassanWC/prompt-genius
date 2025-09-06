@@ -20,7 +20,9 @@ import {
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { getUserSubscriptionPlan, type SubscriptionPlan } from '@/lib/project-client';
+import { type SubscriptionPlan } from '@/lib/project-server';
+import { Subscription } from '@/lib/subscription-server';
+
 
 
 // Function to create a user profile document in Firestore if it doesn't exist
@@ -69,6 +71,7 @@ interface AuthContextType {
   changeUserPassword: (newPassword: string) => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>;
+  getUserSubscription: () => Promise<Subscription | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -87,7 +90,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (user.emailVerified && window.location.pathname.startsWith('/login')) {
             router.push('/dashboard');
         }
-        const plan = await getUserSubscriptionPlan(user.uid);
+        const token = await auth.currentUser?.getIdToken(); // ensure user is signed in first!
+    
+        const res = await fetch('/api/projects?subscriptionPlan=true', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          cache: 'no-store',
+        });
+        if(!res.ok) {
+          throw new Error('Failed to fetch subscription plan.');
+        }
+        const {plan} = await res.json();
+        console.log("Fetched subscription plan on auth state change:", plan);
         setSubscriptionPlan(plan);
       } else {
         setSubscriptionPlan(null);
@@ -235,7 +252,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await firebaseSendPasswordResetEmail(auth, email);
   }
 
-  const value = { user, loading, subscriptionPlan, signInWithGoogle, signInWithGithub, signUpWithEmail, signInWithEmail, signOut, updateUserProfile, changeUserPassword, sendVerificationEmail, sendPasswordResetEmail };
+  const getUserSubscription = async () => {
+    const token = await auth.currentUser?.getIdToken();
+
+    const res = await fetch("/api/subscription/features/subscriptionProjectsCount", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      cache: "no-store", // optional if you want fresh data always
+    });
+    if (!res.ok) {
+      throw new Error("Failed to fetch subscription plan.");
+    }
+    const subscription = await res.json();
+    console.log("Fetched subscription:", subscription);
+    return subscription;
+  }
+  const value = { 
+    user, 
+    loading, 
+    subscriptionPlan, 
+    signInWithGoogle, 
+    signInWithGithub, 
+    signUpWithEmail, 
+    signInWithEmail, 
+    signOut, 
+    updateUserProfile, 
+    changeUserPassword, 
+    sendVerificationEmail, 
+    sendPasswordResetEmail,
+    getUserSubscription
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

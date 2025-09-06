@@ -1,27 +1,57 @@
+"use client";
 
-'use client';
-
-import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '@/context/auth-context';
-import { useRouter } from 'next/navigation';
-import { deleteProject, updateProject } from '@/lib/project-client';
-import type { Project } from '@/lib/projects';
-import { getProjectsForUser } from '@/lib/project-client';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Loader2, PlusCircle, FolderOpen, AlertTriangle, MoreVertical, Trash2, Globe, Lock, Rocket } from 'lucide-react';
-import { UserNav } from '@/components/user-nav';
-import { Logo } from '@/components/logo';
-import Link from 'next/link';
-import Image from 'next/image';
-import { formatDistanceToNow } from 'date-fns';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Progress } from '@/components/ui/progress';
-import { getTier, Tier } from '@/lib/tiers';
-
+import { useEffect, useState, useCallback, use } from "react";
+import { useAuth } from "@/context/auth-context";
+import { useRouter } from "next/navigation";
+import type { Project } from "@/lib/projects";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Loader2,
+  PlusCircle,
+  FolderOpen,
+  AlertTriangle,
+  MoreVertical,
+  Trash2,
+  Globe,
+  Lock,
+  Rocket,
+} from "lucide-react";
+import { UserNav } from "@/components/user-nav";
+import { Logo } from "@/components/logo";
+import Link from "next/link";
+import Image from "next/image";
+import { formatDistanceToNow } from "date-fns";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
+import { getTier, Tier } from "@/lib/tiers";
+import { auth } from "@/lib/firebase";
+import { Subscription } from "@/lib/subscription-server";
 
 export default function DashboardPage() {
   const { user, loading: authLoading, subscriptionPlan } = useAuth();
@@ -36,33 +66,68 @@ export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [tier, setTier] = useState<Tier | null>(null);
-
+  const [userSubscriptionProjectCount, setUserSubscriptionProjectCount] = useState<number | null>(null);
 
   const fetchProjects = useCallback(async () => {
     if (!user) return;
     setLoadingProjects(true);
     setError(null);
     try {
-      const userProjects = await getProjectsForUser(user.uid);
-      setProjects(userProjects);
+      const token = await auth.currentUser?.getIdToken();
+
+      const res = await fetch("/api/projects", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        cache: "no-store", // optional if you want fresh data always
+      });
+
+      if (!res.ok) {
+        setError("Failed to load projects. Please try again.");
+        return;
+      }
+
+      const userProjects = await res.json();
+      setProjects(userProjects.projects);
     } catch (err: any) {
-      console.error("Failed to fetch projects:", err);
-      setError(err.message || "An unknown error occurred. Please refresh the page.");
+      setError(
+        err.message || "An unknown error occurred. Please refresh the page."
+      );
       setProjects([]);
     } finally {
       setLoadingProjects(false);
     }
   }, [user]);
 
+  const getUserSubscriptionProjectCount = async () => {
+    const token = await auth.currentUser?.getIdToken();
+    const res = await fetch("/api/subscription/features?subscriptionProjectsCount=true", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      }
+    });
+    if (!res.ok) {
+      throw new Error("Failed to fetch subscription plan.");
+    }
+    const {count} = await res.json();
+
+    return count ?? 1;
+  }
+
   useEffect(() => {
     if (subscriptionPlan) {
       getTier(subscriptionPlan).then(setTier);
+     
     }
   }, [subscriptionPlan]);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [user, authLoading, router]);
 
@@ -72,12 +137,18 @@ export default function DashboardPage() {
     }
   }, [user, fetchProjects]);
 
+  useEffect(() => {
+    if (user){
+      getUserSubscriptionProjectCount().then(setUserSubscriptionProjectCount); // Refresh subscription details
+    }
+  }, [user]);
+
   const openDeleteDialog = (project: Project, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setProjectToDelete(project);
     setDialogOpen(true);
-  }
+  };
 
   const handleDeleteProject = async () => {
     if (!projectToDelete || !user) return;
@@ -85,17 +156,28 @@ export default function DashboardPage() {
     setError(null);
 
     try {
-      await deleteProject(user.uid, projectToDelete.id);
+      const token = await auth.currentUser?.getIdToken();
+      const projectId: string = projectToDelete.id;
+      const res = await fetch("/api/projects", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: "deleteProject", projectId }),
+      });
+      if (!res.ok) {
+        throw new Error(`Could not delete project "${projectToDelete.name}".`);
+      }
       toast({
         title: "Project Deleted",
         description: `"${projectToDelete.name}" has been removed.`,
       });
       fetchProjects(); // Refresh the list
     } catch (err: any) {
-      console.error("Failed to delete project:", err);
       toast({
-        variant: 'destructive',
-        title: 'Delete Failed',
+        variant: "destructive",
+        title: "Delete Failed",
         description: err.message,
       });
     } finally {
@@ -105,7 +187,10 @@ export default function DashboardPage() {
     }
   };
 
-  const handleToggleVisibility = async (project: Project, e: React.MouseEvent) => {
+  const handleToggleVisibility = async (
+    project: Project,
+    e: React.MouseEvent
+  ) => {
     e.preventDefault();
     e.stopPropagation();
     if (!user) return;
@@ -113,28 +198,51 @@ export default function DashboardPage() {
     const newVisibility = !project.isPublic;
 
     try {
-      await updateProject(user.uid, project.id, { isPublic: newVisibility });
+      const token = await auth.currentUser?.getIdToken();
+      const projectId: string = project.id;
+      const res = await fetch("/api/projects", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          action: "updateProject",
+          projectId,
+          data: { isPublic: newVisibility },
+        }),
+      });
+
+      if (!res.ok) {
+        toast({
+          variant: "destructive",
+          title: "Update Failed",
+          description: `Could not change visibility for "${project.name}".`,
+        });
+        return;
+      }
       toast({
         title: "Visibility Updated",
-        description: `"${project.name}" is now ${newVisibility ? 'public' : 'private'}.`,
+        description: `"${project.name}" is now ${
+          newVisibility ? "public" : "private"
+        }.`,
       });
       fetchProjects(); // Refresh the list to show the new state
     } catch (err: any) {
-      console.error("Failed to update visibility:", err);
       toast({
-        variant: 'destructive',
-        title: 'Update Failed',
+        variant: "destructive",
+        title: "Update Failed",
         description: err.message,
       });
     }
   };
 
   const projectsUsed = projects.length;
-  const projectLimit = tier?.features.projectLimit ?? 0;
+  const projectLimit = userSubscriptionProjectCount;
   const projectsRemaining = projectLimit - projectsUsed;
-  const usagePercentage = projectLimit > 0 ? (projectsUsed / projectLimit) * 100 : 0;
+  const usagePercentage =
+    projectLimit > 0 ? (projectsUsed / projectLimit) * 100 : 0;
   const atLimit = projectsRemaining <= 0;
-
 
   if (authLoading || !user) {
     return (
@@ -158,12 +266,12 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-0 font-bold group">
             <Image
-                src="/logo.png"
-                alt="Prompt Genius Logo"
-                width={60}
-                height={60}
-                className='ml-1 mr-1'
-              />
+              src="/logo.png"
+              alt="Prompt Genius Logo"
+              width={60}
+              height={60}
+              className="ml-1 mr-1"
+            />
             <h1 className="font-headline text-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hidden sm:block">
               Prompt Genius AI
             </h1>
@@ -179,7 +287,7 @@ export default function DashboardPage() {
             My Projects
           </h2>
           <Link href="/projects/new">
-            <Button 
+            <Button
               disabled={atLimit}
               className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold px-6 py-3 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -190,31 +298,48 @@ export default function DashboardPage() {
         </div>
 
         {error && (
-          <Alert variant="destructive" className="mb-8 bg-red-50 border-red-200 text-red-800 rounded-2xl">
+          <Alert
+            variant="destructive"
+            className="mb-8 bg-red-50 border-red-200 text-red-800 rounded-2xl"
+          >
             <AlertTriangle className="h-5 w-5" />
-            <AlertTitle className="font-semibold">Could Not Load Projects</AlertTitle>
-            <AlertDescription className="font-medium">
-              {error}
-            </AlertDescription>
+            <AlertTitle className="font-semibold">
+              Could Not Load Projects
+            </AlertTitle>
+            <AlertDescription className="font-medium">{error}</AlertDescription>
           </Alert>
         )}
 
         {tier && (
           <Card className="mb-10 bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
-              <CardTitle className="text-2xl font-bold text-indigo-800 capitalize">{tier.name}</CardTitle>
-              <CardDescription className="text-slate-600 font-medium">You have created {projectsUsed} of {projectLimit} available projects.</CardDescription>
+              <CardTitle className="text-2xl font-bold text-indigo-800 capitalize">
+                {tier.name}
+              </CardTitle>
+              <CardDescription className="text-slate-600 font-medium">
+                You have created {projectsUsed} of {projectLimit} available
+                projects.
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
-              <Progress value={usagePercentage} className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-500" style={{ width: `${usagePercentage}%` }} />
+              <Progress
+                value={usagePercentage}
+                className="h-3 bg-slate-100 rounded-full overflow-hidden"
+              >
+                <div
+                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-500"
+                  style={{ width: `${usagePercentage}%` }}
+                />
               </Progress>
             </CardContent>
             {atLimit && (
               <CardFooter className="bg-gradient-to-r from-amber-50/50 to-orange-50/50 border-t border-amber-200">
                 <div className="w-full text-center text-sm text-amber-700 font-medium mt-2">
                   You've reached your project limit.
-                  <Link href="/#pricing" className="ml-1 mr-1 text-indigo-600 hover:text-indigo-700 underline font-semibold">
+                  <Link
+                    href="/#pricing"
+                    className="ml-1 mr-1 text-indigo-600 hover:text-indigo-700 underline font-semibold"
+                  >
                     Upgrade your plan
                   </Link>
                   to create more.
@@ -227,7 +352,10 @@ export default function DashboardPage() {
         {loadingProjects ? (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i} className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-lg overflow-hidden">
+              <Card
+                key={i}
+                className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-lg overflow-hidden"
+              >
                 <div className="h-48 bg-gradient-to-br from-slate-200 to-slate-300 rounded-t-2xl animate-pulse" />
                 <CardHeader className="p-6">
                   <div className="h-6 w-3/4 bg-slate-200 rounded-lg animate-pulse mb-2" />
@@ -239,8 +367,12 @@ export default function DashboardPage() {
         ) : projects.length === 0 && !error ? (
           <div className="text-center py-20 border-2 border-dashed border-indigo-200 rounded-3xl bg-white/60 backdrop-blur-xl">
             <FolderOpen className="mx-auto h-16 w-16 text-indigo-300" />
-            <h3 className="mt-6 text-2xl font-bold text-slate-800">No projects yet</h3>
-            <p className="mt-3 text-slate-600 font-medium">Get started by creating your first project.</p>
+            <h3 className="mt-6 text-2xl font-bold text-slate-800">
+              No projects yet
+            </h3>
+            <p className="mt-3 text-slate-600 font-medium">
+              Get started by creating your first project.
+            </p>
             <Link href="/projects/new" className="mt-8 inline-block">
               <Button className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold px-8 py-3 rounded-full transition-all duration-200">
                 <PlusCircle className="mr-2 h-5 w-5" />
@@ -251,10 +383,13 @@ export default function DashboardPage() {
         ) : (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => {
-              const isOwner = project.roles[user.uid] === 'owner';
+              const isOwner = project.roles[user.uid] === "owner";
               return (
                 <div key={project.id} className="relative group">
-                  <Link href={`/projects/${project.id}`} className="block h-full">
+                  <Link
+                    href={`/projects/${project.id}`}
+                    className="block h-full"
+                  >
                     <Card className="h-full hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/20 hover:border-indigo-200 transition-all duration-500 bg-white/90 backdrop-blur-xl border border-white/50 rounded-2xl overflow-hidden">
                       {project.imageUrl ? (
                         <div className="relative w-full h-48">
@@ -272,53 +407,73 @@ export default function DashboardPage() {
                         </div>
                       )}
                       <div className="flex flex-col flex-grow p-6">
-                        <CardTitle className="font-headline text-xl font-bold text-indigo-800 mb-2">{project.name}</CardTitle>
+                        <CardTitle className="font-headline text-xl font-bold text-indigo-800 mb-2">
+                          {project.name}
+                        </CardTitle>
                         <CardDescription className="text-slate-500 font-medium mb-4">
-                          Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
+                          Created{" "}
+                          {formatDistanceToNow(new Date(project.createdAt), {
+                            addSuffix: true,
+                          })}
                         </CardDescription>
-                        <p className="text-sm text-slate-600 line-clamp-2 flex-grow font-medium leading-relaxed">{project.idea}</p>
+                        <p className="text-sm text-slate-600 line-clamp-2 flex-grow font-medium leading-relaxed">
+                          {project.idea}
+                        </p>
                       </div>
                     </Card>
                   </Link>
                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    {isOwner && <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-10 w-10 bg-white/90 backdrop-blur-xl border border-white/50 shadow-lg hover:bg-white hover:border-indigo-200 rounded-xl transition-all duration-200" 
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    {isOwner && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-10 w-10 bg-white/90 backdrop-blur-xl border border-white/50 shadow-lg hover:bg-white hover:border-indigo-200 rounded-xl transition-all duration-200"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                          >
+                            <MoreVertical className="h-5 w-5 text-slate-600" />
+                            <span className="sr-only">Project options</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          className="bg-white/95 backdrop-blur-xl border border-white/50 shadow-xl rounded-2xl"
                         >
-                          <MoreVertical className="h-5 w-5 text-slate-600" />
-                          <span className="sr-only">Project options</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent 
-                        align="end" 
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        className="bg-white/95 backdrop-blur-xl border border-white/50 shadow-xl rounded-2xl"
-                      >
-                        <DropdownMenuItem 
-                          onClick={(e) => handleToggleVisibility(project, e)}
-                          className="hover:bg-indigo-50 focus:bg-indigo-50 rounded-lg transition-colors duration-200"
-                        >
-                          {project.isPublic ? (
-                            <><Lock className="mr-2 h-4 w-4" /><span>Make Private</span></>
-                          ) : (
-                            <><Globe className="mr-2 h-4 w-4" /><span>Make Public</span></>
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-slate-200" />
-                        <DropdownMenuItem 
-                          className="text-red-600 focus:bg-red-50 focus:text-red-700 rounded-lg transition-colors duration-200" 
-                          onClick={(e) => openDeleteDialog(project, e)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    }
+                          <DropdownMenuItem
+                            onClick={(e) => handleToggleVisibility(project, e)}
+                            className="hover:bg-indigo-50 focus:bg-indigo-50 rounded-lg transition-colors duration-200"
+                          >
+                            {project.isPublic ? (
+                              <>
+                                <Lock className="mr-2 h-4 w-4" />
+                                <span>Make Private</span>
+                              </>
+                            ) : (
+                              <>
+                                <Globe className="mr-2 h-4 w-4" />
+                                <span>Make Public</span>
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-slate-200" />
+                          <DropdownMenuItem
+                            className="text-red-600 focus:bg-red-50 focus:text-red-700 rounded-lg transition-colors duration-200"
+                            onClick={(e) => openDeleteDialog(project, e)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                 </div>
               );
@@ -330,9 +485,16 @@ export default function DashboardPage() {
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-bold text-slate-800">Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle className="text-2xl font-bold text-slate-800">
+              Are you absolutely sure?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-slate-600 font-medium leading-relaxed">
-              This action cannot be undone. This will permanently delete the project <span className="font-bold text-red-600">"{projectToDelete?.name}"</span> and all of its associated prompts.
+              This action cannot be undone. This will permanently delete the
+              project{" "}
+              <span className="font-bold text-red-600">
+                "{projectToDelete?.name}"
+              </span>{" "}
+              and all of its associated prompts.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -349,7 +511,9 @@ export default function DashboardPage() {
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Deleting...
                 </>
-              ) : "Delete Project"}
+              ) : (
+                "Delete Project"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

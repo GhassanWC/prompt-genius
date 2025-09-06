@@ -4,7 +4,6 @@
 import { useState, type FormEvent, useEffect, useCallback } from "react";
 import { Loader2, Sparkles, AlertTriangle, Lock } from "lucide-react";
 import { decomposeIdea } from "@/ai/flows/decompose-idea";
-import { createProjectWithPrompts, generateAndSaveProjectImage, getProjectsForUser } from "@/lib/project-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +14,7 @@ import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getTier } from "@/lib/tiers";
+import { auth } from "@/lib/firebase";
 
 export default function NewProjectPage() {
   const { user, loading: authLoading, subscriptionPlan } = useAuth();
@@ -43,8 +43,20 @@ export default function NewProjectPage() {
       const currentPlan = subscriptionPlan || 'free';
       const tier = await getTier(currentPlan);
       const planLimit = tier?.features.projectLimit ?? 0;
-      const existingProjects = await getProjectsForUser(user.uid);
-      
+      const token = await auth.currentUser?.getIdToken();
+
+      const result = await fetch('/api/projects', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        cache: 'no-store',
+      });
+      if (!result.ok) {
+        throw new Error('Failed to fetch existing projects.');
+      }
+      const existingProjects = await result.json();
       if (existingProjects.length >= planLimit) {
           throw new Error(`You have reached the ${planLimit}-project limit for the ${currentPlan} plan. Please upgrade to create more projects.`);
       }
@@ -56,12 +68,34 @@ export default function NewProjectPage() {
         throw new Error(plan.enhancedIdea || "The AI could not generate a plan for this idea. Please make sure it's a software development topic and try rephrasing.");
       }
       
-      const projectId = await createProjectWithPrompts(user.uid, projectName, plan);
-
-      generateAndSaveProjectImage(user.uid, projectId, plan.enhancedIdea);
-      
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: 'createProject', projectName, plan }),
+      });
+      console.log("Create project response:", res);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to create project.');
+      }
+      const data = await res.json();
+      const projectId = data.projectId;
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: 'generateImage', projectId, idea:plan.enhancedIdea }),
+      });
+      if (!response.ok) {
+        console.error('Image generation request failed.');
+        throw new Error('Image generation request failed.');
+      }
       router.push(`/projects/${projectId}`);
-
     } catch (e: any) {
       console.error("Detailed error during project creation:", e);
       let errorMessage = e.message || "An unexpected error occurred while creating your project. Please try again.";

@@ -1,5 +1,5 @@
 // This file is now used only for shared type definitions.
-// All database interaction logic has been moved to `src/lib/project-client.ts`
+// All database interaction logic has been moved to `src/lib/project-server.ts`
 // to ensure that write operations are executed from the authenticated client,
 // satisfying Firestore security rules.
 
@@ -27,7 +27,7 @@ export interface Project {
   imageUrl?: string;
   createdAt: Date;
   roles: Record<string, Role>;
-  members: string[]; // Added for efficient querying
+  members: Record<string, boolean>; // Object with user IDs as keys and boolean values
   clarificationSteps?: ClarificationStep[];
   author?: {
     displayName: string;

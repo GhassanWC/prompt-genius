@@ -1,43 +1,72 @@
+"use client";
 
-'use client';
-
-import { useAuth } from '@/context/auth-context';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, AlertTriangle, BadgeCheck, Rocket, Ban } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Logo } from '@/components/logo';
-import { UserNav } from '@/components/user-nav';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Badge } from '@/components/ui/badge';
+import { useAuth } from "@/context/auth-context";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Loader2,
+  ArrowLeft,
+  AlertTriangle,
+  BadgeCheck,
+  Rocket,
+  Ban,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { UserNav } from "@/components/user-nav";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+import { Badge } from "@/components/ui/badge";
 
 const profileFormSchema = z.object({
-  firstName: z.string().min(1, { message: 'First name is required.' }),
-  lastName: z.string().min(1, { message: 'Last name is required.' }),
+  firstName: z.string().min(1, { message: "First name is required." }),
+  lastName: z.string().min(1, { message: "Last name is required." }),
   email: z.string().email().describe("Email address can't be changed."),
 });
 
-const passwordFormSchema = z.object({
-  newPassword: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-  confirmPassword: z.string(),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match.",
-  path: ["confirmPassword"],
-});
+const passwordFormSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(6, { message: "Password must be at least 6 characters." }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match.",
+    path: ["confirmPassword"],
+  });
 
 export default function ProfilePage() {
-  const { user, loading: authLoading, updateUserProfile, changeUserPassword, subscriptionPlan } = useAuth();
+  const {
+    user,
+    loading: authLoading,
+    updateUserProfile,
+    changeUserPassword,
+    subscriptionPlan,
+  } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
@@ -46,46 +75,46 @@ export default function ProfilePage() {
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
+      firstName: "",
+      lastName: "",
+      email: "",
     },
   });
 
   const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
     resolver: zodResolver(passwordFormSchema),
     defaultValues: {
-      newPassword: '',
-      confirmPassword: '',
+      newPassword: "",
+      confirmPassword: "",
     },
   });
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [user, authLoading, router]);
 
   useEffect(() => {
     if (user) {
       const fetchUserData = async () => {
-        const userDocRef = doc(db, 'users', user.uid);
+        const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
           const userData = userDoc.data();
           profileForm.reset({
-            firstName: userData.firstName || '',
-            lastName: userData.lastName || '',
-            email: user.email || '',
+            firstName: userData.firstName || "",
+            lastName: userData.lastName || "",
+            email: user.email || "",
           });
         } else {
-            // Fallback for users who might not have a firestore doc yet
-            const nameParts = user.displayName?.split(' ') || [];
-            profileForm.reset({
-              firstName: nameParts[0] || '',
-              lastName: nameParts.slice(1).join(' ') || '',
-              email: user.email || '',
-            });
+          // Fallback for users who might not have a firestore doc yet
+          const nameParts = user.displayName?.split(" ") || [];
+          profileForm.reset({
+            firstName: nameParts[0] || "",
+            lastName: nameParts.slice(1).join(" ") || "",
+            email: user.email || "",
+          });
         }
       };
       fetchUserData();
@@ -95,13 +124,16 @@ export default function ProfilePage() {
   async function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
     setError(null);
     try {
-      await updateUserProfile({ firstName: values.firstName, lastName: values.lastName });
+      await updateUserProfile({
+        firstName: values.firstName,
+        lastName: values.lastName,
+      });
       toast({
-        title: 'Profile Updated',
-        description: 'Your profile information has been successfully updated.',
+        title: "Profile Updated",
+        description: "Your profile information has been successfully updated.",
       });
     } catch (err: any) {
-      setError(err.message || 'An unknown error occurred.');
+      setError(err.message || "An unknown error occurred.");
     }
   }
 
@@ -110,12 +142,12 @@ export default function ProfilePage() {
     try {
       await changeUserPassword(values.newPassword);
       toast({
-        title: 'Password Changed',
-        description: 'Your password has been successfully updated.',
+        title: "Password Changed",
+        description: "Your password has been successfully updated.",
       });
       passwordForm.reset();
     } catch (err: any) {
-      setError(err.message || 'An unknown error occurred.');
+      setError(err.message || "An unknown error occurred.");
     }
   }
 
@@ -123,30 +155,30 @@ export default function ProfilePage() {
     if (!user?.email) return;
     setIsPortalLoading(true);
     try {
-        const response = await fetch('/api/lemonsqueezy/portal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.uid }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Could not create portal session.');
-        }
-
-        const { url } = await response.json();
-        router.push(url);
-
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch("/api/projects?subscriptionUrl=true", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch subscription plan url.");
+      }
+      const { planUrl } = await res.json();
+      router.push(planUrl);
     } catch (error: any) {
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: error.message || 'Could not load subscription details.',
-        });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Could not load subscription details.",
+      });
     } finally {
-        setIsPortalLoading(false);
+      setIsPortalLoading(false);
     }
-  }
+  };
 
   if (authLoading || !user) {
     return (
@@ -186,7 +218,10 @@ export default function ProfilePage() {
 
       <main className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="mb-8">
-          <Link href="/dashboard" className="inline-flex items-center text-sm text-slate-600 hover:text-indigo-600 transition-all duration-200 font-medium group">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center text-sm text-slate-600 hover:text-indigo-600 transition-all duration-200 font-medium group"
+          >
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back to Dashboard
           </Link>
@@ -204,39 +239,70 @@ export default function ProfilePage() {
 
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-lg shadow-black/5 p-1">
-            <TabsTrigger value="profile" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium">Profile Details</TabsTrigger>
-            <TabsTrigger value="password" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium">Change Password</TabsTrigger>
-            <TabsTrigger value="subscription" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium">Subscription</TabsTrigger>
+            <TabsTrigger
+              value="profile"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium"
+            >
+              Profile Details
+            </TabsTrigger>
+            <TabsTrigger
+              value="password"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium"
+            >
+              Change Password
+            </TabsTrigger>
+            <TabsTrigger
+              value="subscription"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium"
+            >
+              Subscription
+            </TabsTrigger>
           </TabsList>
 
           {error && (
-            <Alert variant="destructive" className="mt-6 bg-red-50 border-red-200 text-red-800 rounded-2xl">
+            <Alert
+              variant="destructive"
+              className="mt-6 bg-red-50 border-red-200 text-red-800 rounded-2xl"
+            >
               <AlertTriangle className="h-5 w-5" />
-              <AlertTitle className="font-semibold">An Error Occurred</AlertTitle>
-              <AlertDescription className="font-medium">{error}</AlertDescription>
+              <AlertTitle className="font-semibold">
+                An Error Occurred
+              </AlertTitle>
+              <AlertDescription className="font-medium">
+                {error}
+              </AlertDescription>
             </Alert>
           )}
 
           <TabsContent value="profile" className="mt-8">
             <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
-                <CardTitle className="text-2xl font-bold text-indigo-800">Profile Information</CardTitle>
-                <CardDescription className="text-slate-600 font-medium">Update your display name and view your email address.</CardDescription>
+                <CardTitle className="text-2xl font-bold text-indigo-800">
+                  Profile Information
+                </CardTitle>
+                <CardDescription className="text-slate-600 font-medium">
+                  Update your display name and view your email address.
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-8">
                 <Form {...profileForm}>
-                  <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-8">
+                  <form
+                    onSubmit={profileForm.handleSubmit(onProfileSubmit)}
+                    className="space-y-8"
+                  >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <FormField
                         control={profileForm.control}
                         name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-700 font-semibold">First Name</FormLabel>
+                            <FormLabel className="text-slate-700 font-semibold">
+                              First Name
+                            </FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="Your First Name" 
-                                {...field} 
+                              <Input
+                                placeholder="Your First Name"
+                                {...field}
                                 className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
                               />
                             </FormControl>
@@ -249,11 +315,13 @@ export default function ProfilePage() {
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-700 font-semibold">Last Name</FormLabel>
+                            <FormLabel className="text-slate-700 font-semibold">
+                              Last Name
+                            </FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="Your Last Name" 
-                                {...field} 
+                              <Input
+                                placeholder="Your Last Name"
+                                {...field}
                                 className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
                               />
                             </FormControl>
@@ -267,12 +335,14 @@ export default function ProfilePage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 font-semibold">Email</FormLabel>
+                          <FormLabel className="text-slate-700 font-semibold">
+                            Email
+                          </FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="your@email.com" 
-                              {...field} 
-                              disabled 
+                            <Input
+                              placeholder="your@email.com"
+                              {...field}
+                              disabled
                               className="bg-slate-50/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-sm font-medium"
                             />
                           </FormControl>
@@ -283,12 +353,14 @@ export default function ProfilePage() {
                         </FormItem>
                       )}
                     />
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={profileForm.formState.isSubmitting}
                       className="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold px-8 py-3 rounded-full transition-all duration-200"
                     >
-                      {profileForm.formState.isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                      {profileForm.formState.isSubmitting && (
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      )}
                       Save Changes
                     </Button>
                   </form>
@@ -300,22 +372,31 @@ export default function ProfilePage() {
           <TabsContent value="password" className="mt-8">
             <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
-                <CardTitle className="text-2xl font-bold text-indigo-800">Change Password</CardTitle>
-                <CardDescription className="text-slate-600 font-medium">Enter a new password for your account.</CardDescription>
+                <CardTitle className="text-2xl font-bold text-indigo-800">
+                  Change Password
+                </CardTitle>
+                <CardDescription className="text-slate-600 font-medium">
+                  Enter a new password for your account.
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-8">
                 <Form {...passwordForm}>
-                  <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-8">
+                  <form
+                    onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
+                    className="space-y-8"
+                  >
                     <FormField
                       control={passwordForm.control}
                       name="newPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 font-semibold">New Password</FormLabel>
+                          <FormLabel className="text-slate-700 font-semibold">
+                            New Password
+                          </FormLabel>
                           <FormControl>
-                            <Input 
-                              type="password" 
-                              {...field} 
+                            <Input
+                              type="password"
+                              {...field}
                               className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
                             />
                           </FormControl>
@@ -328,11 +409,13 @@ export default function ProfilePage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700 font-semibold">Confirm New Password</FormLabel>
+                          <FormLabel className="text-slate-700 font-semibold">
+                            Confirm New Password
+                          </FormLabel>
                           <FormControl>
-                            <Input 
-                              type="password" 
-                              {...field} 
+                            <Input
+                              type="password"
+                              {...field}
                               className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
                             />
                           </FormControl>
@@ -340,12 +423,14 @@ export default function ProfilePage() {
                         </FormItem>
                       )}
                     />
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={passwordForm.formState.isSubmitting}
                       className="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold px-8 py-3 rounded-full transition-all duration-200"
                     >
-                      {passwordForm.formState.isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                      {passwordForm.formState.isSubmitting && (
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      )}
                       Update Password
                     </Button>
                   </form>
@@ -357,25 +442,42 @@ export default function ProfilePage() {
           <TabsContent value="subscription" className="mt-8">
             <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
-                <CardTitle className="text-2xl font-bold text-indigo-800">Manage Subscription</CardTitle>
-                <CardDescription className="text-slate-600 font-medium">View your current plan and manage your subscription details.</CardDescription>
+                <CardTitle className="text-2xl font-bold text-indigo-800">
+                  Manage Subscription
+                </CardTitle>
+                <CardDescription className="text-slate-600 font-medium">
+                  View your current plan and manage your subscription details.
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
                 <div className="p-6 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 backdrop-blur-xl border border-indigo-100 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="space-y-2">
-                    <p className="text-sm text-slate-600 font-medium">Current Plan</p>
-                    <p className="text-2xl font-bold text-indigo-800 capitalize">{subscriptionPlan || 'Free'}</p>
+                    <p className="text-sm text-slate-600 font-medium">
+                      Current Plan
+                    </p>
+                    <p className="text-2xl font-bold text-indigo-800 capitalize">
+                      {subscriptionPlan || "Free"}
+                    </p>
                   </div>
-                  <Badge variant="outline" className="text-base bg-white/80 backdrop-blur-xl border-indigo-200 text-indigo-700 font-semibold px-4 py-2 rounded-full">
-                    <BadgeCheck className="mr-2 text-indigo-600" /> {subscriptionPlan || 'Free'}
+                  <Badge
+                    variant="outline"
+                    className="text-base bg-white/80 backdrop-blur-xl border-indigo-200 text-indigo-700 font-semibold px-4 py-2 rounded-full"
+                  >
+                    <BadgeCheck className="mr-2 text-indigo-600" />{" "}
+                    {subscriptionPlan || "Free"}
                   </Badge>
                 </div>
 
-                {subscriptionPlan === 'free' ? (
+                {subscriptionPlan === "free" ? (
                   <Card className="border-2 border-indigo-200 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 backdrop-blur-xl rounded-2xl overflow-hidden">
                     <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 border-b border-indigo-200">
-                      <CardTitle className="text-xl font-bold text-indigo-800">Upgrade Your Plan</CardTitle>
-                      <CardDescription className="text-slate-600 font-medium">Unlock more projects, advanced features, and priority support.</CardDescription>
+                      <CardTitle className="text-xl font-bold text-indigo-800">
+                        Upgrade Your Plan
+                      </CardTitle>
+                      <CardDescription className="text-slate-600 font-medium">
+                        Unlock more projects, advanced features, and priority
+                        support.
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="p-6">
                       <Link href="/#pricing">
@@ -388,10 +490,13 @@ export default function ProfilePage() {
                   </Card>
                 ) : (
                   <div className="space-y-6">
-                    <p className="text-sm text-slate-600 font-medium leading-relaxed">Need to make changes? You can manage your billing details, view invoices, or cancel your subscription at any time.</p>
-                    <Button 
-                      onClick={handleManageSubscription} 
-                      disabled={isPortalLoading} 
+                    <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                      Need to make changes? You can manage your billing details,
+                      view invoices, or cancel your subscription at any time.
+                    </p>
+                    <Button
+                      onClick={handleManageSubscription}
+                      disabled={isPortalLoading}
                       className="w-full bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white border-0 shadow-xl shadow-slate-500/25 font-semibold py-3 rounded-full transition-all duration-200"
                     >
                       {isPortalLoading ? (

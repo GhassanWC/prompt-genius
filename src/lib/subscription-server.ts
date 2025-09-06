@@ -1,6 +1,5 @@
 // /lib/subscriptions.ts
 import { firestore } from './firebase-admin';
-import { deleteSubscription } from './lemon';
 
 export interface Subscription {
   user_id: string;
@@ -30,6 +29,8 @@ export interface Subscription {
   created_at: string;
   updated_at: string;
   test_mode: boolean;
+  cumulative_quantity: number;
+  last_processed_updated_at:string | null;
   first_subscription_item: {
     id: number;
     subscription_id: number;
@@ -63,4 +64,18 @@ export async function deleteSubscriptionByLemonSqueezyId(lemonSqueezyId: string)
   const batch = firestore.batch();
   subs.forEach(doc => batch.delete(doc.ref));
   return batch.commit();
+}
+
+export async function getSubscriptionByUserId(userId: string): Promise<Subscription | null> {
+  const snapshot = await firestore
+    .collection("subscriptions")
+    .where("user_id", "==", userId)
+    .limit(1)
+    .get();
+
+  if (snapshot.empty) return null;
+
+  // Convert Firestore doc to your Subscription type
+  const doc = snapshot.docs[0];
+  return { ...doc.data() } as Subscription;
 }

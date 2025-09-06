@@ -107,7 +107,7 @@ export default function PrivacyPolicyPage() {
 
                 <div className="border-l-4 border-indigo-500 pl-6">
                   <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-3">6. Your Rights</h2>
-                  <p className="text-slate-700 leading-relaxed">You have the right to access, correct, or delete your personal data. To make a request, please contact us at <span className="text-indigo-600 font-medium">support@prompt-genius-ai.com</span>.</p>
+                  <p className="text-slate-700 leading-relaxed">You have the right to access, correct, or delete your personal data. To make a request, please contact us at 📧 <span><a href="mailto:support@prompt-genius-ai.com" className="hover:text-indigo-800 transition-colors">support@prompt-genius-ai.com</a></span>.</p>
                 </div>
 
                 <div className="border-l-4 border-indigo-500 pl-6">
