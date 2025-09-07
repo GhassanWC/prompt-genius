@@ -9,8 +9,8 @@ import crypto from "crypto";
 import {
   updateSubscription,
   createSubscription,
+  getSubscriptionByUserId
 } from "@/lib/subscription-server";
-import { getSubscription } from "@/lib/subscriptions";
 
 const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET ?? "";
 
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
     const { tierId, quantity } = deriveTierAndQuantity(attrs.variant_name);
 
     // Load existing once
-    const stored = await getSubscription(userId); // should return { last_processed_updated_at?, status?, cumulative_quantity?, tier_id?, ... }
+    const stored = await getSubscriptionByUserId(userId); // should return { last_processed_updated_at?, status?, cumulative_quantity?, tier_id?, ... }
 
     // ----- UPDATED_AT POINTER GUARD -----
     if (!isNewerUpdate(attrs.updated_at, stored?.last_processed_updated_at ?? null)) {
