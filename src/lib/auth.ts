@@ -1,23 +1,33 @@
-// lib/server/auth.ts
+// src/lib/server/auth.ts
 import 'server-only';
 import { cookies, headers } from 'next/headers';
-import { adminAuth } from '@/lib/firebase-admin';
+import { getAdminAuth } from '@/lib/firebase-admin';
 
 export async function getCurrentUserId(): Promise<string | null> {
-  // Try Authorization: Bearer <ID_TOKEN>
-  const authHeader = (await headers()).get('authorization');
-  const bearer = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const h = await headers();
+  const authHeader = h.get('authorization') ?? h.get('Authorization');
+  const bearer = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1] ?? null;
 
-  // Or Firebase session cookie (commonly "__session")
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get('__session')?.value;
+  const c = await cookies();
+  const sessionCookie = c.get('__session')?.value ?? null;
 
-  const token = bearer || sessionCookie;
-  if (!token) return null;
+  if (!bearer && !sessionCookie) return null;
+
+  const adminAuth = getAdminAuth();
 
   try {
-    const decoded = await adminAuth.verifyIdToken(token);
-    return decoded.uid || null;
+    if (bearer) {
+      const decoded = await adminAuth.verifyIdToken(bearer);
+      return decoded?.uid ?? null;
+    }
+
+    // If you're issuing Firebase session cookies, verify them here
+    if (sessionCookie) {
+      const decoded = await adminAuth.verifySessionCookie(sessionCookie, true).catch((error: any): null => null);
+      return decoded?.uid ?? null;
+    }
+
+    return null;
   } catch {
     return null;
   }
