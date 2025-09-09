@@ -1,24 +1,16 @@
-// lib/server/projects-server.ts
-import "server-only";
-import { randomUUID } from "crypto";
+// src/lib/server/projects-server.ts
+import 'server-only';
+import { randomUUID } from 'crypto';
 
-import { adminApp, firestore } from "@/lib/firebase-admin";
-import { FieldValue, FieldPath } from "firebase-admin/firestore";
-import { getStorage } from "firebase-admin/storage";
+import { getAdminApp, getDb } from '@/lib/firebase-admin';
+import { FieldValue, FieldPath } from 'firebase-admin/firestore';
 
-// ---- shims so the rest of the file stays the same
-export const adminDb = firestore;
-export const AdminFieldValue = FieldValue;
-export const adminBucket = getStorage(adminApp).bucket(
-  process.env.FIREBASE_STORAGE_BUCKET
-);
+import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
+import { generateImage } from '@/ai/flows/generate-image';
+import type { Project, Prompt, Role, Collaborator } from '@/lib/projects';
+import { getSubscriptionByUserId } from '@/lib/subscription-server';
 
-import type { DecomposeIdeaOutput } from "@/ai/flows/decompose-idea";
-import { generateImage } from "@/ai/flows/generate-image";
-import type { Project, Prompt, Role, Collaborator } from "@/lib/projects";
-import { getSubscription } from "@/lib/subscriptions";
-
-export type SubscriptionPlan = "free" | "plus" | "pro";
+export type SubscriptionPlan = 'free' | 'plus' | 'pro';
 
 export const PLAN_LIMITS: Record<SubscriptionPlan, number> = {
   free: 1,
@@ -26,43 +18,42 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, number> = {
   pro: 30,
 };
 
-// ---------- utils
+// ---- shims so the rest of the file stays the same
+export const AdminFieldValue = FieldValue;
 
-const col = (name: string) => adminDb.collection(name);
+// Lazy helpers (no top-level Admin init)
+const col = (name: string) => getDb().collection(name);
 
 function tsToDate(ts: any): Date {
-  // Admin Timestamp -> Date
   if (ts?.toDate) return ts.toDate();
   if (ts instanceof Date) return ts;
   return new Date();
 }
 
-function parseDataUri(dataUri: string): {
-  buffer: Buffer;
-  contentType: string;
-} {
+function getBucket() {
+  const { getStorage } = require('firebase-admin/storage');
+  return getStorage(getAdminApp()).bucket(process.env.FIREBASE_STORAGE_BUCKET);
+}
+
+function parseDataUri(dataUri: string): { buffer: Buffer; contentType: string } {
   const m = /^data:([^;]+);base64,(.+)$/.exec(dataUri);
-  if (!m) throw new Error("Invalid data URI");
+  if (!m) throw new Error('Invalid data URI');
   const [, contentType, b64] = m;
-  return { buffer: Buffer.from(b64, "base64"), contentType };
+  return { buffer: Buffer.from(b64, 'base64'), contentType };
 }
 
 // ---------- READS
 
-export const getProjectsForUser = async (
-  userId: string
-): Promise<Project[]> => {
+export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
-    const snap = await col("projects")
-      .where(`members.${userId}`, "==", true)
-      .get();
+    const snap = await col('projects').where(`members.${userId}`, '==', true).get();
 
-    const projects: Project[] = snap.docs.map((d) => {
+    const projects: Project[] = snap.docs.map((d:any) => {
       const data: any = d.data();
       return {
         id: d.id,
-        name: data.name || "Untitled Project",
-        idea: data.idea || "",
+        name: data.name || 'Untitled Project',
+        idea: data.idea || '',
         imageUrl: data.imageUrl || null,
         isPublic: !!data.isPublic,
         createdAt: tsToDate(data.createdAt),
@@ -75,37 +66,34 @@ export const getProjectsForUser = async (
     projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     return projects;
   } catch (err: any) {
-    console.error("Error fetching projects:", err);
+    console.error('Error fetching projects:', err);
     const code = err?.code;
-    if (code === "permission-denied") {
+    if (code === 'permission-denied') {
       throw new Error(
         "We couldn't load your projects. Please check your internet connection and try again."
       );
-    } else if (code === "failed-precondition") {
+    } else if (code === 'failed-precondition') {
       throw new Error(
-        "Something went wrong on our end while trying to fetch your projects. Please contact support if this continues."
+        'Something went wrong on our end while trying to fetch your projects. Please contact support if this continues.'
       );
     } else {
       throw new Error(
-        "An unexpected error occurred while fetching your projects. Please refresh the page."
+        'An unexpected error occurred while fetching your projects. Please refresh the page.'
       );
     }
   }
 };
 
-export const getProject = async (
-  userId: string | null,
-  projectId: string
-): Promise<Project | null> => {
-  const ref = col("projects").doc(projectId);
+export const getProject = async (userId: string | null, projectId: string): Promise<Project | null> => {
+  const ref = col('projects').doc(projectId);
   const doc = await ref.get();
   if (!doc.exists) return null;
 
   const data: any = doc.data();
   const project: Project = {
     id: doc.id,
-    name: data.name || "Untitled Project",
-    idea: data.idea || "",
+    name: data.name || 'Untitled Project',
+    idea: data.idea || '',
     isPublic: !!data.isPublic,
     imageUrl: data.imageUrl || null,
     createdAt: tsToDate(data.createdAt),
@@ -119,31 +107,23 @@ export const getProject = async (
   return null;
 };
 
-export const getPromptsForProject = async (
-  userId: string | null,
-  projectId: string
-): Promise<Prompt[]> => {
+export const getPromptsForProject = async (userId: string | null, projectId: string): Promise<Prompt[]> => {
   const project = await getProject(userId, projectId);
   if (!project) {
-    throw new Error(
-      "You don't have permission to view this project, or the project does not exist."
-    );
+    throw new Error("You don't have permission to view this project, or the project does not exist.");
   }
 
-  const snap = await col("projects").doc(projectId).collection("prompts").get();
-  const prompts: Prompt[] = snap.docs.map((d) => ({
+  const snap = await col('projects').doc(projectId).collection('prompts').get();
+  const prompts: Prompt[] = snap.docs.map((d:any) => ({
     id: d.id,
-    ...(d.data() as Omit<Prompt, "id">),
+    ...(d.data() as Omit<Prompt, 'id'>),
   }));
   prompts.sort((a, b) => (a.order || 0) - (b.order || 0));
   return prompts;
 };
 
-export const getProjectRole = async (
-  userId: string,
-  projectId: string
-): Promise<Role | null> => {
-  const d = await col("projects").doc(projectId).get();
+export const getProjectRole = async (userId: string, projectId: string): Promise<Role | null> => {
+  const d = await col('projects').doc(projectId).get();
   if (!d.exists) return null;
   const data: any = d.data();
   return (data?.roles?.[userId] as Role) || null;
@@ -156,8 +136,9 @@ export const createProjectWithPrompts = async (
   projectName: string,
   plan: DecomposeIdeaOutput
 ): Promise<string> => {
-  const projectRef = col("projects").doc();
-  const batch = adminDb.batch();
+  const db = getDb();
+  const projectRef = col('projects').doc();
+  const batch = db.batch();
 
   batch.set(projectRef, {
     name: projectName,
@@ -166,12 +147,12 @@ export const createProjectWithPrompts = async (
     clarificationSteps: plan.clarificationSteps || [],
     imageUrl: null,
     createdAt: AdminFieldValue.serverTimestamp(),
-    roles: { [userId]: "owner" as Role },
+    roles: { [userId]: 'owner' as Role },
     members: { [userId]: true },
   });
 
   if (Array.isArray(plan.developmentPlan) && plan.developmentPlan.length > 0) {
-    const promptsCol = projectRef.collection("prompts");
+    const promptsCol = projectRef.collection('prompts');
     plan.developmentPlan.forEach((step, index) => {
       const promptRef = promptsCol.doc();
       batch.set(promptRef, { ...step, order: index, isDone: false });
@@ -188,70 +169,58 @@ export const generateAndSaveProjectImage = async (
   idea: string
 ): Promise<void> => {
   const role = await getProjectRole(userId, projectId);
-  if (!role)
-    throw new Error(
-      "You don't have permission to generate an image for this project."
-    );
+  if (!role) throw new Error("You don't have permission to generate an image for this project.");
 
   try {
     const { imageUrl: dataUri } = await generateImage({ idea });
     const { buffer, contentType } = parseDataUri(dataUri);
 
     const path = `project-images/${projectId}.png`;
-    const file = adminBucket.file(path);
+    const file = getBucket().file(path);
 
-    // Attach a download token for a permanent, tokenized URL
     const token = randomUUID();
     await file.save(buffer, {
       contentType,
       metadata: {
         metadata: { firebaseStorageDownloadTokens: token },
-        cacheControl: "public,max-age=31536000,immutable",
+        cacheControl: 'public,max-age=31536000,immutable',
       },
       public: false,
       resumable: false,
     });
 
-    // Tokenized download URL (works without Admin privileges)
     const encodedPath = encodeURIComponent(path);
     const bucket = process.env.FIREBASE_STORAGE_BUCKET!;
     const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media&token=${token}`;
 
-    await col("projects").doc(projectId).update({ imageUrl: publicUrl });
+    await col('projects').doc(projectId).update({ imageUrl: publicUrl });
   } catch (err) {
-    console.error("Background image generation and save failed:", err);
+    console.error('Background image generation and save failed:', err);
   }
 };
 
 export const updateProject = async (
   userId: string,
   projectId: string,
-  data: Partial<Omit<Project, "id" | "roles" | "createdAt">>
+  data: Partial<Omit<Project, 'id' | 'roles' | 'createdAt'>>
 ): Promise<void> => {
   const role = await getProjectRole(userId, projectId);
-  if (role !== "owner" && role !== "editor")
-    throw new Error("You don't have permission to edit this project.");
+  if (role !== 'owner' && role !== 'editor') throw new Error("You don't have permission to edit this project.");
 
-  await col("projects").doc(projectId).update(data);
+  await col('projects').doc(projectId).update(data);
 };
 
 export const updatePrompt = async (
   userId: string,
   projectId: string,
   promptId: string,
-  data: Partial<Omit<Prompt, "id">>
+  data: Partial<Omit<Prompt, 'id'>>
 ): Promise<void> => {
   const role = await getProjectRole(userId, projectId);
-  if (role !== "owner" && role !== "editor")
-    throw new Error(
-      "You don't have permission to edit prompts in this project."
-    );
+  if (role !== 'owner' && role !== 'editor')
+    throw new Error("You don't have permission to edit prompts in this project.");
 
-  await col("projects")
-    .doc(projectId)
-    .collection("prompts")
-    .doc(promptId)
-    .update(data);
+  await col('projects').doc(projectId).collection('prompts').doc(promptId).update(data);
 };
 
 export const updatePromptStatus = async (
@@ -261,55 +230,33 @@ export const updatePromptStatus = async (
   isDone: boolean
 ): Promise<void> => {
   const role = await getProjectRole(userId, projectId);
-  if (role !== "owner" && role !== "editor")
-    throw new Error(
-      "You don't have permission to update prompts in this project."
-    );
+  if (role !== 'owner' && role !== 'editor')
+    throw new Error("You don't have permission to update prompts in this project.");
 
-  await col("projects")
-    .doc(projectId)
-    .collection("prompts")
-    .doc(promptId)
-    .update({ isDone });
+  await col('projects').doc(projectId).collection('prompts').doc(promptId).update({ isDone });
 };
 
-export const deletePrompt = async (
-  userId: string,
-  projectId: string,
-  promptId: string
-): Promise<void> => {
+export const deletePrompt = async (userId: string, projectId: string, promptId: string): Promise<void> => {
   const role = await getProjectRole(userId, projectId);
-  if (role !== "owner" && role !== "editor")
-    throw new Error(
-      "You don't have permission to delete prompts in this project."
-    );
+  if (role !== 'owner' && role !== 'editor')
+    throw new Error("You don't have permission to delete prompts in this project.");
 
-  await col("projects")
-    .doc(projectId)
-    .collection("prompts")
-    .doc(promptId)
-    .delete();
+  await col('projects').doc(projectId).collection('prompts').doc(promptId).delete();
 };
 
-export const deleteProject = async (
-  userId: string,
-  projectId: string
-): Promise<void> => {
+export const deleteProject = async (userId: string, projectId: string): Promise<void> => {
   const role = await getProjectRole(userId, projectId);
-  if (role !== "owner")
-    throw new Error(
-      "You don't have permission to delete this project. Only the owner can do this."
-    );
+  if (role !== 'owner')
+    throw new Error('You don\'t have permission to delete this project. Only the owner can do this.');
 
-  const projectRef = col("projects").doc(projectId);
-  const batch = adminDb.batch();
+  const db = getDb();
+  const projectRef = col('projects').doc(projectId);
+  const batch = db.batch();
 
-  // delete project
   batch.delete(projectRef);
 
-  // delete its prompts
-  const promptsSnap = await projectRef.collection("prompts").get();
-  promptsSnap.forEach((p) => batch.delete(p.ref));
+  const promptsSnap = await projectRef.collection('prompts').get();
+  promptsSnap.forEach((p:any) => batch.delete(p.ref));
 
   await batch.commit();
 };
@@ -317,15 +264,13 @@ export const deleteProject = async (
 export const addPrompt = async (
   userId: string,
   projectId: string,
-  promptData: Omit<Prompt, "id" | "order">
+  promptData: Omit<Prompt, 'id' | 'order'>
 ): Promise<string> => {
   const role = await getProjectRole(userId, projectId);
-  if (role !== "owner" && role !== "editor")
-    throw new Error(
-      "You don't have permission to add prompts to this project."
-    );
+  if (role !== 'owner' && role !== 'editor')
+    throw new Error("You don't have permission to add prompts to this project.");
 
-  const promptsCol = col("projects").doc(projectId).collection("prompts");
+  const promptsCol = col('projects').doc(projectId).collection('prompts');
   const countSnap = await promptsCol.get();
   const newOrder = countSnap.size;
 
@@ -340,14 +285,13 @@ export const updatePromptsOrder = async (
   prompts: { id: string; order: number }[]
 ): Promise<void> => {
   const role = await getProjectRole(userId, projectId);
-  if (role !== "owner" && role !== "editor")
-    throw new Error(
-      "You don't have permission to reorder prompts in this project."
-    );
+  if (role !== 'owner' && role !== 'editor')
+    throw new Error("You don't have permission to reorder prompts in this project.");
 
-  const batch = adminDb.batch();
+  const db = getDb();
+  const batch = db.batch();
   prompts.forEach(({ id, order }) => {
-    const ref = col("projects").doc(projectId).collection("prompts").doc(id);
+    const ref = col('projects').doc(projectId).collection('prompts').doc(id);
     batch.update(ref, { order });
   });
   await batch.commit();
@@ -355,15 +299,13 @@ export const updatePromptsOrder = async (
 
 // ---------- COLLABORATION
 
-export const findUserByEmail = async (
-  email: string
-): Promise<{
+export const findUserByEmail = async (email: string): Promise<{
   uid: string;
   email: string;
   displayName: string | null;
   photoURL: string | null;
 } | null> => {
-  const snap = await col("users").where("email", "==", email).limit(1).get();
+  const snap = await col('users').where('email', '==', email).limit(1).get();
   if (snap.empty) return null;
   const d = snap.docs[0];
   const data: any = d.data();
@@ -375,25 +317,17 @@ export const findUserByEmail = async (
   };
 };
 
-export const getUsers = async (
-  userIds: string[]
-): Promise<Omit<Collaborator, "role">[]> => {
+export const getUsers = async (userIds: string[]): Promise<Omit<Collaborator, 'role'>[]> => {
   if (userIds.length === 0) return [];
-  // Firestore "in" takes up to 10 IDs per query; chunk if needed
   const chunk = <T>(arr: T[], size: number) =>
-    arr.reduce<T[][]>(
-      (a, _, i) => (i % size ? a : [...a, arr.slice(i, i + size)]),
-      []
-    );
+    arr.reduce<T[][]>((a, _, i) => (i % size ? a : [...a, arr.slice(i, i + size)]), []);
   const chunks = chunk(userIds, 10);
 
-  const results: Omit<Collaborator, "role">[] = [];
+  const results: Omit<Collaborator, 'role'>[] = [];
   for (const ids of chunks) {
-    const snap = await col("users")
-      .where(FieldPath.documentId(), "in", ids)
-      .get();
+    const snap = await col('users').where(FieldPath.documentId(), 'in', ids).get();
     results.push(
-      ...snap.docs.map((d) => {
+      ...snap.docs.map((d:any) => {
         const data: any = d.data();
         return {
           uid: d.id,
@@ -413,43 +347,35 @@ export const updateProjectSettings = async (
   settings: { roles: Record<string, Role>; isPublic: boolean }
 ): Promise<void> => {
   const role = await getProjectRole(currentUserId, projectId);
-  if (role !== "owner")
-    throw new Error(
-      "You don't have permission to change settings. Only the project owner can do this."
-    );
+  if (role !== 'owner')
+    throw new Error("You don't have permission to change settings. Only the project owner can do this.");
 
   const { roles, isPublic } = settings;
-  if (!roles[currentUserId] || roles[currentUserId] !== "owner") {
-    throw new Error("A project must always have an owner.");
+  if (!roles[currentUserId] || roles[currentUserId] !== 'owner') {
+    throw new Error('A project must always have an owner.');
   }
 
-  const members = Object.keys(roles).reduce<Record<string, boolean>>(
-    (acc, uid) => {
-      acc[uid] = true;
-      return acc;
-    },
-    {}
-  );
+  const members = Object.keys(roles).reduce<Record<string, boolean>>((acc, uid) => {
+    acc[uid] = true;
+    return acc;
+  }, {});
 
-  await col("projects").doc(projectId).update({ roles, isPublic, members });
+  await col('projects').doc(projectId).update({ roles, isPublic, members });
 };
 
 export const getPublicProjects = async (count: number): Promise<Project[]> => {
   try {
-    const q = col("projects")
-      .where("isPublic", "==", true)
-      .orderBy("createdAt", "desc")
-      .limit(count);
+    const q = col('projects').where('isPublic', '==', true).orderBy('createdAt', 'desc').limit(count);
 
     const projectsSnap = await q.get();
     const projects: (Project & {
       author?: { displayName: string; photoURL: string | null };
-    })[] = projectsSnap.docs.map((d) => {
+    })[] = projectsSnap.docs.map((d:any) => {
       const data: any = d.data();
       return {
         id: d.id,
-        name: data.name || "Untitled Project",
-        idea: data.idea || "",
+        name: data.name || 'Untitled Project',
+        idea: data.idea || '',
         imageUrl: data.imageUrl || null,
         isPublic: !!data.isPublic,
         createdAt: tsToDate(data.createdAt),
@@ -461,39 +387,27 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
     if (projects.length === 0) return [];
 
     const ownerUids = projects
-      .map((p) =>
-        Object.keys(p.roles || {}).find(
-          (uid) => (p.roles as any)[uid] === "owner"
-        )
-      )
+      .map((p) => Object.keys(p.roles || {}).find((uid) => (p.roles as any)[uid] === 'owner'))
       .filter(Boolean) as string[];
 
     if (ownerUids.length > 0) {
-      // dedupe + chunk for "in" query
       const unique = Array.from(new Set(ownerUids));
       const chunk = <T>(arr: T[], size: number) =>
-        arr.reduce<T[][]>(
-          (a, _, i) => (i % size ? a : [...a, arr.slice(i, i + size)]),
-          []
-        );
+        arr.reduce<T[][]>((a, _, i) => (i % size ? a : [...a, arr.slice(i, i + size)]), []);
       const chunks = chunk(unique, 10);
 
       const ownerMap = new Map<string, any>();
       for (const ids of chunks) {
-        const snap = await col("users")
-          .where(FieldPath.documentId(), "in", ids)
-          .get();
-        snap.docs.forEach((d) => ownerMap.set(d.id, d.data()));
+        const snap = await col('users').where(FieldPath.documentId(), 'in', ids).get();
+        snap.docs.forEach((d:any) => ownerMap.set(d.id, d.data()));
       }
 
       projects.forEach((p) => {
-        const ownerUid = Object.keys(p.roles || {}).find(
-          (uid) => (p.roles as any)[uid] === "owner"
-        );
+        const ownerUid = Object.keys(p.roles || {}).find((uid) => (p.roles as any)[uid] === 'owner');
         if (ownerUid && ownerMap.has(ownerUid)) {
           const od = ownerMap.get(ownerUid);
           (p as any).author = {
-            displayName: od?.displayName || od?.email || "Anonymous",
+            displayName: od?.displayName || od?.email || 'Anonymous',
             photoURL: od?.photoURL || null,
           };
         }
@@ -502,29 +416,24 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
 
     return projects;
   } catch (err: any) {
-    if (err?.code === "failed-precondition") {
+    if (err?.code === 'failed-precondition') {
       throw new Error(
         "We're having trouble fetching community projects right now due to a configuration issue. Please contact support if this continues."
       );
     }
-    console.error("Error fetching public projects:", err);
-    throw new Error(
-      "An unexpected error occurred while fetching community projects."
-    );
+    console.error('Error fetching public projects:', err);
+    throw new Error('An unexpected error occurred while fetching community projects.');
   }
 };
 
-export const getUserSubscriptionPlan = async (
-  userId: string
-): Promise<SubscriptionPlan> => {
-  const subscription = await getSubscription(userId); // ensure this uses Admin or server-side fetch
-  if (!subscription || subscription.status !== "active") return "free";
-  return (subscription.tier_id as SubscriptionPlan) || "free";
+export const getUserSubscriptionPlan = async (userId: string): Promise<SubscriptionPlan> => {
+  const subscription = await getSubscriptionByUserId(userId);
+  if (!subscription || subscription.status !== 'active') return 'free';
+  return (subscription.tier_id as SubscriptionPlan) || 'free';
 };
-export const getUserSubscriptionPlanUrl = async (
-  userId: string
-): Promise<string> => {
-  const subscription = await getSubscription(userId); // ensure this uses Admin or server-side fetch
-  if (!subscription || subscription.status !== "active") return "";
-  return subscription.urls.customer_portal || "free";
+
+export const getUserSubscriptionPlanUrl = async (userId: string): Promise<string> => {
+  const subscription = await getSubscriptionByUserId(userId);
+  if (!subscription || subscription.status !== 'active') return '';
+  return subscription.urls.customer_portal || '';
 };

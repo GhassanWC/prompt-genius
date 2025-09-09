@@ -101,10 +101,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           cache: 'no-store',
         });
         if(!res.ok) {
+          setLoading(false);
           throw new Error('Failed to fetch subscription plan.');
         }
         const {plan} = await res.json();
-        console.log("Fetched subscription plan on auth state change:", plan);
         setSubscriptionPlan(plan);
       } else {
         setSubscriptionPlan(null);
@@ -264,10 +264,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       cache: "no-store", // optional if you want fresh data always
     });
     if (!res.ok) {
+      setLoading(false);
       throw new Error("Failed to fetch subscription plan.");
     }
     const subscription = await res.json();
-    console.log("Fetched subscription:", subscription);
     return subscription;
   }
   const value = { 

@@ -1,9 +1,9 @@
-// /lib/subscriptions.ts
-import { firestore } from './firebase-admin';
+// src/lib/subscriptions.ts
+import { getDb } from './firebase-admin';
 
 export interface Subscription {
   user_id: string;
-  tier_id: 'plus' | 'pro'; // Added tier_id
+  tier_id: 'plus' | 'pro';
   subscription_id: string;
   store_id: number;
   customer_id: number;
@@ -30,7 +30,7 @@ export interface Subscription {
   updated_at: string;
   test_mode: boolean;
   cumulative_quantity: number;
-  last_processed_updated_at:string | null;
+  last_processed_updated_at: string | null;
   first_subscription_item: {
     id: number;
     subscription_id: number;
@@ -47,35 +47,38 @@ export interface Subscription {
   };
 }
 
+// Upserts from the webhook are often partials—require user_id always.
+type SubscriptionUpsert = Partial<Subscription> & { user_id: string };
 
-
-export async function createSubscription(sub: Subscription) {
-  
-  return firestore.collection('subscriptions').doc(sub.user_id).set(sub, { merge: true });
+/** Create (or merge) a subscription doc keyed by user_id */
+export async function createSubscription(sub: SubscriptionUpsert) {
+  const db = getDb();
+  return db.collection('subscriptions').doc(sub.user_id).set(sub, { merge: true });
 }
 
-export async function updateSubscription(sub: Subscription) {
-  return firestore.collection('subscriptions').doc(sub.user_id).set(sub, { merge: true });
+/** Update (merge) a subscription doc keyed by user_id */
+export async function updateSubscription(sub: SubscriptionUpsert) {
+  const db = getDb();
+  return db.collection('subscriptions').doc(sub.user_id).set(sub, { merge: true });
 }
 
-// This assumes lemonSqueezyId is not the doc ID, so we query for it:
+/** Delete by Lemon Squeezy subscription id (field is `subscription_id` in your schema) */
 export async function deleteSubscriptionByLemonSqueezyId(lemonSqueezyId: string) {
-  const subs = await firestore.collection('subscriptions').where('lemonSqueezyId', '==', lemonSqueezyId).get();
-  const batch = firestore.batch();
-  subs.forEach(doc => batch.delete(doc.ref));
+  const db = getDb();
+  const snap = await db.collection('subscriptions')
+    .where('subscription_id', '==', lemonSqueezyId)
+    .get();
+
+  if (snap.empty) return;
+
+  const batch = db.batch();
+  snap.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => batch.delete(doc.ref));
   return batch.commit();
 }
 
+/** Fast path: your docs are stored with docId = user_id, so fetch directly */
 export async function getSubscriptionByUserId(userId: string): Promise<Subscription | null> {
-  const snapshot = await firestore
-    .collection("subscriptions")
-    .where("user_id", "==", userId)
-    .limit(1)
-    .get();
-
-  if (snapshot.empty) return null;
-
-  // Convert Firestore doc to your Subscription type
-  const doc = snapshot.docs[0];
-  return { ...doc.data() } as Subscription;
+  const db = getDb();
+  const doc = await db.collection('subscriptions').doc(userId).get();
+  return doc.exists ? (doc.data() as Subscription) : null;
 }
