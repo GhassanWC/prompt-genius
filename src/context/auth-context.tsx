@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const handleSuccessfulSignIn = async (userCredential: any) => {
     if (userCredential.user) {
-        await createUserProfileDocument(userCredential.user);
+      await createUserProfileDocument(userCredential.user);
     }
     router.push('/dashboard');
   }
@@ -194,12 +194,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGithub = async () => {
     const provider = new GithubAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
+      const result:any = await signInWithPopup(auth, provider);
+      result.user.email = result._tokenResponse.email;
+      result.user.photoUrl = result._tokenResponse.photoURL;
       await handleSuccessfulSignIn(result);
     } catch (error: any) {
         if (error.code === 'auth/account-exists-with-different-credential') {
             throw new Error('This email is already linked to an account using a different sign-in method.');
         }
+        console.error("GitHub sign-in error:", error);
         throw new Error("We couldn't sign you in with GitHub. Please try again.");
     }
   };

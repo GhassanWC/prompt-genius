@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, MessageSquare, User as UserIcon, LayoutDashboard, Rocket, CreditCard, Loader2, PlusCircle, Crown } from 'lucide-react';
+import { LogOut, MessageSquare, User as UserIcon, LayoutDashboard, Rocket, CreditCard, KeyIcon, PlusCircle, Crown } from 'lucide-react';
 import { useState } from 'react';
 import { FeedbackDialog } from './feedback-dialog';
 import { useRouter } from 'next/navigation';
@@ -37,7 +37,7 @@ export function UserNav() {
 
   const handleManageSubscription = async () => {
     // This function is now just a convenient way to navigate
-    router.push('/profile');
+    router.push('/profile/subscription');
   }
 
   return (
@@ -76,13 +76,17 @@ export function UserNav() {
             <LayoutDashboard className="mr-2 h-4 w-4" />
             <span>Dashboard</span>
           </DropdownMenuItem>
-           <DropdownMenuItem onClick={() => router.push('/profile')}>
+           <DropdownMenuItem onClick={() => router.push('/profile/details')}>
             <UserIcon className="mr-2 h-4 w-4" />
             <span>Profile</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleManageSubscription}>
               <CreditCard className="mr-2 h-4 w-4" />
               <span>Subscription</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push('/profile/change-password')}>
+              <KeyIcon className="mr-2 h-4 w-4" />
+              <span>Change Password</span>
           </DropdownMenuItem>
            <DropdownMenuItem onClick={() => router.push('/community')}>
             <Rocket className="mr-2 h-4 w-4" />

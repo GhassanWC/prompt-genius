@@ -22,7 +22,6 @@ import {
   Trash2,
   Globe,
   Lock,
-  Rocket,
 } from "lucide-react";
 import { UserNav } from "@/components/user-nav";
 import { Logo } from "@/components/logo";
@@ -51,7 +50,6 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { getTier, Tier } from "@/lib/tiers";
 import { auth } from "@/lib/firebase";
-import { Subscription } from "@/lib/subscription-server";
 
 export default function DashboardPage() {
   const { user, loading: authLoading, subscriptionPlan } = useAuth();
@@ -66,7 +64,8 @@ export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [tier, setTier] = useState<Tier | null>(null);
-  const [userSubscriptionProjectCount, setUserSubscriptionProjectCount] = useState<number | null>(null);
+  const [userSubscriptionProjectCount, setUserSubscriptionProjectCount] =
+    useState<number | null>(null);
 
   const fetchProjects = useCallback(async () => {
     if (!user) return;
@@ -103,33 +102,29 @@ export default function DashboardPage() {
 
   const getUserSubscriptionProjectCount = async () => {
     const token = await auth.currentUser?.getIdToken();
-    const res = await fetch("/api/subscription/features?subscriptionProjectsCount=true", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    const res = await fetch(
+      "/api/subscription/features?subscriptionProjectsCount=true",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       }
-    });
+    );
     if (!res.ok) {
       throw new Error("Failed to fetch subscription plan.");
     }
-    const {count} = await res.json();
+    const { count } = await res.json();
 
     return count ?? 1;
-  }
+  };
 
   useEffect(() => {
     if (subscriptionPlan) {
       getTier(subscriptionPlan).then(setTier);
-     
     }
   }, [subscriptionPlan]);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, authLoading, router]);
 
   useEffect(() => {
     if (user) {
@@ -138,7 +133,7 @@ export default function DashboardPage() {
   }, [user, fetchProjects]);
 
   useEffect(() => {
-    if (user){
+    if (user) {
       getUserSubscriptionProjectCount().then(setUserSubscriptionProjectCount); // Refresh subscription details
     }
   }, [user]);
@@ -207,13 +202,25 @@ export default function DashboardPage() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          action: "updateProject",
+          action: "updateProjectVisibility",
           projectId,
           data: { isPublic: newVisibility },
         }),
       });
 
+      if (!res.ok && res.status === 402) {
+        const data = await res.json();
+        console.log("Failed to update visibility", data);
+        toast({
+          variant: "destructive",
+          title: "Update Failed",
+          description: data.error
+        });
+        return;
+      }
+
       if (!res.ok) {
+        console.log("Failed to update visibility", res);
         toast({
           variant: "destructive",
           title: "Update Failed",
@@ -286,7 +293,7 @@ export default function DashboardPage() {
           <h2 className="text-3xl sm:text-4xl font-bold font-headline bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
             My Projects
           </h2>
-          <Link href="/projects/new">
+          <Link href={atLimit ? "/dashboard" : "/projects/new"}>
             <Button
               disabled={atLimit}
               className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold px-6 py-3 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"

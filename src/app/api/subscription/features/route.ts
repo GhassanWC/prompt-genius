@@ -1,37 +1,54 @@
-export const runtime = 'nodejs'; 
+export const runtime = "nodejs";
 
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
-import { getSubscriptionByUserId } from '@/lib/subscription-server';
-import { getTier } from '@/lib/tiers-server';
-import { getProjectsForUser } from '@/lib/project-client';
-import { getSubscription } from '@/lib/subscriptions';
-import { getCurrentUserId } from '@/lib/auth';
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { getSubscriptionByUserId } from "@/lib/subscription-server";
+import { getTier } from "@/lib/tiers-server";
+import { getProjectsForUser } from "@/lib/project-client";
+import { getSubscription } from "@/lib/subscriptions";
+import { getCurrentUserId } from "@/lib/auth";
 
 type FeatureKey =
-  | 'projectLimit'
-  | 'fullPromptGeneration'
-  | 'publicProjects'
-  | 'communityAccess'
-  | 'aiPromptEnhancement'
-  | 'support';
+  | "projectLimit"
+  | "fullPromptGeneration"
+  | "publicProjects"
+  | "communityAccess"
+  | "aiPromptEnhancement"
+  | "support";
 
 interface Payload {
   userId: string;
   feature: FeatureKey;
 }
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const subscriptionProjectsCount = searchParams.get('subscriptionProjectsCount') === 'true';
-  
-  const userId = await requireUser();
+  try {
+    const { searchParams } = new URL(req.url);
+    const subscriptionProjectsCount =
+      searchParams.get("subscriptionProjectsCount") === "true";
 
-  if(subscriptionProjectsCount) {
-    if(!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+    const userId = await requireUser();
+
+    if (subscriptionProjectsCount) {
+      if (!userId) {
+        return NextResponse.json(
+          { error: "userId is required" },
+          { status: 400 }
+        );
+      }
+      const subscription = await getSubscription(userId);
+      if(subscription === null) {
+        return NextResponse.json({
+          count: 1,
+        });
+      }
+
+      return NextResponse.json({
+        count: subscription.cumulative_quantity,
+      });
     }
-    const projects = await getSubscription(userId);
-    return NextResponse.json({ count: projects.cumulative_quantity || 0 });
+  } catch (e: any) {
+    if (e?.message === '__unauthorized__') return NextResponse.json({ error: 'unauthorized' }, { status:401 });
+    return NextResponse.json({ error: 'unexpected error' }, { status:500 });
   }
 }
 
@@ -58,7 +75,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Feature checks (same logic, clearer guards)
     switch (feature) {
-      case 'projectLimit': {
+      case "projectLimit": {
         const projects = await getProjectsForUser(userId);
         if (projects.length >= (features.projectLimit ?? 0)) {
           return NextResponse.json({ enabled: false });
@@ -66,32 +83,32 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         break;
       }
 
-      case 'fullPromptGeneration':
+      case "fullPromptGeneration":
         if (features.fullPromptGeneration !== true) {
           return NextResponse.json({ enabled: false });
         }
         break;
 
-      case 'publicProjects':
+      case "publicProjects":
         if (features.publicProjects !== true) {
           return NextResponse.json({ enabled: false });
         }
         break;
 
-      case 'communityAccess':
+      case "communityAccess":
         if (features.communityAccess !== true) {
           return NextResponse.json({ enabled: false });
         }
         break;
 
-      case 'aiPromptEnhancement':
+      case "aiPromptEnhancement":
         if (features.aiPromptEnhancement !== true) {
           return NextResponse.json({ enabled: false });
         }
         break;
 
-      case 'support':
-        if (features.support !== 'priority') {
+      case "support":
+        if (features.support !== "priority") {
           return NextResponse.json({ enabled: false });
         }
         break;
@@ -107,6 +124,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 async function requireUser() {
   const uid = await getCurrentUserId();
-  if (!uid) throw new Error('__unauthorized__');
+  if (!uid) throw new Error("__unauthorized__");
   return uid;
 }

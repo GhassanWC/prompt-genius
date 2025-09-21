@@ -107,10 +107,13 @@ export default function ProjectPage() {
     setPrompts(prompts.map(p => p.id === promptId ? { ...p, isDone: newStatus } : p));
 
     try {
-      // await updatePromptStatus(user.uid, projectId, promptId, newStatus);
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch('/api/projects', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           action: 'updatePromptStatus',
           projectId,

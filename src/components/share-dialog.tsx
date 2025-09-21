@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Project, Role, Collaborator } from '@/lib/projects';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
+import { auth } from '@/lib/firebase';
 
 interface ShareDialogProps {
   open: boolean;
@@ -49,18 +50,22 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
         setIsLoading(true);
         setError(null);
         try {
+          const token = await auth.currentUser?.getIdToken();
           const userIds = Object.keys(project.roles);
           const res = await fetch('/api/projects', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
             body: JSON.stringify({ action: 'getUsers', userIds }),
           });
           if (!res.ok) {
             const errorData = await res.json();
             throw new Error(errorData.message || 'Failed to fetch user profiles.');
           }
-          const userProfiles = await res.json();
-          
+          const data = await res.json();
+          const userProfiles = data.userProfiles as Collaborator[];
           const collaboratorData = userProfiles.map((profile: any) => ({
             ...profile,
             role: project.roles[profile.uid],
@@ -104,10 +109,14 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
     setIsInviting(true);
     setError(null);
     try {
-      const url = `$/api/projects?action=findUserByEmail&email=${encodeURIComponent(inviteEmail)}`;
+      const token = await auth.currentUser?.getIdToken();
+      const url = `/api/projects?action=findUserByEmail&email=${encodeURIComponent(inviteEmail)}`;
       const res = await fetch(url, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         cache: 'no-store',
       });
       if (res.status === 404) {
@@ -117,14 +126,15 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
         const errorData = await res.json();
         throw new Error(errorData.message || 'Failed to find user.');
       }
-      const userToInvite = await res.json();
-      if (!userToInvite) {
+      const data = await res.json();
+      if (!data.userToInvite) {
         throw new Error("User with that email address not found.");
       }
+      const userToInvite = data.userToInvite as Collaborator;
       if (roles[userToInvite.uid]) {
         throw new Error("This user is already a collaborator on the project.");
       }
-
+     
       // Optimistically update UI
       setCollaborators(prev => [...prev, { ...userToInvite, role: 'viewer' }]);
       setRoles(prev => ({ ...prev, [userToInvite.uid]: 'viewer' }));
@@ -141,11 +151,27 @@ export function ShareDialog({ open, onOpenChange, project, currentUser, onRolesC
     setIsSaving(true);
     setError(null);
     try {
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch('/api/projects', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ action: 'updateSettings', projectId:project.id, settings:{ roles, isPublic } }),
       });
+
+      if (!res.ok && res.status === 402) {
+        const data = await res.json();
+        console.log("Failed to update visibility", data);
+        toast({
+          variant: "destructive",
+          title: "Update Failed",
+          description: data.error
+        });
+        return;
+      }
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || 'Failed to save project settings.');

@@ -19,6 +19,8 @@ import {
   getPublicProjects,
   getUserSubscriptionPlan,
   getUserSubscriptionPlanUrl,
+  findUserByEmail,
+  getUsers,
 } from '@/lib/project-server';
 import { getSubscriptionByUserId } from '@/lib/subscription-server';
 
@@ -47,6 +49,7 @@ async function requireUser() {
  * - /api/projects?public=true&count=12           -> latest public projects (community feed)
  * - /api/projects?subscriptionPlan=true          -> current user’s plan
  * - /api/projects?subscriptionUrl=true          -> current user’s plan
+ * - /api/projects?action=findUserByEmail&email=email   -> find user by email (admin only) (not implemented yet)
  */
 export async function GET(req: NextRequest) {
   try {
@@ -56,6 +59,8 @@ export async function GET(req: NextRequest) {
     const wantPrompts = searchParams.get('prompts') === 'true';
     const planOnly = searchParams.get('subscriptionPlan') === 'true';
     const planUrlOnly = searchParams.get('subscriptionUrl') === 'true';
+    const action = searchParams.get('action') === 'findUserByEmail';
+
 
     if (publicFeed) {
       const count = Number(searchParams.get('count') ?? 12);
@@ -64,6 +69,12 @@ export async function GET(req: NextRequest) {
     }
 
     const uid = await requireUser();
+
+    if (action) {
+      const email = String(searchParams.get('email') ?? '');
+      const userToInvite = await findUserByEmail(email);
+      return NextResponse.json({ userToInvite });
+    }
 
     if (planOnly) {
       const plan = await getUserSubscriptionPlan(uid);
@@ -99,7 +110,8 @@ export async function GET(req: NextRequest) {
  * Body actions:
  * - { action: "createProject", projectName, plan }                -> returns { projectId }
  * - { action: "addPrompt", projectId, prompt }                    -> returns { promptId }
- * - { action: "generateImage", projectId, idea }                  -> returns { ok: true }
+ * - { action: "generateImage", projectId, idea }      
+ * - { action: "getUsers", userIds}            -> returns { ok: true }
  */
 export async function POST(req: NextRequest) {
   try {
@@ -142,6 +154,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
+      case 'getUsers': {
+        const { userIds } = body;
+        if (!userIds) return jsonError('userIds are required');
+        const userProfiles = await getUsers(userIds);
+        return NextResponse.json({ ok: true, userProfiles });
+      }
+
       default:
         return jsonError('Unsupported action for POST', 400);
     }
@@ -174,6 +193,17 @@ export async function PATCH(req: NextRequest) {
         await updateProject(uid, projectId, data);
         return NextResponse.json({ ok: true });
       }
+      case 'updateProjectVisibility': {
+        const userSubscription = await getSubscriptionByUserId(uid);
+        if(userSubscription?.status !== "active") {
+          return jsonError('Updating project visibility is available for Plus and Pro plans only. Please upgrade your plan.', 402);
+        }
+
+        const { projectId, data } = body;
+        if (!projectId || !data) return jsonError('projectId and data are required');
+        await updateProject(uid, projectId, data);
+        return NextResponse.json({ ok: true });
+      }
 
       case 'updatePrompt': {
         const { projectId, promptId, data } = body;
@@ -199,6 +229,11 @@ export async function PATCH(req: NextRequest) {
       }
 
       case 'updateSettings': {
+        const userSubscription = await getSubscriptionByUserId(uid);
+        if(userSubscription?.status !== "active") {
+          return jsonError('Updating project public Projects & Sharing are available for Plus and Pro plans only. Please upgrade your plan.', 402);
+        }
+
         const { projectId, settings } = body;
         if (!projectId || !settings) return jsonError('projectId and settings are required');
         await updateProjectSettings(uid, projectId, settings);
