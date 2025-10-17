@@ -4,7 +4,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
 import { AlertTriangle } from 'lucide-react';
-
+import { SpeedInsights } from "@vercel/speed-insights/next"
 export const metadata: Metadata = {
   title: 'Prompt Genius AI',
   description: 'Decompose your big ideas into actionable prompts.',
@@ -90,6 +90,7 @@ export default function RootLayout({
         {isConfigured ? (
             <AuthProvider>
               {children}
+              <SpeedInsights/>
               <Toaster />
             </AuthProvider>
         ) : (
