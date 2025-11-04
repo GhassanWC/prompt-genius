@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/auth-context';
@@ -14,133 +13,211 @@ import { UserNav } from '@/components/user-nav';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getTier, Tier } from '@/lib/tiers';
 
 function getInitials(name: string | null | undefined) {
-    if (!name) return 'A';
-    return name.charAt(0).toUpperCase();
+  if (!name) return 'A';
+  return name.charAt(0).toUpperCase();
 }
 
 function AccessDenied() {
   return (
-      <div className="max-w-2xl mx-auto">
-          <Card className="text-center p-8 border-primary/20 shadow-lg">
-              <CardContent className="p-0">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 mb-6">
-                    <Lock className="h-8 w-8 text-primary" />
-                  </div>
-                  <h2 className="font-headline text-2xl font-bold text-foreground">
-                      Exclusive Feature
-                  </h2>
-                  <p className="mt-2 text-muted-foreground">
-                      Access to the community showcase is available for Plus and Pro members.
-                  </p>
-                  <Link href="/#pricing">
-                      <Button className="mt-6">
-                          <Rocket className="mr-2 h-4 w-4" />
-                          Upgrade Your Plan
-                      </Button>
-                  </Link>
-              </CardContent>
-          </Card>
-      </div>
+    <div className="max-w-2xl mx-auto">
+      <Card className="text-center p-8 border-primary/20 shadow-lg">
+        <CardContent className="p-0">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 mb-6">
+            <Lock className="h-8 w-8 text-primary" />
+          </div>
+          <h2 className="font-headline text-2xl font-bold text-foreground">
+            Exclusive Feature
+          </h2>
+          <p className="mt-2 text-muted-foreground">
+            Access to the community showcase is available for Plus and Pro members.
+          </p>
+          <Link href="/#pricing">
+            <Button className="mt-6">
+              <Rocket className="mr-2 h-4 w-4" />
+              Upgrade Your Plan
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
+const PAGE_SIZE = 12; // tune as you like
 
 export default function CommunityPage() {
   const { user, subscriptionPlan, loading: authLoading } = useAuth();
-  const [publicProjects, setPublicProjects] = useState<Project[]>([]);
-  const [loadingProjects, setLoadingProjects] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [tier, setTier] = useState<Tier | null>(null);
 
-  const canAccessCommunity = useMemo(() => {
-    return tier?.features.communityAccess === true;
-  }, [tier]);
-  
+  const [tier, setTier] = useState<Tier | null>(null);
+  const canAccessCommunity = useMemo(
+    () => tier?.features.communityAccess === true,
+    [tier]
+  );
+
+  // Data + lazy loading state
+  const [publicProjects, setPublicProjects] = useState<Project[]>([]);
+  const [loadingInitial, setLoadingInitial] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+
+  // Search remains client-side
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // sentinel ref for IntersectionObserver
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
   useEffect(() => {
     const fetchTierInfo = async () => {
       if (subscriptionPlan) {
         const tierData = await getTier(subscriptionPlan);
         setTier(tierData);
+      } else {
+        setTier(null);
       }
     };
     fetchTierInfo();
   }, [subscriptionPlan]);
 
+  // Reset list when access toggles (or page reload)
   useEffect(() => {
-    if (canAccessCommunity) {
-      const fetchPublicProjects = async () => {
-        setLoadingProjects(true);
-        try {
-          const res = await fetch('/api/projects?public=true&count=50');
-          if (!res.ok) {
-            throw new Error(`HTTP error ${res.status}`);
-          }
-          const {projects} = await res.json();
-          setPublicProjects(projects);
-        } catch (error) {
-          console.error("Failed to fetch public projects:", error);
-        } finally {
-          setLoadingProjects(false);
-        }
-      };
-      fetchPublicProjects();
-    } else {
-        setLoadingProjects(false);
+    if (!canAccessCommunity) {
+      setPublicProjects([]);
+      setHasMore(false);
+      setLoadingInitial(false);
+      return;
     }
+
+    const loadFirstPage = async () => {
+      setLoadingInitial(true);
+      try {
+        const res = await fetch(
+          `/api/projects?public=true&count=${PAGE_SIZE}`,
+          { cache: 'no-store' }
+        );
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        const { projects, nextCursor: cursor } = await res.json();
+        setPublicProjects(projects || []);
+        setNextCursor(cursor || null);
+        setHasMore(Boolean(cursor));
+      } catch (e) {
+        console.error('Failed to fetch first page:', e);
+        setPublicProjects([]);
+        setNextCursor(null);
+        setHasMore(false);
+      } finally {
+        setLoadingInitial(false);
+      }
+    };
+
+    loadFirstPage();
   }, [canAccessCommunity]);
-  
-  const filteredProjects = useMemo(() => {
-    if (!searchTerm) {
-      return publicProjects;
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loadingMore || !canAccessCommunity) return;
+    if (!nextCursor) return;
+
+    setLoadingMore(true);
+    try {
+      const res = await fetch(
+        `/api/projects?public=true&count=${PAGE_SIZE}&cursor=${encodeURIComponent(
+          nextCursor
+        )}`,
+        { cache: 'no-store' }
+      );
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+      const { projects: more, nextCursor: cursor } = await res.json();
+      setPublicProjects((prev) => [...prev, ...(more || [])]);
+      setNextCursor(cursor || null);
+      setHasMore(Boolean(cursor));
+    } catch (e) {
+      console.error('Failed to fetch more projects:', e);
+    } finally {
+      setLoadingMore(false);
     }
-    const lowercasedTerm = searchTerm.toLowerCase();
-    return publicProjects.filter(project => 
-      project.name.toLowerCase().includes(lowercasedTerm) || 
-      project.idea.toLowerCase().includes(lowercasedTerm)
+  }, [hasMore, loadingMore, nextCursor, canAccessCommunity]);
+
+  // IntersectionObserver to trigger loadMore
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+
+    observerRef.current?.disconnect();
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: '300px 0px' } // start a bit early
+    );
+
+    observerRef.current.observe(sentinelRef.current);
+
+    return () => observerRef.current?.disconnect();
+  }, [loadMore]);
+
+  const filteredProjects = useMemo(() => {
+    if (!searchTerm) return publicProjects;
+    const lower = searchTerm.toLowerCase();
+    return publicProjects.filter(
+      (p) =>
+        p.name.toLowerCase().includes(lower) ||
+        p.idea.toLowerCase().includes(lower)
     );
   }, [searchTerm, publicProjects]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 text-slate-900 relative overflow-x-hidden">
-      {/* Enhanced animated background */}
+      {/* Background blobs */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] bg-gradient-to-br from-blue-300/40 via-indigo-300/30 to-purple-300/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-[-20%] right-[-15%] w-[50vw] h-[50vw] bg-gradient-to-tl from-purple-300/30 via-pink-300/20 to-indigo-300/10 rounded-full blur-3xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-gradient-to-r from-cyan-200/20 to-blue-200/15 rounded-full blur-2xl animate-pulse delay-500" />
       </div>
 
-      {/* Modern header with glassmorphism */}
+      {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/70 backdrop-blur-xl shadow-lg shadow-black/5">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-0 font-bold group">
+          <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-0 font-bold group">
             <Image
               src="/logo.png"
               alt="Prompt Genius Logo"
               width={60}
               height={60}
-             className='ml-1 mr-1'
+              className="ml-1 mr-1"
             />
             <h1 className="font-headline text-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hidden sm:block">
               Prompt Genius AI
             </h1>
           </Link>
-          {user ? <UserNav /> : <Link href="/login"><Button className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg shadow-indigo-500/25 active:scale-95 transition-all duration-200 font-medium px-6 py-2 rounded-full">Sign In</Button></Link>}
+          {user ? (
+            <UserNav />
+          ) : (
+            <Link href="/login">
+              <Button className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg shadow-indigo-500/25 active:scale-95 transition-all duration-200 font-medium px-6 py-2 rounded-full">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </div>
       </header>
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="mb-8">
-          <Link href={user ? "/dashboard" : "/"} className="inline-flex items-center text-sm text-slate-600 hover:text-indigo-600 transition-all duration-200 font-medium group">
+          <Link
+            href={user ? '/dashboard' : '/'}
+            className="inline-flex items-center text-sm text-slate-600 hover:text-indigo-600 transition-all duration-200 font-medium group"
+          >
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             {user ? 'Back to Dashboard' : 'Back to Home'}
           </Link>
         </div>
 
-        {/* Enhanced hero section */}
         <div className="text-center mb-12 sm:mb-16">
           <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
             Community Spotlight
@@ -176,7 +253,7 @@ export default function CommunityPage() {
           <AccessDenied />
         ) : (
           <>
-            {/* Enhanced search section */}
+            {/* Search */}
             <div className="max-w-2xl mx-auto mb-12 sm:mb-16">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
@@ -190,9 +267,10 @@ export default function CommunityPage() {
               </div>
             </div>
 
-            {loadingProjects ? (
+            {/* Grid */}
+            {loadingInitial ? (
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 6 }).map((_, i) => (
+                {Array.from({ length: PAGE_SIZE }).map((_, i) => (
                   <Card key={i} className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-lg overflow-hidden">
                     <div className="w-full h-48 bg-gradient-to-br from-slate-200 to-slate-300 rounded-t-2xl animate-pulse" />
                     <CardContent className="pt-6">
@@ -210,52 +288,82 @@ export default function CommunityPage() {
                 ))}
               </div>
             ) : filteredProjects.length > 0 ? (
-              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {filteredProjects.map((project) => (
-                  <Link href={`/projects/${project.id}`} key={project.id} className="group block">
-                    <Card className="h-full flex flex-col overflow-hidden transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/20 hover:border-indigo-200 bg-white/90 backdrop-blur-xl border border-white/50 rounded-2xl">
-                      <div className="relative w-full h-48 bg-gradient-to-br from-indigo-100 to-purple-100">
-                        {project.imageUrl ? (
-                          <Image src={project.imageUrl} alt={project.name} fill className="object-cover rounded-t-2xl" />
-                        ) : (
-                          <div className="flex items-center justify-center h-full">
-                            <Logo className="h-16 w-16 text-indigo-300" />
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent rounded-t-2xl" />
-                        <CardTitle className="font-headline text-xl sm:text-2xl text-white absolute bottom-4 left-4 right-4 font-bold">{project.name}</CardTitle>
-                      </div>
-                      <div className="p-6 flex-grow flex flex-col">
-                        <p className="text-sm sm:text-base text-slate-600 line-clamp-3 flex-grow font-medium leading-relaxed">{project.idea}</p>
-                        <div className="mt-6 text-sm font-semibold text-indigo-600 flex items-center group-hover:text-indigo-700 transition-colors duration-200">
-                          View Project <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              <>
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredProjects.map((project) => (
+                    <Link href={`/projects/${project.id}`} key={project.id} className="group block">
+                      <Card className="h-full flex flex-col overflow-hidden transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/20 hover:border-indigo-200 bg-white/90 backdrop-blur-xl border border-white/50 rounded-2xl">
+                        <div className="relative w-full h-48 bg-gradient-to-br from-indigo-100 to-purple-100">
+                          {project.imageUrl ? (
+                            <Image
+                              src={project.imageUrl}
+                              alt={project.name}
+                              fill
+                              className="object-cover rounded-t-2xl"
+                              // Next/Image is lazy by default (no priority set)
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <Logo className="h-16 w-16 text-indigo-300" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent rounded-t-2xl" />
+                          <CardTitle className="font-headline text-xl sm:text-2xl text-white absolute bottom-4 left-4 right-4 font-bold">
+                            {project.name}
+                          </CardTitle>
                         </div>
-                      </div>
-                      <CardFooter className="border-t border-white/50 pt-4 px-6 pb-6">
-                        {project.author && (
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 ring-2 ring-indigo-100 group-hover:ring-indigo-300 transition-all duration-300">
-                              <AvatarImage src={project.author.photoURL || undefined} />
-                              <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-semibold">
-                                {getInitials(project.author.displayName)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm text-slate-500 font-medium">By {project.author.displayName}</span>
+                        <div className="p-6 flex-grow flex flex-col">
+                          <p className="text-sm sm:text-base text-slate-600 line-clamp-3 flex-grow font-medium leading-relaxed">
+                            {project.idea}
+                          </p>
+                          <div className="mt-6 text-sm font-semibold text-indigo-600 flex items-center group-hover:text-indigo-700 transition-colors duration-200">
+                            View Project <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                           </div>
-                        )}
-                      </CardFooter>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
+                        </div>
+                        <CardFooter className="border-t border-white/50 pt-4 px-6 pb-6">
+                          {project.author && (
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10 ring-2 ring-indigo-100 group-hover:ring-indigo-300 transition-all duration-300">
+                                <AvatarImage src={project.author.photoURL || undefined} />
+                                <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-semibold">
+                                  {getInitials(project.author.displayName)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm text-slate-500 font-medium">
+                                By {project.author.displayName}
+                              </span>
+                            </div>
+                          )}
+                        </CardFooter>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Infinite scroll sentinel + loader */}
+                <div ref={sentinelRef} className="h-12 w-full mt-8 flex items-center justify-center">
+                  {loadingMore && (
+                    <div className="flex gap-2">
+                      <Skeleton className="h-4 w-4 rounded-full" />
+                      <Skeleton className="h-4 w-4 rounded-full" />
+                      <Skeleton className="h-4 w-4 rounded-full" />
+                    </div>
+                  )}
+                  {!hasMore && (
+                    <p className="text-sm text-slate-500">You’ve reached the end.</p>
+                  )}
+                </div>
+              </>
             ) : (
               <div className="text-center py-20 border-2 border-dashed border-indigo-200 rounded-3xl bg-white/60 backdrop-blur-xl">
                 <Search className="mx-auto h-16 w-16 text-indigo-300" />
                 <h3 className="mt-6 text-2xl font-bold text-slate-800">No Projects Found</h3>
-                <p className="mt-3 text-slate-600 font-medium">Your search for "{searchTerm}" did not match any projects.</p>
-                <Button 
-                  variant="outline" 
-                  className="mt-8 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border-2 border-indigo-200 text-indigo-700 font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:shadow-lg" 
+                <p className="mt-3 text-slate-600 font-medium">
+                  Your search for "{searchTerm}" did not match any projects.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-8 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border-2 border-indigo-200 text-indigo-700 font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:shadow-lg"
                   onClick={() => setSearchTerm('')}
                 >
                   Clear Search

@@ -21,10 +21,12 @@ import {
   getUserSubscriptionPlanUrl,
   findUserByEmail,
   getUsers,
+  getPublicProjectsPage,
 } from '@/lib/project-server';
 import { getSubscriptionByUserId } from '@/lib/subscription-server';
-
 type Json = Record<string, any>;
+
+
 
 // If you prefer Node.js runtime explicitly:
 // export const runtime = 'nodejs';
@@ -38,6 +40,7 @@ async function requireUser() {
   if (!uid) throw new Error('__unauthorized__');
   return uid;
 }
+
 
 /**
  * GET /api/projects
@@ -64,8 +67,9 @@ export async function GET(req: NextRequest) {
 
     if (publicFeed) {
       const count = Number(searchParams.get('count') ?? 12);
-      const projects = await getPublicProjects(count);
-      return NextResponse.json({ projects });
+      const cursor = searchParams.get('cursor'); // optional
+      const page = await getPublicProjectsPage(count, cursor);
+      return NextResponse.json(page); // -> { projects, nextCursor }
     }
 
     const uid = await requireUser();
@@ -103,7 +107,6 @@ export async function GET(req: NextRequest) {
     return jsonError('Unexpected error', 500);
   }
 }
-
 /**
  * POST /api/projects
  *

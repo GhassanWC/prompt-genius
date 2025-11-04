@@ -12,7 +12,7 @@ export function getAdminApp(): App {
   if (getApps().length) return (cachedApp = getApps()[0]);
 
   // Prefer Application Default Credentials (no env keys needed on App Hosting)
-  const pj = process.env.FIREBASE_PROJECT_ID ?? process.env.GCLOUD_PROJECT ?? process.env.GCP_PROJECT;
+  const pj = process.env.FIREBASE_PROJECT_ID;
   const ce = process.env.FIREBASE_CLIENT_EMAIL;
   let pk = process.env.FIREBASE_PRIVATE_KEY;
 

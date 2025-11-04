@@ -3,7 +3,7 @@ import 'server-only';
 import { randomUUID } from 'crypto';
 
 import { getAdminApp, getDb } from '@/lib/firebase-admin';
-import { FieldValue, FieldPath } from 'firebase-admin/firestore';
+import { FieldValue, FieldPath, Timestamp } from 'firebase-admin/firestore';
 
 import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
 import { generateImage } from '@/ai/flows/generate-image';
@@ -428,6 +428,7 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
 
 export const getUserSubscriptionPlan = async (userId: string): Promise<SubscriptionPlan> => {
   const subscription = await getSubscriptionByUserId(userId);
+
   if (!subscription || subscription.status !== 'active') return 'free';
   return (subscription.tier_id as SubscriptionPlan) || 'free';
 };
@@ -437,3 +438,91 @@ export const getUserSubscriptionPlanUrl = async (userId: string): Promise<string
   if (!subscription || subscription.status !== 'active') return '';
   return subscription.urls.customer_portal || '';
 };
+
+
+export type PublicProject = {
+  id: string;
+  name: string;
+  idea: string;
+  imageUrl?: string;
+  author?: { displayName: string; photoURL?: string };
+  createdAt?: string | null; // ISO
+  [k: string]: any;
+};
+
+type Page = { projects: Project[]; nextCursor: string | null };
+
+function tsFromCursor(raw?: string | null): Timestamp | null {
+  if (!raw) return null;
+  const n = Number(raw);
+  const ms = Number.isNaN(n) ? Date.parse(raw) : n;
+  if (Number.isNaN(ms)) return null;
+  return Timestamp.fromMillis(ms);
+}
+
+export async function getPublicProjectsPage(count = 12, cursor?: string | null): Promise<Page> {
+  const db = getDb();
+
+  let q: FirebaseFirestore.Query = db
+    .collection('projects')
+    .where('isPublic', '==', true)
+    .orderBy('createdAt', 'desc')
+    .limit(Math.max(1, Math.min(50, count)));
+
+  const ts = tsFromCursor(cursor);
+  if (ts) q = q.startAfter(ts); // Admin SDK accepts field value matching orderBy
+  const snap = await q.get();
+
+  const projectsSnap = await q.get();
+    const projects: (Project & {
+      author?: { displayName: string; photoURL: string | null };
+    })[] = projectsSnap.docs.map((d:any) => {
+      const data: any = d.data();
+      console.log(data);
+      return {
+        id: d.id,
+        name: data.name || 'Untitled Project',
+        idea: data.idea || '',
+        imageUrl: data.imageUrl || null,
+        isPublic: !!data.isPublic,
+        createdAt: tsToDate(data.createdAt),
+        roles: data.roles || {},
+        members: data.members || {},
+      };
+    });
+
+    if (projects.length === 0) return { projects, nextCursor:null };
+
+    const ownerUids = projects
+      .map((p) => Object.keys(p.roles || {}).find((uid) => (p.roles as any)[uid] === 'owner'))
+      .filter(Boolean) as string[];
+
+    if (ownerUids.length > 0) {
+      const unique = Array.from(new Set(ownerUids));
+      const chunk = <T>(arr: T[], size: number) =>
+        arr.reduce<T[][]>((a, _, i) => (i % size ? a : [...a, arr.slice(i, i + size)]), []);
+      const chunks = chunk(unique, 10);
+
+      const ownerMap = new Map<string, any>();
+      for (const ids of chunks) {
+        const snap = await col('users').where(FieldPath.documentId(), 'in', ids).get();
+        snap.docs.forEach((d:any) => ownerMap.set(d.id, d.data()));
+      }
+
+      projects.forEach((p) => {
+        const ownerUid = Object.keys(p.roles || {}).find((uid) => (p.roles as any)[uid] === 'owner');
+        if (ownerUid && ownerMap.has(ownerUid)) {
+          const od = ownerMap.get(ownerUid);
+          (p as any).author = {
+            displayName: od?.displayName || od?.email || 'Anonymous',
+            photoURL: od?.photoURL || null,
+          };
+        }
+      });
+    }
+  const last = snap.docs[snap.docs.length - 1];
+  const lastCreated: Timestamp | undefined = last?.get('createdAt');
+  const nextCursor = lastCreated ? String(lastCreated.toMillis()) : null;
+
+  return { projects, nextCursor };
+}
