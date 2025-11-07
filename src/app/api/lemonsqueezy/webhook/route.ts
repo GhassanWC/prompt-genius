@@ -10,7 +10,7 @@ import {
   createSubscription,
   getSubscriptionByUserId,
 } from "@/lib/subscription-server";
-
+import { addMonths, isEqual } from "date-fns";
 const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET ?? "";
 
 /* -------------------- utils -------------------- */
@@ -106,25 +106,14 @@ export async function POST(req: NextRequest) {
         break;
 
       case "subscription_updated":
-        if (stored.subscription_id !== subscriptionId && status === "active") {
+        if (status === "active" && 
+            !isEqual(attrs.renews_at, stored.renews_at)) {
           await updateSubscription({
             ...base,
             cumulative_quantity: stored.cumulative_quantity + (quantity > 0 ? quantity : 0),
           });
         }
         break;
-
-      case "subscription_renewed": {
-        const newRenewsAt = new Date(base.renews_at).getTime();
-        const oldRenewsAt = stored.renews_at ? new Date(stored.renews_at).getTime() : 0;
-        if (newRenewsAt > oldRenewsAt && status === "active") {
-          await updateSubscription({
-            ...base,
-            cumulative_quantity: stored.cumulative_quantity + (quantity > 0 ? quantity : 0),
-          });
-        }
-        break;
-      }
 
       case "subscription_cancelled":
       case "subscription_expired":
