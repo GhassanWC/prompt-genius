@@ -107,7 +107,8 @@ export async function POST(req: NextRequest) {
 
       case "subscription_updated":
         if (status === "active" && 
-            !isEqual(attrs.renews_at, stored.renews_at)) {
+            !isEqual(attrs.renews_at, stored.renews_at)
+          && attrs.variant_name === stored.variant_name) {
           await updateSubscription({
             ...base,
             cumulative_quantity: stored.cumulative_quantity + (quantity > 0 ? quantity : 0),
