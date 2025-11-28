@@ -50,6 +50,8 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         id: doc.id,
         name: data.name || 'Untitled Project',
         idea: data.idea || '',
+        aiRole: data.aiRole || undefined,
+        summary: data.summary || undefined,
         imageUrl: data.imageUrl,
         isPublic: data.isPublic || false,
         createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
@@ -85,11 +87,13 @@ export const getProject = async (userId: string | null, projectId: string): Prom
             id: docSnap.id,
             name: data.name || 'Untitled Project',
             idea: data.idea || '',
+            aiRole: data.aiRole || undefined,
+            summary: data.summary || undefined,
             isPublic: data.isPublic,
             imageUrl: data.imageUrl,
             createdAt: (data.createdAt as Timestamp) ? (data.createdAt as Timestamp).toDate() : new Date(),
             roles: data.roles,
-                         members: data.members || {},
+            members: data.members || {},
             clarificationSteps: data.clarificationSteps,
         };
 
@@ -157,6 +161,8 @@ export const createProjectWithPrompts = async (
   batch.set(projectDocRef, {
     name: projectName,
     idea: plan.enhancedIdea,
+    aiRole: (plan as any).aiRole || undefined,
+    summary: undefined,
     isPublic: false, // Projects are private by default
     clarificationSteps: plan.clarificationSteps || [],
     imageUrl: null,
@@ -373,6 +379,8 @@ export const getPublicProjects = async (count: number): Promise<Project[]> => {
         id: doc.id,
         name: data.name || 'Untitled Project',
         idea: data.idea || '',
+        aiRole: data.aiRole || undefined,
+        summary: data.summary || undefined,
         imageUrl: data.imageUrl,
         isPublic: data.isPublic,
         createdAt: (data.createdAt as Timestamp).toDate(),

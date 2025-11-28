@@ -9,13 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import type { Project } from "@/lib/projects";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
+import { enhanceAiRole } from "@/ai/flows/enhance-ai-role";
 
 interface ProjectEditDialogProps {
-  project: Pick<Project, 'name' | 'idea'> | null;
+  project: Pick<Project, 'name' | 'idea' | 'aiRole' | 'summary'> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (data: { name: string, idea: string }) => Promise<void>;
+  onSave: (data: { name: string; idea: string; aiRole: string; summary: string }) => Promise<void>;
   isReadOnly?: boolean;
 }
 
@@ -23,16 +24,23 @@ export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadO
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [idea, setIdea] = useState('');
+  const [aiRole, setAiRole] = useState('');
+  const [summary, setSummary] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isEnhancingRole, setIsEnhancingRole] = useState(false);
   
   useEffect(() => {
     if (open && project) {
       setName(project.name || '');
       setIdea(project.idea || '');
+      setAiRole(project.aiRole || '');
+      setSummary(project.summary || '');
     } else if (!open) {
       // Reset form when dialog is closed
       setName('');
       setIdea('');
+      setAiRole('');
+      setSummary('');
       setIsSaving(false);
     }
   }, [project, open]);
@@ -50,7 +58,7 @@ export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadO
     
     setIsSaving(true);
     try {
-        await onSave({ name, idea });
+        await onSave({ name, idea, aiRole, summary });
         onOpenChange(false);
     } catch (e) {
         // Error toast is handled by the parent component's catch block
@@ -59,21 +67,138 @@ export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadO
     }
   }
 
+  const handleEnhanceRole = async () => {
+    if (isReadOnly) return;
+    if (!aiRole.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Cannot Enhance",
+        description: "Please enter an AI role before enhancing.",
+      });
+      return;
+    }
+
+    setIsEnhancingRole(true);
+    try {
+      const result = await enhanceAiRole({ role: aiRole });
+      setAiRole(result.enhancedRole);
+      toast({
+        title: "AI Role Enhanced",
+        description: "The persona has been refined for better use with your builder.",
+      });
+    } catch (error: any) {
+      console.error("Error enhancing AI role:", error);
+      toast({
+        variant: "destructive",
+        title: "Enhancement Failed",
+        description: error?.message || "Could not enhance the AI role. Please try again.",
+      });
+    } finally {
+      setIsEnhancingRole(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Edit Project Details</DialogTitle>
-          <DialogDescription>Update your project's name and original idea.</DialogDescription>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Keep your project name, AI role, and original idea in sync. Changes here update what you see on the
+            project page and what gets copied with &quot;Copy All&quot;.
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="project-name" className="text-right">Project Name</Label>
-            <Input id="project-name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" placeholder="e.g., Coffee Finder App" disabled={isReadOnly} />
+        <div className="space-y-6 py-4">
+          {/* Project name */}
+          <div className="space-y-2">
+            <Label htmlFor="project-name" className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-500">
+              Project Name
+            </Label>
+            <Input
+              id="project-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-11 text-base"
+              placeholder="e.g., Prompt Genius AI"
+              disabled={isReadOnly}
+            />
           </div>
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="project-idea" className="text-right pt-2">Project Idea</Label>
-            <Textarea id="project-idea" value={idea} onChange={(e) => setIdea(e.target.value)} className="col-span-3 min-h-[240px]" placeholder="Describe your big idea..." disabled={isReadOnly} />
+
+          {/* AI Role / persona */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label
+                htmlFor="project-ai-role"
+                className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-500"
+              >
+                AI Role (persona)
+              </Label>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-slate-400 hidden sm:inline">
+                  This is the first thing your AI builder will read.
+                </span>
+                {!isReadOnly && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-full border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 bg-white"
+                    onClick={handleEnhanceRole}
+                    disabled={isEnhancingRole}
+                  >
+                    {isEnhancingRole ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+            <Textarea
+              id="project-ai-role"
+              value={aiRole}
+              onChange={(e) => setAiRole(e.target.value)}
+              className="min-h-[220px] font-mono text-xs sm:text-sm leading-relaxed resize-y"
+              placeholder="You are an expert full‑stack web developer, proficient in..."
+              disabled={isReadOnly}
+            />
+          </div>
+
+          {/* Project idea */}
+          <div className="space-y-2">
+            <Label
+              htmlFor="project-idea"
+              className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-500"
+            >
+              Project Idea
+            </Label>
+            <Textarea
+              id="project-idea"
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+              className="min-h-[200px] text-sm sm:text-base leading-relaxed resize-y"
+              placeholder="Describe the problem you want to solve, who it is for, and the core features..."
+              disabled={isReadOnly}
+            />
+          </div>
+
+          {/* Project summary */}
+          <div className="space-y-2">
+            <Label
+              htmlFor="project-summary"
+              className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-500"
+            >
+              Project Summary (shown under AI role &amp; idea)
+            </Label>
+            <Textarea
+              id="project-summary"
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              className="min-h-[140px] text-sm sm:text-base leading-relaxed resize-y"
+              placeholder="Optional: summarize the project idea, key features, and how the AI should use the prompts to implement it."
+              disabled={isReadOnly}
+            />
           </div>
         </div>
         <DialogFooter>

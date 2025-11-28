@@ -22,6 +22,7 @@ import {
   findUserByEmail,
   getUsers,
   getPublicProjectsPage,
+  cloneProjectForUser,
 } from '@/lib/project-server';
 import { getSubscriptionByUserId } from '@/lib/subscription-server';
 type Json = Record<string, any>;
@@ -113,8 +114,9 @@ export async function GET(req: NextRequest) {
  * Body actions:
  * - { action: "createProject", projectName, plan }                -> returns { projectId }
  * - { action: "addPrompt", projectId, prompt }                    -> returns { promptId }
- * - { action: "generateImage", projectId, idea }      
- * - { action: "getUsers", userIds}            -> returns { ok: true }
+ * - { action: "generateImage", projectId, idea }
+ * - { action: "getUsers", userIds }                               -> returns { ok: true }
+ * - { action: "cloneProject", sourceProjectId }                   -> returns { cloneProjectId }
  */
 export async function POST(req: NextRequest) {
   try {
@@ -162,6 +164,13 @@ export async function POST(req: NextRequest) {
         if (!userIds) return jsonError('userIds are required');
         const userProfiles = await getUsers(userIds);
         return NextResponse.json({ ok: true, userProfiles });
+      }
+
+      case 'cloneProject': {
+        const { sourceProjectId } = body;
+        if (!sourceProjectId) return jsonError('sourceProjectId is required');
+        const cloneProjectId = await cloneProjectForUser(uid, sourceProjectId);
+        return NextResponse.json({ cloneProjectId });
       }
 
       default:

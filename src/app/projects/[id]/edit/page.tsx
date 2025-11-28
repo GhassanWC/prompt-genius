@@ -245,7 +245,7 @@ export default function EditProjectPage() {
     }
   };
 
-  const handleSaveProjectDetails = async (data: { name: string, idea: string }) => {
+  const handleSaveProjectDetails = async (data: { name: string; idea: string; aiRole: string; summary: string }) => {
     if (!user || !project || !canEdit) return;
     setError(null);
     try {
@@ -256,7 +256,11 @@ export default function EditProjectPage() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ action: 'updateProject', projectId, data:{ name: data.name, idea: data.idea } }),
+        body: JSON.stringify({
+          action: 'updateProject',
+          projectId,
+          data: { name: data.name, idea: data.idea, aiRole: data.aiRole, summary: data.summary },
+        }),
       });
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
       toast({ title: "Project Updated", description: "Your project details have been saved." });
@@ -319,7 +323,7 @@ export default function EditProjectPage() {
         </div>
 
         {/* Enhanced header section */}
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-6 mb-8">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-6 mb-6">
           <div>
             <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
               Edit Project
@@ -336,6 +340,49 @@ export default function EditProjectPage() {
             Edit Details
           </Button>
         </div>
+
+        {/* Project details preview: AI role + idea + summary */}
+        {project && (
+          <section className="max-w-4xl mx-auto space-y-4 mb-8">
+            {project.aiRole && (
+              <div className="rounded-3xl border border-slate-200 bg-white/90 p-5 sm:p-6 shadow-lg shadow-slate-200/80">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <h2 className="text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
+                    AI Role (persona for your builder)
+                  </h2>
+                  <span className="text-[11px] text-slate-400">
+                    This is what your AI sees before the prompts.
+                  </span>
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-3 max-h-64 overflow-y-auto ring-1 ring-slate-100">
+                  <pre className="whitespace-pre-wrap text-xs sm:text-sm text-slate-800 leading-relaxed font-mono">
+                    {project.aiRole}
+                  </pre>
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-3xl border border-slate-200 bg-white/90 p-5 sm:p-6 shadow-lg shadow-slate-200/80">
+              <h2 className="mb-2 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
+                Project Idea
+              </h2>
+              <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
+                {project.idea}
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white/90 p-5 sm:p-6 shadow-lg shadow-slate-200/80">
+              <h2 className="mb-2 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
+                Project Summary
+              </h2>
+              <p className="whitespace-pre-wrap text-sm sm:text-base text-slate-700 leading-relaxed">
+                {project.summary && project.summary.trim().length > 0
+                  ? project.summary
+                  : 'You can add an editable summary in the Edit Details dialog. It will appear under the AI role and idea on the project page.'}
+              </p>
+            </div>
+          </section>
+        )}
         
         {!canEdit && (
           <Alert variant="destructive" className="max-w-4xl mx-auto mb-8 bg-red-50 border-red-200 text-red-800 rounded-2xl">

@@ -148,7 +148,13 @@ export default function ProjectPage() {
       return;
     }
 
-    let fullText = `Project Idea:\n${project.idea}\n\n`;
+    let fullText = '';
+
+    if (project.aiRole) {
+      fullText += `AI Role:\n${project.aiRole}\n\n`;
+    }
+
+    fullText += `Project Idea:\n${project.idea}\n\n`;
     fullText += '========================================\n\n';
     fullText += 'Development Plan:\n\n';
 
@@ -170,6 +176,37 @@ export default function ProjectPage() {
     toast({
       title: 'Project Copied!',
       description: 'The idea and all prompts are on your clipboard.',
+    });
+  };
+
+  const handleCopyAiRole = () => {
+    if (!project?.aiRole) return;
+    navigator.clipboard.writeText(project.aiRole);
+    toast({
+      title: 'AI role copied',
+      description: 'The AI persona has been copied to your clipboard.',
+    });
+  };
+
+  const handleCopyIdea = () => {
+    if (!project) return;
+    navigator.clipboard.writeText(project.idea);
+    toast({
+      title: 'Project idea copied',
+      description: 'The project idea has been copied to your clipboard.',
+    });
+  };
+
+  const handleCopySummary = () => {
+    if (!project) return;
+    const text =
+      project.summary && project.summary.trim().length > 0
+        ? project.summary
+        : `Project: ${project.name}\n\nIdea:\n${project.idea}`;
+    navigator.clipboard.writeText(text);
+    toast({
+      title: 'Project summary copied',
+      description: 'The summary text has been copied to your clipboard.',
     });
   };
 
@@ -268,68 +305,185 @@ export default function ProjectPage() {
           </div>
         </div>
 
-        {/* Enhanced project header */}
-        <div className="max-w-4xl mx-auto flex flex-col items-center text-center mt-8 sm:mt-12">
-          {project.imageUrl && (
-            <div className="relative w-full h-64 md:h-80 mb-10 rounded-3xl overflow-hidden shadow-2xl shadow-black/10">
-              <Image
-                src={project.imageUrl}
-                alt={project.name}
-                fill
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        {/* Project hero + summary */}
+        <section className="max-w-5xl mx-auto mt-8 sm:mt-12 space-y-8">
+          {/* Hero */}
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex-1 space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200/70">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Active project
+              </div>
+              <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
+                {project.name}
+              </h1>
+              <p className="text-sm sm:text-base text-slate-600 max-w-xl">
+                This page contains the AI role, original idea, and step‑by‑step prompts you can paste into any builder.
+              </p>
             </div>
-          )}
-          <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-            <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
-              {project.name}
-            </h1>
-            <Badge 
-              variant={project.isPublic ? "default" : "secondary"} 
-              className={`text-base font-semibold px-4 py-2 rounded-full ${
-                project.isPublic 
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25' 
-                  : 'bg-gradient-to-r from-slate-500 to-slate-600 text-white shadow-lg shadow-slate-500/25'
-              }`}
-            >
-              {project.isPublic ? <Globe className="mr-2 h-4 w-4"/> : <Lock className="mr-2 h-4 w-4"/>}
-              {project.isPublic ? 'Public' : 'Private'}
-            </Badge>
-          </div>
-          <p className="text-lg sm:text-xl text-slate-600 font-medium leading-relaxed max-w-3xl">
-            {project.idea}
-          </p>
-        </div>
-        
-        {/* Enhanced content section */}
-        <div className="max-w-4xl mx-auto mt-16 sm:mt-20">
-          <div className="space-y-12">
-            
-            {prompts.length > 0 && (
-              <div className="space-y-8">
-                <div className="text-center">
-                  <h3 className="text-2xl sm:text-3xl font-bold font-headline bg-gradient-to-b from-slate-900 to-indigo-700 bg-clip-text text-transparent">
-                    Development Plan
-                  </h3>
-                  <div className="mt-4 h-1 w-32 mx-auto bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full opacity-60" />
+            <div className="flex flex-col items-end gap-3">
+              {project.imageUrl && (
+                <div className="relative h-24 w-40 overflow-hidden rounded-2xl border border-white/60 bg-slate-100 shadow-md shadow-slate-300/50 md:h-28 md:w-48">
+                  <Image
+                    src={project.imageUrl}
+                    alt={project.name}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
-                <div className="space-y-8">
-                  {prompts.map((prompt, index) => (
-                    <div key={prompt.id} className="relative">
-                      <PromptCard 
-                        {...prompt}
-                        stepNumber={index + 1}
-                        isReadOnly={!canEdit}
-                        onStatusChange={handleTogglePromptStatus}
-                      />
-                    </div>
-                  ))}
+              )}
+              <Badge
+                variant={project.isPublic ? 'default' : 'secondary'}
+                className={`flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full ${
+                  project.isPublic
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/30'
+                    : 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-md shadow-slate-600/30'
+                }`}
+              >
+                {project.isPublic ? <Globe className="mr-1 h-3.5 w-3.5" /> : <Lock className="mr-1 h-3.5 w-3.5" />}
+                {project.isPublic ? 'Public project' : 'Private project'}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Overview: AI role + idea stacked */}
+          <div className="flex flex-col gap-6">
+            {project.aiRole && (
+              <div className="rounded-3xl border border-slate-200 bg-white/90 p-5 sm:p-6 shadow-lg shadow-slate-200/80">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-sm font-semibold tracking-[0.18em] text-slate-500 uppercase">
+                      AI Role (persona for your builder)
+                    </h2>
+                    <span className="text-[11px] text-slate-400 hidden sm:inline">
+                      Shown first when you copy everything
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-full border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 bg-white"
+                    onClick={handleCopyAiRole}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-3 max-h-[360px] overflow-y-auto ring-1 ring-slate-100">
+                  <pre className="whitespace-pre-wrap text-xs sm:text-sm text-slate-800 leading-relaxed font-mono">
+                    {project.aiRole}
+                  </pre>
                 </div>
               </div>
             )}
+
+            <div className="rounded-3xl border border-slate-200 bg-white/90 p-5 sm:p-6 shadow-lg shadow-slate-200/80">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold tracking-[0.18em] text-slate-500 uppercase">
+                  Project Idea
+                </h2>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 bg-white"
+                  onClick={handleCopyIdea}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
+                {project.idea}
+              </p>
+            </div>
           </div>
-        </div>
+
+          {/* High-level summary */}
+          <div className="mt-6 rounded-3xl border border-slate-200 bg-white/90 p-5 sm:p-6 shadow-lg shadow-slate-200/80">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <h2 className="text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
+                Project Summary
+              </h2>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-full border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 bg-white"
+                onClick={handleCopySummary}
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            {project.summary && project.summary.trim().length > 0 ? (
+              <p className="whitespace-pre-wrap text-sm sm:text-base text-slate-700 leading-relaxed">
+                {project.summary}
+              </p>
+            ) : (
+              <>
+                <p className="text-sm sm:text-base text-slate-700 leading-relaxed mb-3">
+                  This project, <span className="font-semibold">{project.name}</span>, turns the idea above into a
+                  structured set of AI-ready build steps that you can paste into any coding assistant or app builder.
+                </p>
+                <p className="text-sm sm:text-base text-slate-700 leading-relaxed mb-3">
+                  The development plan currently contains{' '}
+                  <span className="font-semibold">
+                    {prompts.length} step{prompts.length === 1 ? '' : 's'}
+                  </span>
+                  , each one focused on a concrete feature or enhancement—such as specific screens, flows, API
+                  endpoints, or behaviours—that together implement the full experience described in the idea.
+                </p>
+                <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
+                  The AI role at the top gives any model clear instructions about how to behave (coding style,
+                  architecture, security, performance, UX, and more), while each prompt in the plan is a single,
+                  well-scoped action with acceptance criteria. This combination makes it easy for the AI to understand
+                  what to build and in what order, without you needing to re-explain the project every time.
+                </p>
+              </>
+            )}
+          </div>
+        </section>
+        
+        {/* Development plan */}
+        <section className="max-w-5xl mx-auto mt-14 sm:mt-18">
+          {prompts.length > 0 ? (
+            <div className="space-y-8">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="text-2xl sm:text-3xl font-bold font-headline bg-gradient-to-b from-slate-900 to-indigo-700 bg-clip-text text-transparent">
+                    Development plan
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                    Follow these prompts in order. You can copy the whole plan or work step‑by‑step.
+                  </p>
+                </div>
+                <p className="text-xs font-medium text-slate-500">
+                  {prompts.length} step{prompts.length === 1 ? '' : 's'}
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                {prompts.map((prompt, index) => (
+                  <div key={prompt.id} className="relative">
+                    <PromptCard
+                      {...prompt}
+                      stepNumber={index + 1}
+                      isReadOnly={!canEdit}
+                      onStatusChange={handleTogglePromptStatus}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-10 rounded-3xl border border-dashed border-slate-300 bg-white/80 px-6 py-10 text-center shadow-sm">
+              <p className="text-sm sm:text-base text-slate-600 font-medium">
+                This project doesn&apos;t have any prompts yet.
+              </p>
+              {canEdit && (
+                <p className="mt-2 text-xs text-slate-500">
+                  Open the project editor to generate or add steps for your development plan.
+                </p>
+              )}
+            </div>
+          )}
+        </section>
       </main>
     </div>
     {project && user && userRole === 'owner' && (

@@ -324,7 +324,7 @@ export default function LandingPage() {
                   <p className="flex items-center text-muted-foreground font-medium"><XCircle className="h-5 w-5 mr-3 text-muted-foreground" /> Public Projects</p>
                   <p className="flex items-center text-muted-foreground font-medium"><XCircle className="h-5 w-5 mr-3 text-muted-foreground" /> Community Access</p>
                   <p className="flex items-center text-muted-foreground font-medium"><XCircle className="h-5 w-5 mr-3 text-muted-foreground" /> AI Prompt Enhancement</p>
-                  <p className="flex items-center text-muted-foreground font-medium"><XCircle className="h-5 w-5 mr-3 text-muted-foreground" /> No Support</p>
+                  <p className="flex items-center text-muted-foreground font-medium"><XCircle className="h-5 w-5 mr-3 text-muted-foreground" /> No Support</p>                
                 </CardContent>
                 <div className="p-6 pt-0">
                   <Button asChild className="w-full bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border-2 border-indigo-200 text-indigo-700 font-semibold py-3 rounded-full transition-all duration-200 hover:shadow-lg">
@@ -346,17 +346,17 @@ export default function LandingPage() {
                   </div>
                   <CardDescription className="text-slate-600 font-medium">For individuals and small teams shipping projects.</CardDescription>
                   <p className="pt-6">
-                    <span className="text-5xl font-bold text-indigo-700">$15</span>
+                    <span className="text-5xl font-bold text-indigo-700">$7</span>
                     <span className="text-slate-500 font-medium">/month</span>
                   </p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
-                  <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> 10 projects</p>
+                  <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> 10+ projects</p>
                   <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> Full Prompt Generation</p>
                   <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> Public Projects & Sharing</p>
                   <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> Community Access</p>
-                  <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> Community Support</p>
                   <p className="flex items-center text-muted-foreground font-medium"><XCircle className="h-5 w-5 mr-3 text-muted-foreground" /> AI Prompt Enhancement</p>
+                  <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> Community Support</p>
                 </CardContent>
                 <div className="p-6 pt-0">
                   <Button onClick={() => {
@@ -381,16 +381,16 @@ export default function LandingPage() {
                   <CardTitle className="font-headline text-2xl text-indigo-700 font-bold">Pro</CardTitle>
                   <CardDescription className="text-slate-600 font-medium">For serious builders who want to ship faster.</CardDescription>
                   <p className="pt-6">
-                    <span className="text-5xl font-bold text-indigo-700">$20</span>
+                    <span className="text-5xl font-bold text-indigo-700">$15</span>
                     <span className="text-slate-500 font-medium">/month</span>
                   </p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
                   <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> 30+ projects</p>
                   <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> Full Prompt Generation</p>
-                  <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> AI Prompt Enhancement</p>
                   <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> Public Projects & Sharing</p>
                   <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> Community Access</p>
+                  <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> AI Prompt Enhancement</p>
                   <p className="flex items-center text-slate-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-green-500" /> Priority Support</p>
                 </CardContent>
                 <div className="p-6 pt-0">

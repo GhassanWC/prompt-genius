@@ -7,7 +7,7 @@ import { FieldValue, FieldPath, Timestamp } from 'firebase-admin/firestore';
 
 import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
 import { generateImage } from '@/ai/flows/generate-image';
-import type { Project, Prompt, Role, Collaborator } from '@/lib/projects';
+import type { Project, Prompt, Role, Collaborator, ProjectClone } from '@/lib/projects';
 import { getSubscriptionByUserId } from '@/lib/subscription-server';
 
 export type SubscriptionPlan = 'free' | 'plus' | 'pro';
@@ -23,6 +23,37 @@ export const AdminFieldValue = FieldValue;
 
 // Lazy helpers (no top-level Admin init)
 const col = (name: string) => getDb().collection(name);
+
+const chunkArray = <T,>(arr: T[], size: number): T[][] =>
+  arr.reduce<T[][]>((chunks, item, index) => {
+    if (index % size === 0) chunks.push([]);
+    chunks[chunks.length - 1].push(item);
+    return chunks;
+  }, []);
+
+const CLONE_COUNT_CHUNK_SIZE = 10;
+
+export const getCloneCountsForProjectIds = async (
+  projectIds: string[]
+): Promise<Record<string, number>> => {
+  const counts: Record<string, number> = {};
+  const uniqueIds = Array.from(new Set(projectIds));
+  if (uniqueIds.length === 0) return counts;
+
+  const chunks = chunkArray(uniqueIds, CLONE_COUNT_CHUNK_SIZE);
+  for (const chunk of chunks) {
+    const snap = await col('projectClones')
+      .where('sourceProjectId', 'in', chunk)
+      .get();
+    snap.docs.forEach((doc: any) => {
+      const sourceId = doc.get('sourceProjectId');
+      if (!sourceId) return;
+      counts[sourceId] = (counts[sourceId] ?? 0) + 1;
+    });
+  }
+
+  return counts;
+};
 
 function tsToDate(ts: any): Date {
   if (ts?.toDate) return ts.toDate();
@@ -54,6 +85,8 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         id: d.id,
         name: data.name || 'Untitled Project',
         idea: data.idea || '',
+        aiRole: data.aiRole || undefined,
+        summary: data.summary || undefined,
         imageUrl: data.imageUrl || null,
         isPublic: !!data.isPublic,
         createdAt: tsToDate(data.createdAt),
@@ -62,6 +95,13 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
         clarificationSteps: data.clarificationSteps || [],
       };
     });
+
+    if (projects.length > 0) {
+      const cloneCounts = await getCloneCountsForProjectIds(projects.map((project) => project.id));
+      projects.forEach((project) => {
+        project.cloneCount = cloneCounts[project.id] ?? 0;
+      });
+    }
 
     projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     return projects;
@@ -94,6 +134,7 @@ export const getProject = async (userId: string | null, projectId: string): Prom
     id: doc.id,
     name: data.name || 'Untitled Project',
     idea: data.idea || '',
+    aiRole: data.aiRole || undefined,
     isPublic: !!data.isPublic,
     imageUrl: data.imageUrl || null,
     createdAt: tsToDate(data.createdAt),
@@ -105,6 +146,158 @@ export const getProject = async (userId: string | null, projectId: string): Prom
   if (project.isPublic) return project;
   if (userId && project.members?.[userId]) return project;
   return null;
+};
+
+export const getClonedProjectsForUser = async (
+  userId: string
+): Promise<ProjectClone[]> => {
+  const snap = await col('projectClones')
+    .where('ownerId', '==', userId)
+    .orderBy('createdAt', 'desc')
+    .get();
+
+  return snap.docs.map((doc:any) => {
+    const data:any = doc.data();
+    return {
+      id: doc.id,
+      cloneProjectId: data.cloneProjectId,
+      sourceProjectId: data.sourceProjectId,
+      sourceProjectName: data.sourceProjectName || 'Community Project',
+      sourceIdea: data.sourceIdea || '',
+      sourceImageUrl: data.sourceImageUrl ?? null,
+      sourceAuthorDisplayName: data.sourceAuthorDisplayName ?? null,
+      sourceAuthorPhotoURL: data.sourceAuthorPhotoURL ?? null,
+      createdAt: tsToDate(data.createdAt),
+    };
+  });
+};
+
+export const removeCloneForUser = async (
+  userId: string,
+  cloneProjectId: string
+): Promise<void> => {
+  const db = getDb();
+
+  // Remove clone metadata entry for this user + cloned project
+  const clonesSnap = await col('projectClones')
+    .where('ownerId', '==', userId)
+    .where('cloneProjectId', '==', cloneProjectId)
+    .limit(1)
+    .get();
+
+  const batch = db.batch();
+  if (!clonesSnap.empty) {
+    batch.delete(clonesSnap.docs[0].ref);
+  }
+
+  // Best-effort delete of the cloned project itself. If the user is not
+  // the owner or the project no longer exists, we still consider the
+  // clone "removed" from their list once metadata is gone.
+  try {
+    await deleteProject(userId, cloneProjectId);
+  } catch (err) {
+    console.error('Failed to delete cloned project, metadata removed only:', err);
+  }
+
+  if (!clonesSnap.empty) {
+    await batch.commit();
+  }
+};
+
+export const cloneProjectForUser = async (
+  userId: string,
+  sourceProjectId: string
+): Promise<string> => {
+  const db = getDb();
+
+  const sourceRef = col('projects').doc(sourceProjectId);
+  const sourceDoc = await sourceRef.get();
+
+  if (!sourceDoc.exists) {
+    throw new Error('Source project not found.');
+  }
+
+  const sourceData: any = sourceDoc.data();
+
+  // Only allow cloning if the project is public or the user is already a member
+  const isMember = !!sourceData.members?.[userId];
+  const isPublic = !!sourceData.isPublic;
+  if (!isPublic && !isMember) {
+    throw new Error("You don't have permission to clone this project.");
+  }
+
+  // Enforce subscription limits similar to createProjectWithPrompts
+  const subscription = await getSubscriptionByUserId(userId);
+  const existingProjects = await getProjectsForUser(userId);
+
+  if (existingProjects.length >= (subscription?.cumulative_quantity ?? PLAN_LIMITS.free)) {
+    throw new Error(
+      'You have reached the maximum number of projects for your plan. Please upgrade to create more projects.'
+    );
+  }
+
+  const cloneRef = col('projects').doc();
+  const batch = db.batch();
+
+  const cloneData = {
+    name: sourceData.name || 'Untitled Project',
+    idea: sourceData.idea || '',
+    aiRole: sourceData.aiRole || undefined,
+    summary: sourceData.summary || undefined,
+    isPublic: false,
+    clarificationSteps: sourceData.clarificationSteps || [],
+    imageUrl: sourceData.imageUrl ?? null,
+    createdAt: AdminFieldValue.serverTimestamp(),
+    roles: { [userId]: 'owner' as Role },
+    members: { [userId]: true },
+  };
+
+  batch.set(cloneRef, cloneData);
+
+  // Copy prompts from source project to cloned project
+  const promptsSnap = await sourceRef.collection('prompts').get();
+  promptsSnap.forEach((promptDoc: any, index: number) => {
+    const data: any = promptDoc.data();
+    const newPromptRef = cloneRef.collection('prompts').doc();
+    batch.set(newPromptRef, {
+      title: data.title,
+      userPrompt: data.userPrompt,
+      mapFlow: data.mapFlow,
+      order: typeof data.order === 'number' ? data.order : index,
+      isDone: false,
+      acceptanceCriteria: data.acceptanceCriteria ?? [],
+    });
+  });
+
+  // Record clone metadata for analytics/history
+  const ownerId =
+    Object.keys(sourceData.roles || {}).find(
+      (uid) => (sourceData.roles as Record<string, Role>)[uid] === 'owner'
+    ) ?? null;
+
+  let ownerProfile: any = null;
+  if (ownerId) {
+    const ownerSnap = await col('users').doc(ownerId).get();
+    ownerProfile = ownerSnap.exists ? ownerSnap.data() : null;
+  }
+
+  const cloneMetaRef = col('projectClones').doc();
+  batch.set(cloneMetaRef, {
+    ownerId: userId,
+    cloneProjectId: cloneRef.id,
+    sourceProjectId,
+    sourceProjectName: sourceData.name || 'Community Project',
+    sourceIdea: sourceData.idea || '',
+    sourceImageUrl: sourceData.imageUrl ?? null,
+    sourceAuthorDisplayName:
+      ownerProfile?.displayName || ownerProfile?.email || null,
+    sourceAuthorPhotoURL: ownerProfile?.photoURL ?? null,
+    createdAt: AdminFieldValue.serverTimestamp(),
+  });
+
+  await batch.commit();
+
+  return cloneRef.id;
 };
 
 export const getPromptsForProject = async (userId: string | null, projectId: string): Promise<Prompt[]> => {
@@ -143,6 +336,8 @@ export const createProjectWithPrompts = async (
   batch.set(projectRef, {
     name: projectName,
     idea: plan.enhancedIdea,
+    aiRole: plan.aiRole || undefined,
+    summary: undefined,
     isPublic: false,
     clarificationSteps: plan.clarificationSteps || [],
     imageUrl: null,
@@ -470,57 +665,62 @@ export async function getPublicProjectsPage(count = 12, cursor?: string | null):
     .limit(Math.max(1, Math.min(50, count)));
 
   const ts = tsFromCursor(cursor);
-  if (ts) q = q.startAfter(ts); // Admin SDK accepts field value matching orderBy
-  const snap = await q.get();
-
+  if (ts) q = q.startAfter(ts);
   const projectsSnap = await q.get();
-    const projects: (Project & {
-      author?: { displayName: string; photoURL: string | null };
-    })[] = projectsSnap.docs.map((d:any) => {
-      const data: any = d.data();
-      console.log(data);
-      return {
-        id: d.id,
-        name: data.name || 'Untitled Project',
-        idea: data.idea || '',
-        imageUrl: data.imageUrl || null,
-        isPublic: !!data.isPublic,
-        createdAt: tsToDate(data.createdAt),
-        roles: data.roles || {},
-        members: data.members || {},
-      };
-    });
+  const projects: (Project & {
+    author?: { displayName: string; photoURL: string | null };
+  })[] = projectsSnap.docs.map((d: any) => {
+    const data: any = d.data();
+    return {
+      id: d.id,
+      name: data.name || 'Untitled Project',
+      idea: data.idea || '',
+      imageUrl: data.imageUrl || null,
+      isPublic: !!data.isPublic,
+      createdAt: tsToDate(data.createdAt),
+      roles: data.roles || {},
+      members: data.members || {},
+    };
+  });
 
-    if (projects.length === 0) return { projects, nextCursor:null };
+  if (projects.length === 0) return { projects, nextCursor: null };
 
-    const ownerUids = projects
-      .map((p) => Object.keys(p.roles || {}).find((uid) => (p.roles as any)[uid] === 'owner'))
-      .filter(Boolean) as string[];
+  const ownerUids = projects
+    .map((p) => Object.keys(p.roles || {}).find((uid) => (p.roles as any)[uid] === 'owner'))
+    .filter(Boolean) as string[];
 
-    if (ownerUids.length > 0) {
-      const unique = Array.from(new Set(ownerUids));
-      const chunk = <T>(arr: T[], size: number) =>
-        arr.reduce<T[][]>((a, _, i) => (i % size ? a : [...a, arr.slice(i, i + size)]), []);
-      const chunks = chunk(unique, 10);
+  if (ownerUids.length > 0) {
+    const unique = Array.from(new Set(ownerUids));
+    const chunk = <T>(arr: T[], size: number) =>
+      arr.reduce<T[][]>((a, _, i) => (i % size ? a : [...a, arr.slice(i, i + size)]), []);
+    const chunks = chunk(unique, 10);
 
-      const ownerMap = new Map<string, any>();
-      for (const ids of chunks) {
-        const snap = await col('users').where(FieldPath.documentId(), 'in', ids).get();
-        snap.docs.forEach((d:any) => ownerMap.set(d.id, d.data()));
-      }
-
-      projects.forEach((p) => {
-        const ownerUid = Object.keys(p.roles || {}).find((uid) => (p.roles as any)[uid] === 'owner');
-        if (ownerUid && ownerMap.has(ownerUid)) {
-          const od = ownerMap.get(ownerUid);
-          (p as any).author = {
-            displayName: od?.displayName || od?.email || 'Anonymous',
-            photoURL: od?.photoURL || null,
-          };
-        }
-      });
+    const ownerMap = new Map<string, any>();
+    for (const ids of chunks) {
+      const snap = await col('users').where(FieldPath.documentId(), 'in', ids).get();
+      snap.docs.forEach((d: any) => ownerMap.set(d.id, d.data()));
     }
-  const last = snap.docs[snap.docs.length - 1];
+
+    projects.forEach((p) => {
+      const ownerUid = Object.keys(p.roles || {}).find((uid) => (p.roles as any)[uid] === 'owner');
+      if (ownerUid && ownerMap.has(ownerUid)) {
+        const od = ownerMap.get(ownerUid);
+        (p as any).author = {
+          displayName: od?.displayName || od?.email || 'Anonymous',
+          photoURL: od?.photoURL || null,
+        };
+      }
+    });
+  }
+
+  if (projects.length > 0) {
+    const cloneCounts = await getCloneCountsForProjectIds(projects.map((project) => project.id));
+    projects.forEach((project) => {
+      project.cloneCount = cloneCounts[project.id] ?? 0;
+    });
+  }
+
+  const last = projectsSnap.docs[projectsSnap.docs.length - 1];
   const lastCreated: Timestamp | undefined = last?.get('createdAt');
   const nextCursor = lastCreated ? String(lastCreated.toMillis()) : null;
 

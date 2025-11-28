@@ -23,6 +23,8 @@ export interface Project {
   id: string;
   name:string;
   idea: string;
+  aiRole?: string;
+  summary?: string;
   isPublic: boolean;
   imageUrl?: string;
   createdAt: Date;
@@ -33,6 +35,7 @@ export interface Project {
     displayName: string;
     photoURL: string | null;
   }
+  cloneCount?: number;
 }
 
 // Type for a prompt
@@ -43,7 +46,17 @@ export interface Prompt {
     order: number;
     mapFlow: string;
     isDone?: boolean;
-    timeEstimate?: string;
-    complexity?: "low" | "medium" | "high";
     acceptanceCriteria?: string[];
+}
+
+export interface ProjectClone {
+  id: string;
+  cloneProjectId: string;
+  sourceProjectId: string;
+  sourceProjectName: string;
+  sourceIdea: string;
+  sourceImageUrl: string | null;
+  sourceAuthorDisplayName: string | null;
+  sourceAuthorPhotoURL: string | null;
+  createdAt: Date;
 }

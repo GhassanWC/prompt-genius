@@ -83,18 +83,18 @@ export default function NewProjectPage() {
       }
       const data = await res.json();
       const projectId = data.projectId;
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ action: 'generateImage', projectId, idea:plan.enhancedIdea }),
-      });
-      if (!response.ok) {
-        console.error('Image generation request failed.');
-        throw new Error('Image generation request failed.');
-      }
+      // const response = await fetch('/api/projects', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      //   },
+      //   body: JSON.stringify({ action: 'generateImage', projectId, idea:plan.enhancedIdea }),
+      // });
+      // if (!response.ok) {
+      //   console.error('Image generation request failed.');
+      //   throw new Error('Image generation request failed.');
+      // }
       router.push(`/projects/${projectId}`);
     } catch (e: any) {
       console.error("Detailed error during project creation:", e);

@@ -55,8 +55,6 @@ export function PromptEditDialog({ prompt, userId, open, onOpenChange, onSave }:
   const [title, setTitle] = useState('');
   const [mapFlow, setMapFlow] = useState('');
   const [userPrompt, setUserPrompt] = useState('');
-  const [timeEstimate, setTimeEstimate] = useState('');
-  const [complexity, setComplexity] = useState<Prompt['complexity'] | undefined>(undefined);
   const [acceptanceCriteria, setAcceptanceCriteria] = useState('');
   const [isEnhancing, setIsEnhancing] = useState(false);
 
@@ -65,8 +63,6 @@ export function PromptEditDialog({ prompt, userId, open, onOpenChange, onSave }:
     setTitle('');
     setMapFlow('');
     setUserPrompt('');
-    setTimeEstimate('');
-    setComplexity(undefined);
     setAcceptanceCriteria('');
     setIsEnhancing(false);
   }
@@ -76,8 +72,6 @@ export function PromptEditDialog({ prompt, userId, open, onOpenChange, onSave }:
       setTitle(prompt.title || '');
       setMapFlow(prompt.mapFlow || '');
       setUserPrompt(prompt.userPrompt || '');
-      setTimeEstimate(prompt.timeEstimate || '');
-      setComplexity(prompt.complexity || undefined);
       setAcceptanceCriteria(prompt.acceptanceCriteria?.join('\n') || '');
     } else if (!open) {
       resetState();
@@ -99,8 +93,6 @@ export function PromptEditDialog({ prompt, userId, open, onOpenChange, onSave }:
       title,
       mapFlow,
       userPrompt,
-      timeEstimate: timeEstimate || undefined,
-      complexity: complexity || undefined,
       acceptanceCriteria: acceptanceCriteria.split('\n').filter(line => line.trim() !== ''),
     });
     onOpenChange(false);
@@ -165,34 +157,6 @@ export function PromptEditDialog({ prompt, userId, open, onOpenChange, onSave }:
                 />
              </div>
            </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="complexity" className="text-sm font-medium text-gray-700">Complexity</Label>
-             <Select value={complexity} onValueChange={(v) => setComplexity(v as Prompt['complexity'])}>
-                <SelectTrigger 
-                  id="complexity"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                >
-                  <SelectValue placeholder="Select complexity" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg rounded-lg">
-                    <SelectItem value="low" className="hover:bg-gray-50">Low</SelectItem>
-                    <SelectItem value="medium" className="hover:bg-gray-50">Medium</SelectItem>
-                    <SelectItem value="high" className="hover:bg-gray-50">High</SelectItem>
-                </SelectContent>
-            </Select>
-          </div>
-
-           <div className="space-y-2">
-            <Label htmlFor="time" className="text-sm font-medium text-gray-700">Time Estimate</Label>
-            <Input 
-              id="time" 
-              value={timeEstimate} 
-              onChange={(e) => setTimeEstimate(e.target.value)} 
-              placeholder="e.g., 30m, 1h"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            />
-          </div>
 
            <div className="space-y-6 md:col-span-2">
               <div className="space-y-2">
