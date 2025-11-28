@@ -242,8 +242,9 @@ export const cloneProjectForUser = async (
   const cloneData = {
     name: sourceData.name || 'Untitled Project',
     idea: sourceData.idea || '',
-    aiRole: sourceData.aiRole || undefined,
-    summary: sourceData.summary || undefined,
+    // Use null for optional fields so Firestore accepts the document
+    aiRole: sourceData.aiRole ?? null,
+    summary: sourceData.summary ?? null,
     isPublic: false,
     clarificationSteps: sourceData.clarificationSteps || [],
     imageUrl: sourceData.imageUrl ?? null,
@@ -336,8 +337,9 @@ export const createProjectWithPrompts = async (
   batch.set(projectRef, {
     name: projectName,
     idea: plan.enhancedIdea,
-    aiRole: plan.aiRole || undefined,
-    summary: undefined,
+    // Use null for optional fields so Firestore accepts the document
+    aiRole: plan.aiRole ?? null,
+    summary: null,
     isPublic: false,
     clarificationSteps: plan.clarificationSteps || [],
     imageUrl: null,
