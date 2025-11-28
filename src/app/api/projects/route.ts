@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
     }
   } catch (e: any) {
     if (e?.message === '__unauthorized__') return jsonError('Unauthorized', 401);
-    return jsonError('Unexpected error', 500);
+    return jsonError('Unexpected error ' + e?.message, 500);
   }
 }
 
