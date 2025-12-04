@@ -24,6 +24,54 @@ export const AdminFieldValue = FieldValue;
 // Lazy helpers (no top-level Admin init)
 const col = (name: string) => getDb().collection(name);
 
+/**
+ * Normalizes the stored `aiRole` field into a plain string.
+ *
+ * Earlier versions of the app (or external tools) may have stored the AI role
+ * as a structured object (for example, a Dotprompt template object). When those
+ * documents are read back into the UI, React would coerce the object to the
+ * string "[object Object]", and any downstream AI enhancement call would receive
+ * that instead of the real role text – leading to confusing errors such as:
+ *
+ *   "The provided role text is missing. Please provide the role text within the
+ *    `<<<dotprompt:role:[object Object]>>>` tag..."
+ *
+ * To avoid this, we aggressively coerce the value to a human‑readable string,
+ * pulling from common text fields when it was stored as an object.
+ */
+function normalizeAiRole(raw: any): string | undefined {
+  if (raw == null) return undefined;
+  if (typeof raw === 'string') return raw;
+
+  if (typeof raw === 'object') {
+    // Try a few likely property names first.
+    const candidate =
+      (raw as any).role ??
+      (raw as any).text ??
+      (raw as any).content ??
+      (raw as any).body ??
+      (raw as any).description;
+
+    if (typeof candidate === 'string') return candidate;
+
+    // As a last resort, fall back to a pretty-printed JSON string so the UI
+    // never shows just "[object Object]" and the enhancement flow still sees
+    // something meaningful.
+    try {
+      return JSON.stringify(raw, null, 2);
+    } catch {
+      return undefined;
+    }
+  }
+
+  // Numbers/booleans, etc. – coerce to string if present.
+  try {
+    return String(raw);
+  } catch {
+    return undefined;
+  }
+}
+
 const chunkArray = <T,>(arr: T[], size: number): T[][] =>
   arr.reduce<T[][]>((chunks, item, index) => {
     if (index % size === 0) chunks.push([]);
@@ -79,13 +127,13 @@ export const getProjectsForUser = async (userId: string): Promise<Project[]> => 
   try {
     const snap = await col('projects').where(`members.${userId}`, '==', true).get();
 
-    const projects: Project[] = snap.docs.map((d:any) => {
+    const projects: Project[] = snap.docs.map((d: any) => {
       const data: any = d.data();
       return {
         id: d.id,
         name: data.name || 'Untitled Project',
         idea: data.idea || '',
-        aiRole: data.aiRole || undefined,
+        aiRole: normalizeAiRole(data.aiRole),
         summary: data.summary || undefined,
         imageUrl: data.imageUrl || null,
         isPublic: !!data.isPublic,
@@ -134,7 +182,7 @@ export const getProject = async (userId: string | null, projectId: string): Prom
     id: doc.id,
     name: data.name || 'Untitled Project',
     idea: data.idea || '',
-    aiRole: data.aiRole || undefined,
+    aiRole: normalizeAiRole(data.aiRole),
     isPublic: !!data.isPublic,
     imageUrl: data.imageUrl || null,
     createdAt: tsToDate(data.createdAt),
@@ -243,7 +291,7 @@ export const cloneProjectForUser = async (
     name: sourceData.name || 'Untitled Project',
     idea: sourceData.idea || '',
     // Use null for optional fields so Firestore accepts the document
-    aiRole: sourceData.aiRole ?? null,
+    aiRole: normalizeAiRole(sourceData.aiRole) ?? null,
     summary: sourceData.summary ?? null,
     isPublic: false,
     clarificationSteps: sourceData.clarificationSteps || [],
@@ -338,7 +386,7 @@ export const createProjectWithPrompts = async (
     name: projectName,
     idea: plan.enhancedIdea,
     // Use null for optional fields so Firestore accepts the document
-    aiRole: plan.aiRole ?? null,
+    aiRole: normalizeAiRole(plan.aiRole) ?? null,
     summary: null,
     isPublic: false,
     clarificationSteps: plan.clarificationSteps || [],

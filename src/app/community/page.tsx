@@ -54,8 +54,7 @@ function AccessDenied() {
   );
 }
 
-const PAGE_SIZE = 12; // tune as you like
-const COMMUNITY_TABLE_PAGE_SIZE = 9;
+const PAGE_SIZE = 12; // number of projects to fetch per lazy-load batch
 
 const formatCommunityDate = (value?: string | Date | null) =>
   value ? new Date(value).toLocaleDateString() : '—';
@@ -84,7 +83,6 @@ export default function CommunityPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const [currentCommunityPage, setCurrentCommunityPage] = useState(1);
 
   useEffect(() => {
     const fetchTierInfo = async () => {
@@ -182,27 +180,6 @@ export default function CommunityPage() {
       (p) => p.name.toLowerCase().includes(lower) || p.idea.toLowerCase().includes(lower)
     );
   }, [searchTerm, publicProjects]);
-
-  const totalCommunityPages = Math.max(
-    1,
-    Math.ceil(filteredProjects.length / COMMUNITY_TABLE_PAGE_SIZE)
-  );
-
-  useEffect(() => {
-    if (searchTerm) return;
-    if (!hasMore && currentCommunityPage > totalCommunityPages) {
-      setCurrentCommunityPage(totalCommunityPages);
-    }
-  }, [currentCommunityPage, totalCommunityPages, searchTerm, hasMore]);
-
-  useEffect(() => {
-    setCurrentCommunityPage(1);
-  }, [searchTerm]);
-
-  const visibleCommunityProjects = useMemo(() => {
-    const start = (currentCommunityPage - 1) * COMMUNITY_TABLE_PAGE_SIZE;
-    return filteredProjects.slice(start, start + COMMUNITY_TABLE_PAGE_SIZE);
-  }, [currentCommunityPage, filteredProjects]);
 
   const fetchUserClones = useCallback(async () => {
     if (!user) return;
@@ -307,7 +284,7 @@ export default function CommunityPage() {
         </div>
       </header>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="mb-8">
           <Link
             href={user ? '/dashboard' : '/'}
@@ -318,47 +295,44 @@ export default function CommunityPage() {
           </Link>
         </div>
 
-        <div className="text-center mb-12 sm:mb-16">
+        <div className="text-center mb-10 sm:mb-14">
           <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
             Community Spotlight
           </h1>
-          <p className="mt-6 text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto font-medium leading-relaxed">
-            Explore public projects created by other innovators using Prompt Genius AI.
+          <p className="mt-3 text-base sm:text-lg text-slate-600 max-w-xl mx-auto font-medium leading-relaxed">
+            Browse public projects you can clone and adapt to your own ideas.
           </p>
         </div>
 
         {authLoading ? (
-          <div className="rounded-3xl border border-slate-200 bg-white/80 shadow-xl shadow-slate-200 p-6">
-            <div className="mb-4 flex items-center justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
               <Skeleton className="h-6 w-40 rounded-full" />
-              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-6 w-24 rounded-full" />
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
-                  <tr>
-                    {['#', 'Image', 'Title', 'Description', 'Created', 'Clones', 'Action'].map((label) => (
-                      <th
-                        key={label}
-                        className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500"
-                      >
-                        {label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {Array.from({ length: 3 }).map((_, row) => (
-                    <tr key={row}>
-                      {Array.from({ length: 7 }).map((_, col) => (
-                        <td key={col} className="px-4 py-4">
-                          <Skeleton className="h-4 w-full rounded-md" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-5">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <Card
+                  key={idx}
+                  className="border border-slate-200/80 bg-white/90 shadow-md shadow-slate-200/80 rounded-2xl"
+                >
+                  <CardContent className="p-5 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="space-y-2 w-full">
+                        <Skeleton className="h-4 w-3/4 rounded-md" />
+                        <Skeleton className="h-3 w-1/2 rounded-md" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-3 w-full rounded-md" />
+                    <Skeleton className="h-3 w-5/6 rounded-md" />
+                    <div className="flex items-center justify-between pt-2">
+                      <Skeleton className="h-3 w-20 rounded-md" />
+                      <Skeleton className="h-8 w-20 rounded-full" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         ) : !canAccessCommunity ? (
@@ -368,14 +342,12 @@ export default function CommunityPage() {
             {/* Search */}
             <div className="max-w-2xl mx-auto mb-12 sm:mb-16">
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 border border-white/60 shadow-sm">
-                    <Search className="h-4 w-4 text-indigo-500" />
-                  </div>
+                <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
+                  <Search className="h-5 w-5 text-black" />
                 </div>
                 <Input
                   type="search"
-                  placeholder="Search projects by name or idea..."
+                  placeholder="Search community projects..."
                   className="w-full bg-white/80 text-base font-medium rounded-2xl border border-white/50 shadow-lg shadow-black/5 backdrop-blur-xl focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 pl-16 pr-4 py-4"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -385,76 +357,72 @@ export default function CommunityPage() {
 
             {filteredProjects.length > 0 ? (
               <section className="space-y-6">
-                <div className="flex flex-col gap-2 md:items-end">
-                  <h3 className="text-2xl font-semibold text-slate-900">
-                    Showing {visibleCommunityProjects.length} of {filteredProjects.length} spotlight projects
-                  </h3>
-                  <span className="text-xs text-slate-500">
-                    Page {currentCommunityPage} / {totalCommunityPages}
-                  </span>
-                </div>
-                <div className="rounded-3xl border border-slate-200 bg-white/90 shadow-xl shadow-slate-200 ring-1 ring-slate-100 backdrop-blur">
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-indigo-50/80 to-white">
+                <div className="w-full space-y-6">
+                  <div className="flex items-center justify-between px-1 sm:px-0">
                     <p className="text-sm text-slate-500">
                       Filtered results are paginated for easier browsing.
                     </p>
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                      Clones: {(filteredProjects.reduce((sum, project) => sum + (project.cloneCount ?? 0), 0)).toLocaleString()}
+                      Clones:{' '}
+                      {filteredProjects
+                        .reduce((sum, project) => sum + (project.cloneCount ?? 0), 0)
+                        .toLocaleString()}
                     </p>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full table-auto text-sm text-slate-700">
-                      <thead className="bg-gradient-to-r from-indigo-50 to-white">
-                        <tr>
-                          <th className="w-12 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">#</th>
-                          <th className="w-24 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Image</th>
-                          <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Title</th>
-                          <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Description</th>
-                          <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Created date</th>
-                          <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Clones</th>
-                          <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white">
-                        {visibleCommunityProjects.map((project, index) => {
-                          const rowIndex = (currentCommunityPage - 1) * COMMUNITY_TABLE_PAGE_SIZE + index;
-                          return (
-                            <tr key={project.id} className="border-b border-slate-100 transition-colors duration-150 hover:bg-indigo-50/30">
-                              <td className="px-4 py-4 text-sm text-slate-500">{rowIndex + 1}</td>
-                              <td className="px-4 py-4">
-                                {project.imageUrl ? (
-                                  <Image
-                                    src={project.imageUrl}
-                                    alt={project.name}
-                                    width={48}
-                                    height={48}
-                                    className="h-12 w-12 rounded-xl object-cover"
-                                  />
-                                ) : (
-                                  <div className="h-12 w-12 rounded-xl border border-slate-100 bg-slate-100 flex items-center justify-center">
-                                    <Logo className="h-6 w-6 text-indigo-300" />
+
+                  <div className="grid w-full gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-5">
+                    {filteredProjects.map((project, index) => {
+                      const rowIndex = index;
+                      const createdDate = formatCommunityDate(project.createdAt as any);
+                      const cloneCount = (project.cloneCount ?? 0).toLocaleString();
+                      const authorName =
+                        (project as any).author?.displayName || 'Community project';
+                      const initials = getInitials((project as any).author?.displayName ?? project.name);
+
+                      return (
+                        <Link
+                          key={project.id}
+                          href={`/projects/${project.id}`}
+                          className="group block h-full"
+                        >
+                          <Card className="h-full border border-slate-200/80 bg-white/95 shadow-md shadow-slate-200/80 rounded-2xl transition-transform duration-200 group-hover:-translate-y-1 group-hover:shadow-lg">
+                            <CardContent className="p-5 flex flex-col h-full">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-10 w-10 border border-indigo-100 bg-indigo-50">
+                                    <AvatarFallback className="text-xs font-semibold text-indigo-700">
+                                      {initials}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <CardTitle className="text-sm sm:text-base font-semibold text-slate-900 line-clamp-2">
+                                      {project.name}
+                                    </CardTitle>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                      {authorName}
+                                    </p>
                                   </div>
-                                )}
-                              </td>
-                              <td className="px-4 py-4">
-                                <Link
-                                  href={`/projects/${project.id}`}
-                                  className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
-                                >
-                                  {project.name}
-                                </Link>
-                                <p className="text-xs text-slate-500">
-                                  {project.author ? `By ${project.author.displayName}` : 'Community project'}
-                                </p>
-                              </td>
-                              <td className="px-4 py-4 text-sm text-slate-600 line-clamp-2 overflow-hidden">
+                                </div>
+                                <span className="text-[11px] font-semibold text-slate-400">
+                                  #{rowIndex + 1}
+                                </span>
+                              </div>
+
+                              <p className="mt-4 text-sm text-slate-700 leading-relaxed line-clamp-4">
                                 {project.idea || 'No description provided.'}
-                              </td>
-                              <td className="px-4 py-4 text-sm text-slate-500">{formatCommunityDate(project.createdAt)}</td>
-                              <td className="px-4 py-4 text-center text-sm font-semibold text-slate-900">
-                                {(project.cloneCount ?? 0).toLocaleString()}
-                              </td>
-                              <td className="px-4 py-4 text-right">
+                              </p>
+
+                              <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
+                                <span>Created: {createdDate}</span>
+                                <span>
+                                  Clones:{' '}
+                                  <span className="font-semibold text-slate-900">
+                                    {cloneCount}
+                                  </span>
+                                </span>
+                              </div>
+
+                              <CardFooter className="mt-4 p-0 flex items-center justify-end">
                                 {clonedSourceIds.has(project.id) ? (
                                   <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-emerald-700">
                                     Cloned
@@ -463,7 +431,9 @@ export default function CommunityPage() {
                                   <Button
                                     variant="default"
                                     size="sm"
-                                    className={`rounded-full px-4 py-2 text-xs font-semibold tracking-[0.2em] transition-all duration-200 shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 ${cloningProjectId === project.id ? 'cursor-wait opacity-80' : ''}`}
+                                    className={`rounded-full px-4 py-2 text-xs font-semibold tracking-[0.2em] transition-all duration-200 shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 ${
+                                      cloningProjectId === project.id ? 'cursor-wait opacity-80' : ''
+                                    }`}
                                     onClick={(event) => handleCloneProject(project.id, event)}
                                     disabled={!user || Boolean(cloningProjectId)}
                                   >
@@ -474,46 +444,15 @@ export default function CommunityPage() {
                                     )}
                                   </Button>
                                 )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                        {visibleCommunityProjects.length === 0 && (
-                          <tr>
-                            <td colSpan={7} className="px-4 py-6 text-center text-sm text-slate-500">
-                              Loading more spotlight projects...
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+                              </CardFooter>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      );
+                    })}
                   </div>
-                  <div className="flex items-center justify-between px-6 py-3 border-t border-slate-100 bg-white/70">
-                    <p className="text-xs text-slate-500">
-                      Showing {visibleCommunityProjects.length} of {filteredProjects.length} spotlight projects
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={currentCommunityPage <= 1}
-                        onClick={() => setCurrentCommunityPage((prev) => Math.max(1, prev - 1))}
-                      >
-                        Previous
-                      </Button>
-                      <span className="text-sm font-medium text-slate-600">
-                        Page {currentCommunityPage} / {totalCommunityPages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={currentCommunityPage >= totalCommunityPages && !hasMore}
-                        onClick={() => setCurrentCommunityPage((prev) => prev + 1)}
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-100" />
                 </div>
 
                 <div ref={sentinelRef} className="flex h-16 items-center justify-center">

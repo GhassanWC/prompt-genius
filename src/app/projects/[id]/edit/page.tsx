@@ -457,6 +457,7 @@ export default function EditProjectPage() {
         project={project} 
         onSave={handleSaveProjectDetails}
         isReadOnly={!canEdit}
+        userId={user.uid}
       />
 
       <PromptEditDialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen} prompt={currentPrompt} userId={user.uid} onSave={handleSavePrompt} />

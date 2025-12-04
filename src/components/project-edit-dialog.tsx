@@ -12,15 +12,37 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles } from "lucide-react";
 import { enhanceAiRole } from "@/ai/flows/enhance-ai-role";
 
+type FeatureKey =
+  | 'projectLimit'
+  | 'fullPromptGeneration'
+  | 'publicProjects'
+  | 'communityAccess'
+  | 'aiPromptEnhancement'
+  | 'support';
+
+async function isFeatureEnabled(userId: string, feature: FeatureKey): Promise<boolean> {
+  const res = await fetch('/api/subscription/features', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    cache: 'no-store',
+    body: JSON.stringify({ userId, feature }),
+  });
+
+  if (!res.ok) return false;
+  const data: { enabled: boolean } = await res.json();
+  return data.enabled === true;
+}
+
 interface ProjectEditDialogProps {
   project: Pick<Project, 'name' | 'idea' | 'aiRole' | 'summary'> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (data: { name: string; idea: string; aiRole: string; summary: string }) => Promise<void>;
   isReadOnly?: boolean;
+  userId: string;
 }
 
-export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadOnly = false }: ProjectEditDialogProps) {
+export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadOnly = false, userId }: ProjectEditDialogProps) {
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [idea, setIdea] = useState('');
@@ -69,6 +91,17 @@ export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadO
 
   const handleEnhanceRole = async () => {
     if (isReadOnly) return;
+
+    const isAiRoleEnhancementAllowed = await isFeatureEnabled(userId, 'aiPromptEnhancement');
+    if (!isAiRoleEnhancementAllowed) {
+      toast({
+        variant: "destructive",
+        title: "Feature Unavailable",
+        description: "AI Role Enhancement is only available on the Pro plan. Please upgrade to access this feature.",
+      });
+      return;
+    }
+
     if (!aiRole.trim()) {
       toast({
         variant: "destructive",
