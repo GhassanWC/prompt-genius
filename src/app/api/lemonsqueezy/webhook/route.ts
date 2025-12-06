@@ -24,11 +24,15 @@ function safeEqualHex(aHex: string, bHex: string) {
   }
 }
 
-function deriveTierAndQuantity(variantName?: string) {
-  const v = variantName?.toLowerCase() ?? "";
-  if (v.includes("plus")) return { tierId: "plus", quantity: 10 };
-  if (v.includes("pro")) return { tierId: "pro", quantity: 30 };
-  return { tierId: null, quantity: 0 };
+type TierId = 'plus' | 'pro' | undefined;
+
+function deriveTierAndQuantity(variantName?: string): { tierId: TierId; quantity: number } {
+  const v = variantName?.toLowerCase() ?? '';
+  if (v.includes('plus')) return { tierId: 'plus', quantity: 10 };
+  if (v.includes('pro')) return { tierId: 'pro', quantity: 30 };
+
+  // Unknown or free variant – no paid tier associated
+  return { tierId: undefined, quantity: 0 };
 }
 
 /* -------------------- handler -------------------- */
@@ -82,7 +86,11 @@ export async function POST(req: NextRequest) {
   const base = {
     user_id: userId,
     subscription_id: subscriptionId,
-    tier_id: tierId ?? stored?.tier_id ?? null,
+    // Only set tier_id when we have a concrete tier; otherwise leave it
+    // undefined so we don't write invalid values to Firestore.
+    ...(tierId ?? stored?.tier_id
+      ? { tier_id: (tierId ?? stored?.tier_id) as 'plus' | 'pro' }
+      : {}),
     cumulative_quantity: stored?.cumulative_quantity ?? 0,
     status,
     ...attrs,

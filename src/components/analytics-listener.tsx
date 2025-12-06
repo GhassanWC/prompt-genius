@@ -4,7 +4,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { pageview } from '@/lib/gtag';
 
-export function AnalyticsListener() {
+export function AnalyticsListener(): JSX.Element | null {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 

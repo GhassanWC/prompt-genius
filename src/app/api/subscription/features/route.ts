@@ -46,6 +46,13 @@ export async function GET(req: NextRequest) {
         count: subscription.cumulative_quantity,
       });
     }
+
+    // For any other GET usage on this route, return an explicit 400 so we
+    // never fall through without a response.
+    return NextResponse.json(
+      { error: 'Unsupported query. Use subscriptionProjectsCount=true.' },
+      { status: 400 }
+    );
   } catch (e: any) {
     if (e?.message === '__unauthorized__') return NextResponse.json({ error: 'unauthorized' }, { status:401 });
     return NextResponse.json({ error: 'unexpected error' }, { status:500 });
