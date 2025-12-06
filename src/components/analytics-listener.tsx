@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { pageview } from '@/lib/gtag';
 
-export function AnalyticsListener(): JSX.Element | null {
+function AnalyticsInner(): JSX.Element | null {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -18,4 +19,11 @@ export function AnalyticsListener(): JSX.Element | null {
   return null;
 }
 
+export function AnalyticsListener(): JSX.Element {
+  return (
+    <Suspense fallback={null}>
+      <AnalyticsInner />
+    </Suspense>
+  );
+}
 
