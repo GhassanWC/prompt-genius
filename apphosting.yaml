@@ -6,47 +6,65 @@ env:
   # Public Firebase (client) config – needed at build & runtime
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     secret: NEXT_PUBLIC_FIREBASE_API_KEY
-    availability: [BUILD, RUNTIME]
+    availability: [ BUILD, RUNTIME ]
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
     secret: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    availability: [BUILD, RUNTIME]
+    availability: [ BUILD, RUNTIME ]
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
     secret: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    availability: [BUILD, RUNTIME]
+    availability: [ BUILD, RUNTIME ]
   - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
     secret: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    availability: [BUILD, RUNTIME]
+    availability: [ BUILD, RUNTIME ]
   - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
     secret: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    availability: [BUILD, RUNTIME]
+    availability: [ BUILD, RUNTIME ]
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
     secret: NEXT_PUBLIC_FIREBASE_APP_ID
-    availability: [BUILD, RUNTIME]
+    availability: [ BUILD, RUNTIME ]
 
   # Server-only (runtime)
   - variable: OPENAI_API_KEY
     secret: OPENAI_API_KEY
-    availability: [RUNTIME]
+    availability: [ RUNTIME ]
   - variable: GEMINI_API_KEY
     secret: GEMINI_API_KEY
-    availability: [RUNTIME]
+    availability: [ RUNTIME ]
   - variable: GOOGLE_API_KEY
     secret: GOOGLE_API_KEY
-    availability: [BUILD,RUNTIME]
+    availability: [ BUILD, RUNTIME ]
   - variable: LEMONSQUEEZY_API_KEY
     secret: LEMONSQUEEZY_API_KEY
-    availability: [RUNTIME]
+    availability: [ RUNTIME ]
   - variable: LEMONSQUEEZY_WEBHOOK_SECRET
     secret: LEMONSQUEEZY_WEBHOOK_SECRET
-    availability: [RUNTIME]
+    availability: [ RUNTIME ]
 
   # Not sensitive but useful at build/runtime (only if you use them in code)
   - variable: LEMONSQUEEZY_STORE_ID
     secret: LEMONSQUEEZY_STORE_ID
-    availability: [BUILD, RUNTIME]
+    availability: [ BUILD, RUNTIME ]
   - variable: LEMONSQUEEZY_PLUS_PLAN_ID
     secret: LEMONSQUEEZY_PLUS_PLAN_ID
-    availability: [BUILD, RUNTIME]
+    availability: [ BUILD, RUNTIME ]
   - variable: LEMONSQUEEZY_PRO_PLAN_ID
     secret: LEMONSQUEEZY_PRO_PLAN_ID
-    availability: [BUILD, RUNTIME]
+    availability: [ BUILD, RUNTIME ]
+  - variable: MIGRATION_SECRET
+    secret: MIGRATION_SECRET
+  - variable: NEXT_PUBLIC_GA_ID
+    secret: NEXT_PUBLIC_GA_ID
+  - variable: NEXT_PUBLIC_LEMONSQUEEZY_PRO_PLAN_ID
+    secret: NEXT_PUBLIC_LEMONSQUEEZY_PRO_PLAN_ID
+  - variable: NEXT_PUBLIC_LEMONSQUEEZY_PLUS_PLAN_ID
+    secret: NEXT_PUBLIC_LEMONSQUEEZY_PLUS_PLAN_ID
+  - variable: NEXT_PUBLIC_APP_URL
+    secret: NEXT_PUBLIC_APP_URL
+  - variable: NEXT_FIREBASE_PROJECT_ID
+    secret: FIREBASE_PROJECT_ID
+  - variable: NEXT_FIREBASE_CLIENT_EMAIL
+    secret: FIREBASE_CLIENT_EMAIL
+  - variable: NEXT_FIREBASE_PRIVATE_KEY
+    secret: FIREBASE_PRIVATE_KEY
+  - variable: NEXT_FIREBASE_STORAGE_BUCKET
+    secret: NEXT_FIREBASE_STORAGE_BUCKET
