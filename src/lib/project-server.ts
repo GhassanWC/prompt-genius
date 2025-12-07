@@ -23,6 +23,51 @@ export const AdminFieldValue = FieldValue;
 
 // Lazy helpers (no top-level Admin init)
 const col = (name: string) => getDb().collection(name);
+const usersCol = () => col('users');
+
+// ---------- USER PROJECT COUNTS (Denormalized counters for performance)
+
+/** Get user's project counts - with fallback for unmigrated users */
+export const getUserProjectCounts = async (userId: string): Promise<{
+  projectCount: number;
+  clonedProjectCount: number;
+}> => {
+  const userDoc = await usersCol().doc(userId).get();
+  const data = userDoc.data() as any;
+
+  // If counts exist, return them (fast path)
+  if (typeof data?.projectCount === 'number' && typeof data?.clonedProjectCount === 'number') {
+    return {
+      projectCount: data.projectCount,
+      clonedProjectCount: data.clonedProjectCount,
+    };
+  }
+
+  // Fallback: count manually and update the user doc (one-time per unmigrated user)
+  const [projectsSnap, clonesSnap] = await Promise.all([
+    col('projects').where(`members.${userId}`, '==', true).get(),
+    col('projectClones').where('ownerId', '==', userId).get(),
+  ]);
+
+  const projectCount = projectsSnap.size;
+  const clonedProjectCount = clonesSnap.size;
+
+  // Update user doc with counts for future reads
+  try {
+    await usersCol().doc(userId).update({
+      projectCount,
+      clonedProjectCount,
+    });
+  } catch (err) {
+    // User doc might not exist yet, try set with merge
+    await usersCol().doc(userId).set({
+      projectCount,
+      clonedProjectCount,
+    }, { merge: true });
+  }
+
+  return { projectCount, clonedProjectCount };
+};
 
 /**
  * Normalizes the stored `aiRole` field into a plain string.
@@ -236,6 +281,10 @@ export const removeCloneForUser = async (
   const batch = db.batch();
   if (!clonesSnap.empty) {
     batch.delete(clonesSnap.docs[0].ref);
+    // Decrement user's cloned project count
+    batch.update(usersCol().doc(userId), {
+      clonedProjectCount: AdminFieldValue.increment(-1),
+    });
   }
 
   // Best-effort delete of the cloned project itself. If the user is not
@@ -274,11 +323,15 @@ export const cloneProjectForUser = async (
     throw new Error("You don't have permission to clone this project.");
   }
 
-  // Enforce subscription limits similar to createProjectWithPrompts
-  const subscription = await getSubscriptionByUserId(userId);
-  const existingProjects = await getProjectsForUser(userId);
+  // Enforce subscription limits using denormalized counters (fast!)
+  const [subscription, userCounts] = await Promise.all([
+    getSubscriptionByUserId(userId),
+    getUserProjectCounts(userId),
+  ]);
 
-  if (existingProjects.length >= (subscription?.cumulative_quantity ?? PLAN_LIMITS.free)) {
+  const totalProjects = userCounts.projectCount + userCounts.clonedProjectCount;
+
+  if (totalProjects >= (subscription?.cumulative_quantity ?? PLAN_LIMITS.free)) {
     throw new Error(
       'You have reached the maximum number of projects for your plan. Please upgrade to create more projects.'
     );
@@ -344,6 +397,11 @@ export const cloneProjectForUser = async (
     createdAt: AdminFieldValue.serverTimestamp(),
   });
 
+  // Increment user's cloned project count
+  batch.update(usersCol().doc(userId), {
+    clonedProjectCount: AdminFieldValue.increment(1),
+  });
+
   await batch.commit();
 
   return cloneRef.id;
@@ -403,6 +461,11 @@ export const createProjectWithPrompts = async (
       batch.set(promptRef, { ...step, order: index, isDone: false });
     });
   }
+
+  // Increment user's project count in the same batch
+  batch.update(usersCol().doc(userId), {
+    projectCount: AdminFieldValue.increment(1),
+  });
 
   await batch.commit();
   return projectRef.id;
@@ -502,6 +565,11 @@ export const deleteProject = async (userId: string, projectId: string): Promise<
 
   const promptsSnap = await projectRef.collection('prompts').get();
   promptsSnap.forEach((p:any) => batch.delete(p.ref));
+
+  // Decrement user's project count
+  batch.update(usersCol().doc(userId), {
+    projectCount: AdminFieldValue.increment(-1),
+  });
 
   await batch.commit();
 };

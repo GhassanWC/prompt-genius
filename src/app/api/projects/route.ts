@@ -23,6 +23,7 @@ import {
   getUsers,
   getPublicProjectsPage,
   cloneProjectForUser,
+  getUserProjectCounts,
 } from '@/lib/project-server';
 import { getSubscriptionByUserId } from '@/lib/subscription-server';
 type Json = Record<string, any>;
@@ -127,16 +128,16 @@ export async function POST(req: NextRequest) {
     switch (action) {
       case 'createProject': {
         const { projectName, plan } = body;
-        const userSubscription = await getSubscriptionByUserId(uid);
-        // if(userSubscription?.ends_at && new Date(userSubscription.ends_at) < new Date()) {
-        //   return jsonError('Your subscription has ended. Please renew to create a new project.', 402);  
-        // }
-        // if(userSubscription?.cancelled) {
-        //   return jsonError('Your subscription is cancelled. Please renew to create a new project.', 402);  
-        // }
-        const projects = await getProjectsForUser(uid);
+        
+        // Run both queries in parallel - using fast denormalized counters!
+        const [userSubscription, userCounts] = await Promise.all([
+          getSubscriptionByUserId(uid),
+          getUserProjectCounts(uid),
+        ]);
 
-        if(projects.length >= userSubscription?.cumulative_quantity) {
+        const totalProjects = userCounts.projectCount + userCounts.clonedProjectCount;
+
+        if (totalProjects >= (userSubscription?.cumulative_quantity ?? 1)) {
           return jsonError('You have reached the maximum number of projects for your plan. Please upgrade to create more projects.', 402);  
         }
 

@@ -50,6 +50,8 @@ const createUserProfileDocument = async (user: User) => {
         email,
         photoURL,
         createdAt: serverTimestamp(),
+        projectCount: 0,        // Initialize project counter
+        clonedProjectCount: 0,  // Initialize cloned project counter
       });
     } catch (error) {
       console.error("Error creating user profile document: ", error);
