@@ -6,13 +6,14 @@ import { getStorage } from "firebase/storage";
 
 let firebaseConfig: FirebaseOptions;
 
-// In a server-side or build environment (like App Hosting), FIREBASE_CONFIG is provided automatically.
-// It contains the configuration for the production Firebase project.
-if (process.env.FIREBASE_CONFIG) {
+// Firebase App Hosting provides FIREBASE_WEBAPP_CONFIG with full client config including apiKey
+if (process.env.FIREBASE_WEBAPP_CONFIG) {
+    firebaseConfig = JSON.parse(process.env.FIREBASE_WEBAPP_CONFIG);
+} else if (process.env.FIREBASE_CONFIG) {
+    // Fallback to FIREBASE_CONFIG (may not have apiKey for server-side only config)
     firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 } else {
-    // For local client-side development, we fall back to the NEXT_PUBLIC_ variables from the .env file.
-    // This allows you to use a different Firebase project for development.
+    // For local development, use NEXT_PUBLIC_ variables from .env file
     firebaseConfig = {
         apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
         authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
