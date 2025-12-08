@@ -156,7 +156,7 @@ function tsToDate(ts: any): Date {
 
 function getBucket() {
   const { getStorage } = require('firebase-admin/storage');
-  return getStorage(getAdminApp()).bucket(process.env.FIREBASE_STORAGE_BUCKET);
+  return getStorage(getAdminApp()).bucket(process.env.NEXT_FIREBASE_STORAGE_BUCKET);
 }
 
 function parseDataUri(dataUri: string): { buffer: Buffer; contentType: string } {
@@ -498,7 +498,7 @@ export const generateAndSaveProjectImage = async (
     });
 
     const encodedPath = encodeURIComponent(path);
-    const bucket = process.env.FIREBASE_STORAGE_BUCKET!;
+    const bucket = process.env.NEXT_FIREBASE_STORAGE_BUCKET!;
     const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media&token=${token}`;
 
     await col('projects').doc(projectId).update({ imageUrl: publicUrl });
