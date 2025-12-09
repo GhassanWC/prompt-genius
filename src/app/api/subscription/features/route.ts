@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 import { getSubscriptionByUserId } from "@/lib/subscription-server";
 import { getTier } from "@/lib/tiers-server";
 import { getProjectsForUser } from "@/lib/project-client";
-import { getSubscription } from "@/lib/subscriptions";
 import { getCurrentUserId } from "@/lib/auth";
 
 type FeatureKey =
@@ -35,8 +34,9 @@ export async function GET(req: NextRequest) {
           { status: 400 }
         );
       }
-      const subscription = await getSubscription(userId);
-      if(subscription === null) {
+      // Use server-side Firebase Admin SDK for proper Firebase App Hosting support
+      const subscription = await getSubscriptionByUserId(userId);
+      if (subscription === null) {
         return NextResponse.json({
           count: 1,
         });
