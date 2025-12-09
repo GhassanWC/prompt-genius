@@ -1,4 +1,5 @@
-// src/lib/subscriptions.ts
+// src/lib/subscription-server.ts
+import "server-only";
 import { getDb } from './firebase-admin';
 
 export interface Subscription {

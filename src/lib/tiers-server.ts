@@ -1,3 +1,4 @@
+import "server-only";
 import { getDb } from '@/lib/firebase-admin';
 
 export interface Tier {

@@ -1,10 +1,11 @@
 export const runtime = "nodejs";
 
+import "server-only";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getSubscriptionByUserId } from "@/lib/subscription-server";
 import { getTier } from "@/lib/tiers-server";
-import { getProjectsForUser } from "@/lib/project-client";
+import { getProjectsForUser } from "@/lib/project-server";
 import { getCurrentUserId } from "@/lib/auth";
 
 type FeatureKey =
