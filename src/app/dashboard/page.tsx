@@ -176,7 +176,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      getUserSubscriptionProjectCount().then(setUserSubscriptionProjectCount); // Refresh subscription details
+      getUserSubscriptionProjectCount()
+        .then(setUserSubscriptionProjectCount)
+        .catch((err) => {
+          console.error("Failed to fetch subscription project count:", err);
+          setUserSubscriptionProjectCount(1); // Default to free tier limit on error
+        });
     }
   }, [user]);
 

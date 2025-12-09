@@ -1,5 +1,4 @@
-import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase-admin';
 
 export interface Tier {
   id: string;
@@ -15,10 +14,10 @@ export interface Tier {
 }
 
 export const getTier = async (tierId: string): Promise<Tier | null> => {
-  const tierDocRef = doc(db, 'tiers', tierId);
-  const tierDoc = await getDoc(tierDocRef);
+  const db = getDb();
+  const tierDoc = await db.collection('tiers').doc(tierId).get();
 
-  if (tierDoc.exists()) {
+  if (tierDoc.exists) {
     return { id: tierDoc.id, ...tierDoc.data() } as Tier;
   }
   

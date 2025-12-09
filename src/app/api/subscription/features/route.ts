@@ -54,8 +54,9 @@ export async function GET(req: NextRequest) {
       { status: 400 }
     );
   } catch (e: any) {
+    console.error('[subscription/features GET] Error:', e?.message || e, e?.stack);
     if (e?.message === '__unauthorized__') return NextResponse.json({ error: 'unauthorized' }, { status:401 });
-    return NextResponse.json({ error: 'unexpected error' }, { status:500 });
+    return NextResponse.json({ error: e?.message || 'unexpected error' }, { status:500 });
   }
 }
 

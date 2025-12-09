@@ -16,13 +16,27 @@ export function getAdminApp(): App {
   const ce = process.env.FIREBASE_CLIENT_EMAIL;
   let pk = process.env.FIREBASE_PRIVATE_KEY;
 
-  if (pj && ce && pk) {
-    // If using env key, all 3 must exist; normalize newlines
-    pk = pk.replace(/\\n/g, '\n');
-    cachedApp = initializeApp({ credential: cert({ projectId: pj, clientEmail: ce, privateKey: pk }) });
-  } else {
-    // Fallback to ADC (recommended on App Hosting)
-    cachedApp = initializeApp({ credential: applicationDefault() });
+  console.log('[Firebase Admin] Initializing...', {
+    hasProjectId: !!pj,
+    hasClientEmail: !!ce,
+    hasPrivateKey: !!pk,
+  });
+
+  try {
+    if (pj && ce && pk) {
+      // If using env key, all 3 must exist; normalize newlines
+      pk = pk.replace(/\\n/g, '\n');
+      console.log('[Firebase Admin] Using service account credentials');
+      cachedApp = initializeApp({ credential: cert({ projectId: pj, clientEmail: ce, privateKey: pk }) });
+    } else {
+      // Fallback to ADC (recommended on App Hosting)
+      console.log('[Firebase Admin] Using Application Default Credentials (ADC)');
+      cachedApp = initializeApp({ credential: applicationDefault() });
+    }
+    console.log('[Firebase Admin] Initialized successfully');
+  } catch (error: any) {
+    console.error('[Firebase Admin] Initialization failed:', error?.message || error);
+    throw error;
   }
 
   return cachedApp;
