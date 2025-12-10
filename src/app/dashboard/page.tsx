@@ -22,6 +22,7 @@ import {
   Trash2,
   Globe,
   Lock,
+  GitFork,
 } from "lucide-react";
 import { UserNav } from "@/components/user-nav";
 import { Logo } from "@/components/logo";
@@ -39,6 +40,14 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -55,8 +64,7 @@ import { auth } from "@/lib/firebase";
 const formatDate = (value?: string | Date | null) =>
   value ? new Date(value).toLocaleDateString() : "—";
 
-const CREATED_PAGE_SIZE = 4;
-const CLONES_PAGE_SIZE = 3;
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 export default function DashboardPage() {
   const { user, loading: authLoading, subscriptionPlan } = useAuth();
@@ -71,6 +79,8 @@ export default function DashboardPage() {
   const [deletingCloneId, setDeletingCloneId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentClonesPage, setCurrentClonesPage] = useState(1);
+  const [projectsPageSize, setProjectsPageSize] = useState(10);
+  const [clonesPageSize, setClonesPageSize] = useState(10);
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -92,7 +102,7 @@ export default function DashboardPage() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        cache: "no-store", // optional if you want fresh data always
+        cache: "no-store",
       });
 
       if (!res.ok) {
@@ -180,7 +190,7 @@ export default function DashboardPage() {
         .then(setUserSubscriptionProjectCount)
         .catch((err) => {
           console.error("Failed to fetch subscription project count:", err);
-          setUserSubscriptionProjectCount(1); // Default to free tier limit on error
+          setUserSubscriptionProjectCount(1);
         });
     }
   }, [user]);
@@ -215,7 +225,7 @@ export default function DashboardPage() {
         title: "Project Deleted",
         description: `"${projectToDelete.name}" has been removed.`,
       });
-      fetchProjects(); // Refresh the list
+      fetchProjects();
     } catch (err: any) {
       toast({
         variant: "destructive",
@@ -294,7 +304,6 @@ export default function DashboardPage() {
 
       if (!res.ok && res.status === 402) {
         const data = await res.json();
-        console.log("Failed to update visibility", data);
         toast({
           variant: "destructive",
           title: "Update Failed",
@@ -304,7 +313,6 @@ export default function DashboardPage() {
       }
 
       if (!res.ok) {
-        console.log("Failed to update visibility", res);
         toast({
           variant: "destructive",
           title: "Update Failed",
@@ -318,7 +326,7 @@ export default function DashboardPage() {
           newVisibility ? "public" : "private"
         }.`,
       });
-      fetchProjects(); // Refresh the list to show the new state
+      fetchProjects();
     } catch (err: any) {
       toast({
         variant: "destructive",
@@ -340,9 +348,9 @@ export default function DashboardPage() {
 
   const totalProjectPages = Math.max(
     1,
-    Math.ceil(displayedProjects.length / CREATED_PAGE_SIZE)
+    Math.ceil(displayedProjects.length / projectsPageSize)
   );
-  const totalClonePages = Math.max(1, Math.ceil(clones.length / CLONES_PAGE_SIZE));
+  const totalClonePages = Math.max(1, Math.ceil(clones.length / clonesPageSize));
 
   useEffect(() => {
     if (currentPage > totalProjectPages) {
@@ -357,14 +365,14 @@ export default function DashboardPage() {
   }, [currentClonesPage, totalClonePages]);
 
   const visibleProjects = useMemo(() => {
-    const start = (currentPage - 1) * CREATED_PAGE_SIZE;
-    return displayedProjects.slice(start, start + CREATED_PAGE_SIZE);
-  }, [currentPage, displayedProjects]);
+    const start = (currentPage - 1) * projectsPageSize;
+    return displayedProjects.slice(start, start + projectsPageSize);
+  }, [currentPage, displayedProjects, projectsPageSize]);
 
   const visibleClones = useMemo(() => {
-    const start = (currentClonesPage - 1) * CLONES_PAGE_SIZE;
-    return clones.slice(start, start + CLONES_PAGE_SIZE);
-  }, [currentClonesPage, clones]);
+    const start = (currentClonesPage - 1) * clonesPageSize;
+    return clones.slice(start, start + clonesPageSize);
+  }, [currentClonesPage, clones, clonesPageSize]);
 
   const projectsUsed = displayedProjects.length;
   const projectLimit = userSubscriptionProjectCount ?? 0;
@@ -374,23 +382,23 @@ export default function DashboardPage() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="h-16 w-16 animate-spin text-[#00171f]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 text-slate-900 relative overflow-x-hidden">
-      {/* Enhanced animated background */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] bg-gradient-to-br from-blue-300/40 via-indigo-300/30 to-purple-300/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-[-20%] right-[-15%] w-[50vw] h-[50vw] bg-gradient-to-tl from-purple-300/30 via-pink-300/20 to-indigo-300/10 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-gradient-to-r from-cyan-200/20 to-blue-200/15 rounded-full blur-2xl animate-pulse delay-500" />
+    <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+      {/* Subtle geometric background pattern */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
       </div>
 
-      {/* Modern header with glassmorphism */}
-      <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/70 backdrop-blur-xl shadow-lg shadow-black/5">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-0 font-bold group">
             <Image
@@ -400,7 +408,7 @@ export default function DashboardPage() {
               height={60}
               className="ml-1 mr-1"
             />
-            <h1 className="font-headline text-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hidden sm:block">
+            <h1 className="font-headline text-xl text-[#00171f] tracking-tight hidden sm:block">
               Prompt Genius AI
             </h1>
           </Link>
@@ -410,13 +418,13 @@ export default function DashboardPage() {
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <p className="text-3xl sm:text-4xl font-bold font-headline text-slate-900">
+          <p className="text-3xl sm:text-4xl font-bold font-headline text-[#00171f]">
             Your workspace
           </p>
           <Link href={atLimit ? "/dashboard" : "/projects/new"}>
             <Button
               disabled={atLimit}
-              className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold px-6 py-3 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 font-semibold px-6 py-3 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusCircle className="mr-2 h-5 w-5" />
               New Project
@@ -436,31 +444,28 @@ export default function DashboardPage() {
         )}
 
         {tier && (
-          <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
-              <CardTitle className="text-2xl font-bold text-indigo-800 capitalize">{tier.name}</CardTitle>
-              <CardDescription className="text-slate-600 font-medium">
+          <Card className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gray-50 border-b border-gray-100">
+              <CardTitle className="text-2xl font-bold text-[#00171f] capitalize">{tier.name}</CardTitle>
+              <CardDescription className="text-gray-600 font-medium">
                 You have created {projectsUsed} of {projectLimit} available projects.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
-              <Progress
-                value={usagePercentage}
-                className="h-3 bg-slate-100 rounded-full overflow-hidden"
-              >
+              <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-500"
+                  className="h-full bg-[#00171f] rounded-full transition-all duration-500"
                   style={{ width: `${usagePercentage}%` }}
                 />
-              </Progress>
+              </div>
             </CardContent>
             {atLimit && (
-              <CardFooter className="bg-gradient-to-r from-amber-50/50 to-orange-50/50 border-t border-amber-200">
+              <CardFooter className="bg-amber-50 border-t border-amber-200">
                 <div className="w-full text-center text-sm text-amber-700 font-medium mt-2">
                   You've reached your project limit.
                   <Link
                     href="/#pricing"
-                    className="ml-1 mr-1 text-indigo-600 hover:text-indigo-700 underline font-semibold"
+                    className="ml-1 mr-1 text-[#00171f] hover:text-[#00171f]/80 underline font-semibold"
                   >
                     Upgrade your plan
                   </Link>
@@ -471,63 +476,61 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        <section className="space-y-5">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-            <h3 className="text-2xl font-semibold text-slate-900">
-              Created projects — organize your work with clarity
-            </h3>
-            <span className="text-sm text-slate-500">{projectsUsed} active project{projectsUsed === 1 ? '' : 's'}</span>
-          </div>
+        <Tabs defaultValue="created" className="space-y-5">
+          <TabsList className="bg-transparent border-b border-gray-200 rounded-none p-0 h-auto w-full justify-start gap-0">
+            <TabsTrigger 
+              value="created" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:text-[#00171f] hover:text-[#00171f] transition-colors"
+            >
+              Created
+              <span className="ml-2 text-xs text-gray-400">({projectsUsed})</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="cloned" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:text-[#00171f] hover:text-[#00171f] transition-colors"
+            >
+              Cloned
+              <span className="ml-2 text-xs text-gray-400">({clones.length})</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="created" className="mt-4">
           {loadingProjects ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 rounded-2xl bg-slate-100" />
+                <Skeleton key={i} className="h-12 rounded-2xl bg-gray-100" />
               ))}
             </div>
           ) : displayedProjects.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-slate-200 bg-white/80 p-8 text-center">
-              <FolderOpen className="mx-auto h-12 w-12 text-indigo-200" />
-              <p className="mt-4 text-lg font-semibold text-slate-800">Nothing created yet</p>
-              <p className="text-sm text-slate-500">Create a project to see it listed here.</p>
+            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+              <FolderOpen className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-4 text-lg font-semibold text-[#00171f]">No projects yet</p>
+              <p className="text-sm text-gray-500">Create your first project to get started.</p>
             </div>
           ) : (
-            <div className="rounded-3xl border border-slate-200 bg-white/90 shadow-xl shadow-slate-200 ring-1 ring-slate-100 backdrop-blur">
-              <div className="flex flex-col gap-1 px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-indigo-50/80 to-white">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Showing</p>
-                    <p className="text-lg font-semibold text-slate-900">
-                      {visibleProjects.length} of {displayedProjects.length} created projects
-                    </p>
-                  </div>
-                  <div className="text-xs font-semibold text-slate-500">
-                    Page {currentPage} of {totalProjectPages}
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500">Filtered to exclude cloned copies.</p>
-              </div>
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="min-w-full table-auto text-sm text-slate-700">
-                  <thead className="bg-slate-50">
+                <table className="min-w-full table-auto text-sm text-gray-700">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <th className="w-12 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">#</th>
-                      <th className="w-24 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Image</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Title</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Description</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Created date</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Modified date</th>
-                      <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Clone counter</th>
-                      <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Actions</th>
+                      <th className="w-12 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">#</th>
+                      <th className="w-24 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Image</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Title</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Description</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Created</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Modified</th>
+                      <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Clones</th>
+                      <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
+                  <tbody className="divide-y divide-gray-100 bg-white">
                     {visibleProjects.map((project, index) => {
                       const isOwner = project.roles[user.uid] === "owner";
                       const modifiedAt = (project as any).updatedAt ?? project.createdAt;
-                      const globalIndex = (currentPage - 1) * CREATED_PAGE_SIZE + index;
+                      const globalIndex = (currentPage - 1) * projectsPageSize + index;
                       return (
-                        <tr key={project.id} className="border-b border-slate-100 transition-colors duration-150 hover:bg-indigo-50/30">
-                          <td className="px-4 py-4 text-sm text-slate-500">{globalIndex + 1}</td>
+                        <tr key={project.id} className="border-b border-gray-100 transition-colors duration-150 hover:bg-gray-50">
+                          <td className="px-4 py-4 text-sm text-gray-500">{globalIndex + 1}</td>
                           <td className="px-4 py-4">
                             {project.imageUrl ? (
                               <Image
@@ -538,8 +541,8 @@ export default function DashboardPage() {
                                 className="h-12 w-12 rounded-xl object-cover"
                               />
                             ) : (
-                              <div className="h-12 w-12 rounded-xl border border-slate-100 bg-slate-100 flex items-center justify-center">
-                                <Logo className="h-6 w-6 text-indigo-300" />
+                              <div className="h-12 w-12 rounded-xl border border-gray-200 bg-gray-100 flex items-center justify-center">
+                                <Logo className="h-6 w-6 text-gray-400" />
                               </div>
                             )}
                           </td>
@@ -547,27 +550,32 @@ export default function DashboardPage() {
                             <div className="flex flex-col gap-1">
                               <Link
                                 href={`/projects/${project.id}`}
-                                className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
+                                className="text-sm font-semibold text-[#00171f] hover:text-[#00171f]/70"
                               >
                                 {project.name}
                               </Link>
-                              <p className="text-xs text-slate-500">
+                              <p className="text-xs text-gray-500">
                                 {isOwner ? "Owner" : "Contributor"}
                               </p>
                             </div>
                             {cloneProjectIds.has(project.id) && (
-                              <span className="mt-1 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                              <span className="mt-1 inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#00171f]">
                                 Cloned
                               </span>
                             )}
                           </td>
-                          <td className="px-4 py-4 text-sm text-slate-600 line-clamp-2 overflow-hidden break-words text-ellipsis whitespace-normal">
+                          <td className="px-4 py-4 text-sm text-gray-600 line-clamp-2 overflow-hidden break-words text-ellipsis whitespace-normal">
                             {project.idea || "No description provided"}
                           </td>
-                          <td className="px-4 py-4 text-sm text-slate-500">{formatDate(project.createdAt)}</td>
-                          <td className="px-4 py-4 text-sm text-slate-500">{formatDate(modifiedAt)}</td>
-                          <td className="px-4 py-4 text-center text-sm font-semibold text-slate-900">
-                            {project.cloneCount ?? 0}
+                          <td className="px-4 py-4 text-sm text-gray-500">{formatDate(project.createdAt)}</td>
+                          <td className="px-4 py-4 text-sm text-gray-500">{formatDate(modifiedAt)}</td>
+                          <td className="px-4 py-4">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <GitFork className="h-3.5 w-3.5 text-gray-400" />
+                              <span className="text-sm font-semibold text-[#00171f]">
+                                {project.cloneCount ?? 0}
+                              </span>
+                            </div>
                           </td>
                           <td className="px-4 py-4 text-right">
                             {isOwner && (
@@ -576,27 +584,27 @@ export default function DashboardPage() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-10 w-10 bg-white/90 backdrop-blur-xl border border-white/50 shadow-lg hover:bg-white hover:border-indigo-200 rounded-xl transition-all duration-200"
+                                    className="h-10 w-10 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 hover:border-gray-300 rounded-xl transition-all duration-200"
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
                                     }}
                                   >
-                                    <MoreVertical className="h-5 w-5 text-slate-500" />
+                                    <MoreVertical className="h-5 w-5 text-gray-500" />
                                     <span className="sr-only">Project options</span>
                                   </Button>
                                 </DropdownMenuTrigger>
-                                      <DropdownMenuContent
-                                        align="end"
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                        }}
-                                        className="bg-white/95 backdrop-blur-xl border border-white/50 shadow-xl rounded-2xl"
-                                      >
+                                <DropdownMenuContent
+                                  align="end"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                  }}
+                                  className="bg-white border border-gray-200 shadow-xl rounded-2xl"
+                                >
                                   <DropdownMenuItem
                                     onClick={(e) => handleToggleVisibility(project, e)}
-                                    className="hover:bg-indigo-50 focus:bg-indigo-50 rounded-lg transition-colors duration-200"
+                                    className="hover:bg-gray-50 focus:bg-gray-50 rounded-lg transition-colors duration-200"
                                   >
                                     {project.isPublic ? (
                                       <>
@@ -610,7 +618,7 @@ export default function DashboardPage() {
                                       </>
                                     )}
                                   </DropdownMenuItem>
-                                  <DropdownMenuSeparator className="bg-slate-200" />
+                                  <DropdownMenuSeparator className="bg-gray-200" />
                                   <DropdownMenuItem
                                     className="text-red-600 focus:bg-red-50 focus:text-red-700 rounded-lg transition-colors duration-200"
                                     onClick={(e) => openDeleteDialog(project, e)}
@@ -628,20 +636,41 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="flex items-center justify-between px-6 py-3 border-t border-slate-100 bg-white/70">
-                <p className="text-xs text-slate-500">
-                  Showing {visibleProjects.length} of {displayedProjects.length} created projects
-                </p>
+              <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <Select
+                    value={projectsPageSize.toString()}
+                    onValueChange={(value) => {
+                      setProjectsPageSize(Number(value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[70px] h-8 border-gray-200 bg-white text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAGE_SIZE_OPTIONS.map((size) => (
+                        <SelectItem key={size} value={size.toString()}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-xs text-gray-500">
+                    {visibleProjects.length} of {displayedProjects.length} projects
+                  </span>
+                </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     disabled={currentPage <= 1}
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    className="border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
                     Previous
                   </Button>
-                  <span className="text-sm font-medium text-slate-600">
+                  <span className="text-sm font-medium text-gray-600">
                     Page {currentPage} / {totalProjectPages}
                   </span>
                   <Button
@@ -649,6 +678,7 @@ export default function DashboardPage() {
                     size="sm"
                     disabled={currentPage >= totalProjectPages}
                     onClick={() => setCurrentPage((prev) => Math.min(totalProjectPages, prev + 1))}
+                    className="border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
                     Next
                   </Button>
@@ -656,64 +686,43 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
-        </section>
+          </TabsContent>
 
-        <section className="space-y-5">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-            <h3 className="text-2xl font-semibold text-slate-900">
-              Cloned projects — showcase the ideas you keep revisiting
-            </h3>
-            <span className="text-sm text-slate-500">
-              {clones.length} cloned project{clones.length === 1 ? '' : 's'}
-            </span>
-          </div>
+          <TabsContent value="cloned" className="mt-4">
           {loadingClones ? (
-            <div className="rounded-3xl border border-dashed border-slate-200 bg-white/80 p-8 text-center">
-              <Loader2 className="mx-auto h-6 w-6 animate-spin text-slate-500" />
-              <p className="mt-3 text-sm text-slate-500">Loading your clones...</p>
+            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+              <Loader2 className="mx-auto h-6 w-6 animate-spin text-gray-500" />
+              <p className="mt-3 text-sm text-gray-500">Loading...</p>
             </div>
           ) : clones.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-slate-200 bg-white/80 p-8 text-center">
-              <p className="text-lg font-semibold text-slate-800">No cloned projects yet</p>
-              <p className="text-sm text-slate-500">Clone a community project to see it listed here.</p>
+            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+              <GitFork className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-4 text-lg font-semibold text-[#00171f]">No clones yet</p>
+              <p className="text-sm text-gray-500">Clone a community project to get started.</p>
             </div>
           ) : (
-            <div className="rounded-3xl border border-slate-200 bg-white/90 shadow-xl shadow-slate-200 ring-1 ring-slate-100 backdrop-blur">
-              <div className="flex flex-col gap-1 px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-purple-50/80 to-white">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Cloned spotlight</p>
-                    <p className="text-lg font-semibold text-slate-900">
-                      {visibleClones.length} of {clones.length} clones
-                    </p>
-                  </div>
-                  <div className="text-xs font-semibold text-slate-500">
-                    Page {currentClonesPage} of {totalClonePages}
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500">Remove clones you no longer want on this list.</p>
-              </div>
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="min-w-full table-auto text-sm text-slate-700">
-                  <thead className="bg-slate-50">
+                <table className="min-w-full table-auto text-sm text-gray-700">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <th className="w-12 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">#</th>
-                      <th className="w-24 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Image</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Title</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Description</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Created date</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Modified date</th>
-                      <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Clone count</th>
-                      <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">Action</th>
+                      <th className="w-12 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">#</th>
+                      <th className="w-24 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Image</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Title</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Description</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Created</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Modified</th>
+                      <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Clones</th>
+                      <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
+                  <tbody className="divide-y divide-gray-100 bg-white">
                     {visibleClones.map((clone, index) => {
                       const relative = formatDistanceToNow(clone.createdAt, { addSuffix: true });
-                      const cloneIndex = (currentClonesPage - 1) * CLONES_PAGE_SIZE + index;
+                      const cloneIndex = (currentClonesPage - 1) * clonesPageSize + index;
                       return (
-                        <tr key={clone.id} className="border-b border-slate-100 transition-colors duration-150 hover:bg-slate-50/80">
-                          <td className="px-4 py-4 text-sm text-slate-500">{cloneIndex + 1}</td>
+                        <tr key={clone.id} className="border-b border-gray-100 transition-colors duration-150 hover:bg-gray-50">
+                          <td className="px-4 py-4 text-sm text-gray-500">{cloneIndex + 1}</td>
                           <td className="px-4 py-4">
                             {clone.sourceImageUrl ? (
                               <Image
@@ -724,8 +733,8 @@ export default function DashboardPage() {
                                 className="h-12 w-12 rounded-xl object-cover"
                               />
                             ) : (
-                              <div className="h-12 w-12 rounded-xl border border-slate-100 bg-slate-100 flex items-center justify-center">
-                                <Logo className="h-6 w-6 text-indigo-300" />
+                              <div className="h-12 w-12 rounded-xl border border-gray-200 bg-gray-100 flex items-center justify-center">
+                                <Logo className="h-6 w-6 text-gray-400" />
                               </div>
                             )}
                           </td>
@@ -733,24 +742,29 @@ export default function DashboardPage() {
                             <div className="flex flex-col gap-1">
                               <Link
                                 href={`/projects/${clone.cloneProjectId}`}
-                                className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
+                                className="text-sm font-semibold text-[#00171f] hover:text-[#00171f]/70"
                               >
                                 {clone.sourceProjectName}
                               </Link>
-                              <span className="text-xs text-slate-500">{relative}</span>
+                              <span className="text-xs text-gray-500">{relative}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-4 text-sm text-slate-600 line-clamp-2">
+                          <td className="px-4 py-4 text-sm text-gray-600 line-clamp-2">
                             {clone.sourceIdea || "No description provided"}
                           </td>
-                          <td className="px-4 py-4 text-sm text-slate-500">{formatDate(clone.createdAt)}</td>
-                          <td className="px-4 py-4 text-sm text-slate-500">{formatDate(clone.createdAt)}</td>
-                          <td className="px-4 py-4 text-center text-sm font-semibold text-slate-900">1</td>
+                          <td className="px-4 py-4 text-sm text-gray-500">{formatDate(clone.createdAt)}</td>
+                          <td className="px-4 py-4 text-sm text-gray-500">{formatDate(clone.createdAt)}</td>
+                          <td className="px-4 py-4">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <GitFork className="h-3.5 w-3.5 text-gray-400" />
+                              <span className="text-sm font-semibold text-[#00171f]">1</span>
+                            </div>
+                          </td>
                           <td className="px-4 py-4 text-right">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-slate-600 border-slate-200 hover:border-slate-300 shadow-sm bg-white/80"
+                              className="text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50 shadow-sm"
                               disabled={deletingCloneId === clone.cloneProjectId}
                               onClick={() =>
                                 handleDeleteClone(clone.cloneProjectId, clone.sourceProjectName)
@@ -759,7 +773,7 @@ export default function DashboardPage() {
                               {deletingCloneId === clone.cloneProjectId ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
-                                "Remove clone"
+                                "Remove"
                               )}
                             </Button>
                           </td>
@@ -769,20 +783,41 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="flex items-center justify-between px-6 py-3 border-t border-slate-100 bg-white/70">
-                <p className="text-xs text-slate-500">
-                  Showing {visibleClones.length} of {clones.length} cloned projects
-                </p>
+              <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <Select
+                    value={clonesPageSize.toString()}
+                    onValueChange={(value) => {
+                      setClonesPageSize(Number(value));
+                      setCurrentClonesPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[70px] h-8 border-gray-200 bg-white text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAGE_SIZE_OPTIONS.map((size) => (
+                        <SelectItem key={size} value={size.toString()}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-xs text-gray-500">
+                    {visibleClones.length} of {clones.length} clones
+                  </span>
+                </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     disabled={currentClonesPage <= 1}
                     onClick={() => setCurrentClonesPage((prev) => Math.max(1, prev - 1))}
+                    className="border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
                     Previous
                   </Button>
-                  <span className="text-sm font-medium text-slate-600">
+                  <span className="text-sm font-medium text-gray-600">
                     Page {currentClonesPage} / {totalClonePages}
                   </span>
                   <Button
@@ -792,6 +827,7 @@ export default function DashboardPage() {
                     onClick={() =>
                       setCurrentClonesPage((prev) => Math.min(totalClonePages, prev + 1))
                     }
+                    className="border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
                     Next
                   </Button>
@@ -799,15 +835,17 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
-        </section>
+          </TabsContent>
+        </Tabs>
       </main>
+
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl">
+        <AlertDialogContent className="bg-white border border-gray-200 shadow-2xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-bold text-slate-800">
+            <AlertDialogTitle className="text-2xl font-bold text-[#00171f]">
               Are you absolutely sure?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-600 font-medium leading-relaxed">
+            <AlertDialogDescription className="text-gray-600 font-medium leading-relaxed">
               This action cannot be undone. This will permanently delete the
               project{" "}
               <span className="font-bold text-red-600">
@@ -817,13 +855,13 @@ export default function DashboardPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-all duration-200">
+            <AlertDialogCancel className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all duration-200">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteProject}
               disabled={isDeleting}
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-xl shadow-red-500/25 font-semibold px-6 py-3 rounded-xl transition-all duration-200"
+              className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg shadow-red-500/25 font-semibold px-6 py-3 rounded-xl transition-all duration-200"
             >
               {isDeleting ? (
                 <>

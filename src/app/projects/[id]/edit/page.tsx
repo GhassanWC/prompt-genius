@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Project, Prompt, Role } from '@/lib/projects';
 import { Loader2, ArrowLeft, AlertTriangle, PlusCircle, Save, Edit, ShieldAlert } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
@@ -33,7 +34,6 @@ async function isFeatureEnabled(userId: string, feature: FeatureKey): Promise<bo
   const res = await fetch('/api/subscription/features', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    // Important: disable caching for “current” entitlement checks
     cache: 'no-store',
     body: JSON.stringify({ userId, feature }),
   });
@@ -236,7 +236,7 @@ export default function EditProjectPage() {
       });
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
       toast({ title: 'Prompt Deleted' });
-      fetchProjectData(); // Refresh list
+      fetchProjectData();
     } catch (error: any) {
       setError(error.message || "Failed to delete prompt.");
     } finally {
@@ -264,48 +264,60 @@ export default function EditProjectPage() {
       });
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
       toast({ title: "Project Updated", description: "Your project details have been saved." });
-      fetchProjectData(); // Refreshes the project data on the page
+      fetchProjectData();
     } catch (e: any) {
       setError(e.message || "Failed to update project details.");
-      throw e; // Re-throw to allow dialog to handle its loading state
+      throw e;
     }
   };
 
 
   if (loading || authLoading || !user) {
-    return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="h-16 w-16 animate-spin text-[#00171f]" />
+      </div>
+    );
   }
 
   if (error) {
      return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
-            <Alert variant="destructive" className="max-w-2xl mx-auto"><AlertTriangle className="h-4 w-4" /><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>
-            <Link href="/" className="mt-4"><Button variant="outline">Back to Projects</Button></Link>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
+            <Alert variant="destructive" className="max-w-2xl mx-auto bg-red-50 border-red-200 text-red-800 rounded-2xl">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle className="font-semibold">Error</AlertTitle>
+              <AlertDescription className="font-medium">{error}</AlertDescription>
+            </Alert>
+            <Link href="/" className="mt-4">
+              <Button variant="outline" className="border-gray-200 text-[#00171f] hover:bg-gray-50">
+                Back to Projects
+              </Button>
+            </Link>
         </div>
      );
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 text-slate-900 relative overflow-x-hidden">
-      {/* Enhanced animated background */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] bg-gradient-to-br from-blue-300/40 via-indigo-300/30 to-purple-300/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-[-20%] right-[-15%] w-[50vw] h-[50vw] bg-gradient-to-tl from-purple-300/30 via-pink-300/20 to-indigo-300/10 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-gradient-to-r from-cyan-200/20 to-blue-200/15 rounded-full blur-2xl animate-pulse delay-500" />
+    <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+      {/* Subtle geometric background pattern */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
       </div>
 
-      {/* Modern header with glassmorphism */}
-      <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/70 backdrop-blur-xl shadow-lg shadow-black/5">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-0 font-bold group">
-            <img
+            <Image
               src="/logo.png"
               alt="Prompt Genius Logo"
               width={60}
               height={60}
               className="ml-1 mr-1"
             />
-            <h1 className="font-headline text-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hidden sm:block">
+            <h1 className="font-headline text-xl text-[#00171f] tracking-tight hidden sm:block">
               Prompt Genius AI
             </h1>
           </Link>
@@ -314,27 +326,27 @@ export default function EditProjectPage() {
       </header>
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-16">
-        {/* Enhanced navigation section */}
+        {/* Navigation section */}
         <div className="my-8">
-          <Link href={`/projects/${projectId}`} className="inline-flex items-center text-sm text-slate-600 hover:text-indigo-600 transition-all duration-200 font-medium group">
+          <Link href={`/projects/${projectId}`} className="inline-flex items-center text-sm text-gray-600 hover:text-[#00171f] transition-all duration-200 font-medium group">
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back to Project
           </Link>
         </div>
 
-        {/* Enhanced header section */}
+        {/* Header section */}
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-6 mb-6">
           <div>
-            <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
+            <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f]">
               Edit Project
             </h1>
-            <p className="mt-3 text-lg sm:text-xl text-slate-600 font-medium">{project?.name}</p>
+            <p className="mt-3 text-lg sm:text-xl text-gray-600 font-medium">{project?.name}</p>
           </div>
           <Button 
             variant="outline" 
             onClick={() => setIsProjectDetailsDialogOpen(true)} 
             disabled={!canEdit}
-            className="bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-3 px-6 rounded-xl transition-all duration-200 hover:shadow-lg"
+            className="bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-[#00171f] font-medium py-3 px-6 rounded-xl transition-all duration-200 hover:shadow-md"
           >
             <Edit className="mr-2 h-4 w-4" />
             Edit Details
@@ -345,37 +357,37 @@ export default function EditProjectPage() {
         {project && (
           <section className="max-w-4xl mx-auto space-y-4 mb-8">
             {project.aiRole && (
-              <div className="rounded-3xl border border-slate-200 bg-white/90 p-5 sm:p-6 shadow-lg shadow-slate-200/80">
+              <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-3 mb-3">
-                  <h2 className="text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
-                    AI Role (persona for your builder)
+                  <h2 className="text-xs font-semibold tracking-[0.15em] text-gray-500 uppercase">
+                    AI Role
                   </h2>
-                  <span className="text-[11px] text-slate-400">
-                    This is what your AI sees before the prompts.
+                  <span className="text-[11px] text-gray-400">
+                    Persona for your builder
                   </span>
                 </div>
-                <div className="rounded-2xl bg-slate-50 px-4 py-3 max-h-64 overflow-y-auto ring-1 ring-slate-100">
-                  <pre className="whitespace-pre-wrap text-xs sm:text-sm text-slate-800 leading-relaxed font-mono">
+                <div className="rounded-xl bg-gray-50 px-4 py-3 max-h-64 overflow-y-auto border border-gray-100">
+                  <pre className="whitespace-pre-wrap text-xs sm:text-sm text-[#00171f] leading-relaxed font-mono">
                     {project.aiRole}
                   </pre>
                 </div>
               </div>
             )}
 
-            <div className="rounded-3xl border border-slate-200 bg-white/90 p-5 sm:p-6 shadow-lg shadow-slate-200/80">
-              <h2 className="mb-2 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
+              <h2 className="mb-2 text-xs font-semibold tracking-[0.15em] text-gray-500 uppercase">
                 Project Idea
               </h2>
-              <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
+              <p className="text-sm sm:text-base text-[#00171f] leading-relaxed">
                 {project.idea}
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white/90 p-5 sm:p-6 shadow-lg shadow-slate-200/80">
-              <h2 className="mb-2 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
+              <h2 className="mb-2 text-xs font-semibold tracking-[0.15em] text-gray-500 uppercase">
                 Project Summary
               </h2>
-              <p className="whitespace-pre-wrap text-sm sm:text-base text-slate-700 leading-relaxed">
+              <p className="whitespace-pre-wrap text-sm sm:text-base text-[#00171f] leading-relaxed">
                 {project.summary && project.summary.trim().length > 0
                   ? project.summary
                   : 'You can add an editable summary in the Edit Details dialog. It will appear under the AI role and idea on the project page.'}
@@ -394,18 +406,18 @@ export default function EditProjectPage() {
           </Alert>
         )}
 
-        {/* Enhanced content section */}
+        {/* Content section */}
         <div className="max-w-4xl mx-auto mt-12 space-y-12">
           <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-              <h2 className="text-2xl sm:text-3xl font-bold font-headline bg-gradient-to-b from-slate-900 to-indigo-700 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-3xl font-bold font-headline text-[#00171f]">
                 Development Plan
               </h2>
               {isPromptsOrderDirty && canEdit && (
                 <Button 
                   onClick={handleSaveOrder} 
                   disabled={isSavingPromptsOrder}
-                  className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold px-6 py-3 rounded-full transition-all duration-200"
+                  className="bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 font-semibold px-6 py-3 rounded-full transition-all duration-200"
                 >
                   <Save className="mr-2 h-4 w-4" />
                   {isSavingPromptsOrder ? 'Saving...' : 'Save Prompt Order'}
@@ -414,7 +426,7 @@ export default function EditProjectPage() {
             </div>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <div className="space-y-6">
-                <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden p-6">
+                <Card className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden p-6">
                   <SortableContext items={prompts} strategy={verticalListSortingStrategy} disabled={!canEdit}>
                     {prompts.length > 0 ? (
                       <div className="space-y-4">
@@ -430,15 +442,15 @@ export default function EditProjectPage() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-12 border-2 border-dashed border-indigo-200 rounded-2xl bg-indigo-50/50">
-                        <p className="text-slate-600 font-medium">No prompts yet.</p>
+                      <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
+                        <p className="text-gray-600 font-medium">No prompts yet.</p>
                       </div>
                     )}
                   </SortableContext>
                 </Card>
                 <Button 
                   variant="outline" 
-                  className="w-full bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-4 rounded-xl transition-all duration-200 hover:shadow-lg" 
+                  className="w-full bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-[#00171f] font-medium py-4 rounded-xl transition-all duration-200 hover:shadow-md" 
                   onClick={() => handleOpenPromptDialog(null)} 
                   disabled={!canEdit}
                 >
@@ -463,20 +475,20 @@ export default function EditProjectPage() {
       <PromptEditDialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen} prompt={currentPrompt} userId={user.uid} onSave={handleSavePrompt} />
       
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl">
+        <AlertDialogContent className="bg-white border border-gray-200 shadow-2xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-bold text-slate-800">Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-600 font-medium leading-relaxed">
+            <AlertDialogTitle className="text-2xl font-bold text-[#00171f]">Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 font-medium leading-relaxed">
               This will permanently delete this prompt. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-all duration-200">
+            <AlertDialogCancel className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all duration-200">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeletePrompt} 
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-xl shadow-red-500/25 font-semibold px-6 py-3 rounded-xl transition-all duration-200"
+              className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg shadow-red-500/25 font-semibold px-6 py-3 rounded-xl transition-all duration-200"
             >
               Delete
             </AlertDialogAction>

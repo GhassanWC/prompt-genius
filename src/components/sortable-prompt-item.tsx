@@ -31,33 +31,59 @@ export function SortablePromptItem({ prompt, stepNumber, onEdit, onDelete, isRea
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 10 : 'auto',
-    opacity: isDragging ? 0.8 : 1,
+    opacity: isDragging ? 0.9 : 1,
   };
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} className="relative">
-      <Card className="mb-2 bg-secondary/50">
-        <CardContent className="p-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className={cn("touch-none", isReadOnly ? "cursor-not-allowed" : "cursor-grab")} {...listeners} disabled={isReadOnly}>
-            <GripVertical className="h-5 w-5 text-muted-foreground" />
+      <Card className={cn(
+        "mb-2 bg-white border border-gray-200 rounded-xl transition-all duration-200 hover:border-gray-300 hover:shadow-sm",
+        isDragging && "shadow-lg border-gray-300"
+      )}>
+        <CardContent className="p-3 sm:p-4 flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={cn(
+              "touch-none h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg",
+              isReadOnly ? "cursor-not-allowed opacity-50" : "cursor-grab active:cursor-grabbing"
+            )} 
+            {...listeners} 
+            disabled={isReadOnly}
+          >
+            <GripVertical className="h-4 w-4" />
           </Button>
-          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-bold text-primary">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#00171f] text-sm font-bold text-white">
             {stepNumber}
           </div>
-          <div className="flex-grow text-left overflow-hidden">
-            <p className="font-medium truncate">{prompt.title}</p>
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+          <div className="flex-grow text-left overflow-hidden min-w-0">
+            <p className="font-semibold text-[#00171f] truncate text-sm sm:text-base">{prompt.title}</p>
+            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
               {prompt.userPrompt}
             </p>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => onEdit(prompt)} disabled={isReadOnly}>
-            <Pencil className="h-4 w-4" />
-            <span className="sr-only">Edit</span>
-          </Button>
-          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => onDelete(prompt.id)} disabled={isReadOnly}>
-            <Trash2 className="h-4 w-4" />
-            <span className="sr-only">Delete</span>
-          </Button>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => onEdit(prompt)} 
+              disabled={isReadOnly}
+              className="h-8 w-8 text-gray-500 hover:text-[#00171f] hover:bg-gray-100 rounded-lg"
+            >
+              <Pencil className="h-4 w-4" />
+              <span className="sr-only">Edit</span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg" 
+              onClick={() => onDelete(prompt.id)} 
+              disabled={isReadOnly}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Delete</span>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,75 +9,93 @@ body {
     sans-serif;
 }
 
+.font-headline {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
 @layer base {
   :root {
-    --background: 210 31% 94%;
-    --foreground: 215 17% 14%;
-    --card: 210 32% 98%;
-    --card-foreground: 215 17% 14%;
-    --popover: 210 32% 96%;
-    --popover-foreground: 215 17% 14%;
-    --primary: 210 90% 60%;
-    --primary-foreground: 214 20% 11%;
-    --secondary: 210 20% 92%;
-    --secondary-foreground: 215 17% 14%;
-    --muted: 210 28% 96%;
-    --muted-foreground: 215 17% 14%;
-    --accent: 186 72% 52%;
-    --accent-foreground: 210 20% 11%;
-    --destructive: 5 78% 53%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 212 26% 84%;
-    --input: 212 26% 84%;
-    --ring: 210 90% 60%;
-    --chart-1: 248 90% 63%;
-    --chart-2: 168 72% 44%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    /* Primary colors - Black & White theme */
+    --color-black: 197 100% 6%; /* #00171f */
+    --color-white: 0 0% 100%; /* #ffffff */
+    --color-gray-50: 200 20% 98%;
+    --color-gray-100: 200 15% 95%;
+    --color-gray-200: 200 10% 90%;
+    --color-gray-300: 200 8% 80%;
+    --color-gray-400: 200 5% 60%;
+    --color-gray-500: 200 5% 45%;
+    --color-gray-600: 200 8% 30%;
+    --color-gray-700: 200 12% 20%;
+    --color-gray-800: 197 50% 10%;
+    --color-gray-900: 197 100% 6%; /* #00171f */
+
+    --background: 0 0% 100%;
+    --foreground: 197 100% 6%;
+    --card: 0 0% 100%;
+    --card-foreground: 197 100% 6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 197 100% 6%;
+    --primary: 197 100% 6%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 15% 95%;
+    --secondary-foreground: 197 100% 6%;
+    --muted: 200 10% 96%;
+    --muted-foreground: 200 5% 45%;
+    --accent: 200 15% 95%;
+    --accent-foreground: 197 100% 6%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 200 10% 90%;
+    --input: 200 10% 90%;
+    --ring: 197 100% 6%;
+    --chart-1: 197 100% 6%;
+    --chart-2: 200 15% 30%;
+    --chart-3: 200 10% 50%;
+    --chart-4: 200 8% 70%;
+    --chart-5: 200 5% 85%;
     --radius: 0.75rem;
-    --sidebar-background: 207 30% 92%;
-    --sidebar-foreground: 215 17% 14%;
-    --sidebar-primary: 210 90% 60%;
-    --sidebar-primary-foreground: 214 20% 11%;
-    --sidebar-accent: 210 28% 96%;
-    --sidebar-accent-foreground: 215 17% 14%;
-    --sidebar-border: 206 24% 85%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 197 100% 6%;
+    --sidebar-primary: 197 100% 6%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 200 15% 95%;
+    --sidebar-accent-foreground: 197 100% 6%;
+    --sidebar-border: 200 10% 90%;
+    --sidebar-ring: 197 100% 6%;
   }
   .dark {
-    --background: 222 47% 11%;
+    --background: 197 100% 6%;
     --foreground: 0 0% 98%;
-    --card: 222 47% 14%;
+    --card: 197 50% 10%;
     --card-foreground: 0 0% 98%;
-    --popover: 222 47% 11%;
+    --popover: 197 100% 6%;
     --popover-foreground: 0 0% 98%;
-    --primary: 231 48% 68%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 222 47% 18%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 197 100% 6%;
+    --secondary: 197 50% 12%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 222 47% 22%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 261 45% 75%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 62.8% 30.6%;
+    --muted: 197 50% 15%;
+    --muted-foreground: 200 5% 65%;
+    --accent: 197 50% 15%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 98%;
-    --border: 222 47% 22%;
-    --input: 222 47% 22%;
-    --ring: 231 48% 68%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 197 50% 18%;
+    --input: 197 50% 18%;
+    --ring: 0 0% 100%;
+    --chart-1: 0 0% 100%;
+    --chart-2: 200 15% 70%;
+    --chart-3: 200 10% 50%;
+    --chart-4: 200 8% 35%;
+    --chart-5: 200 5% 20%;
+    --sidebar-background: 197 100% 6%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 197 100% 6%;
+    --sidebar-accent: 197 50% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 197 50% 18%;
+    --sidebar-ring: 0 0% 100%;
   }
 }
 
@@ -86,15 +105,60 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-    background-image:
-      radial-gradient(circle at top right, rgba(129, 213, 255, 0.35), transparent 45%),
-      radial-gradient(circle at 20% 20%, rgba(188, 223, 255, 0.45), transparent 40%),
-      linear-gradient(135deg, rgba(233, 240, 255, 0.9), rgba(255, 255, 255, 0.95));
-    background-attachment: fixed;
-    background-size: cover;
+    background-color: #ffffff;
+    background-image: none;
     min-height: 100vh;
   }
 }
+
+/* Custom animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-subtle-pulse {
+  animation: subtle-pulse 4s ease-in-out infinite;
+}
+
+/* Staggered animation delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
 
 @media print {
   body {

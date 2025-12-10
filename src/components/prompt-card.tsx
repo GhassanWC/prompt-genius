@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, Check, CheckCircle } from "lucide-react";
+import { Copy, Check, CheckCircle2, MapPin, MessageSquare, ListChecks } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { Prompt } from "@/lib/projects";
 import { cn } from "@/lib/utils";
@@ -48,17 +48,20 @@ export function PromptCard({
 
   return (
     <Card className={cn(
-        "transition-all duration-500 print:break-inside-avoid bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 hover:border-indigo-200",
-        isDone ? "opacity-75 bg-slate-50/90" : "bg-white/90"
+        "transition-all duration-300 print:break-inside-avoid bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden hover:shadow-lg hover:border-gray-300",
+        isDone ? "opacity-60 bg-gray-50" : "bg-white"
     )}>
       <CardContent className="p-0">
-        {/* Enhanced header section */}
-        <div className="flex items-center gap-4 p-6 border-b border-white/50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/25">
+        {/* Header section */}
+        <div className="flex items-center gap-4 p-5 sm:p-6 border-b border-gray-100 bg-gray-50/50">
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#00171f] text-base font-bold text-white shadow-md">
             {stepNumber}
           </div>
-          <div className="flex-1">
-            <h3 className={cn("text-xl sm:text-2xl font-headline font-bold text-indigo-800", isDone && "line-through text-slate-500")}>
+          <div className="flex-1 min-w-0">
+            <h3 className={cn(
+              "text-lg sm:text-xl font-bold text-[#00171f] truncate",
+              isDone && "line-through text-gray-400"
+            )}>
               {title}
             </h3>
           </div>
@@ -66,59 +69,62 @@ export function PromptCard({
             id={`done-${id}`}
             checked={!!isDone}
             onCheckedChange={(checked) => onStatusChange(id, !!checked)}
-            className="h-6 w-6 flex-shrink-0 print:hidden data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500"
+            className="h-5 w-5 flex-shrink-0 print:hidden border-gray-300 data-[state=checked]:bg-[#00171f] data-[state=checked]:border-[#00171f]"
             aria-label="Mark as done"
             disabled={isReadOnly}
           />
         </div>
 
-        {/* Enhanced content section */}
-        <div className="p-6 space-y-8">
-            {mapFlow && (
-                <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 backdrop-blur-xl border border-blue-100 rounded-2xl p-5">
-                    <div className="font-bold text-indigo-800 mb-3 flex items-center gap-2">
-                      <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                      Logic Map
-                    </div>
-                    <p className="text-slate-600 font-medium leading-relaxed">{mapFlow}</p>
-                </div>
-            )}
-            
-            <div className="bg-gradient-to-r from-slate-50/80 to-gray-50/80 backdrop-blur-xl border border-slate-100 rounded-2xl p-5 relative">
-                <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleCopy}
-                aria-label="Copy prompt"
-                className="h-10 w-10 absolute top-4 right-4 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-200 print:hidden"
-                >
-                {hasCopied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
-                </Button>
-                <div className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-slate-500 rounded-full"></div>
-                  User Prompt
-                </div>
-                <p className="whitespace-pre-wrap text-sm sm:text-base text-slate-600 font-medium leading-relaxed pr-14">
-                {userPrompt}
-                </p>
+        {/* Content section */}
+        <div className="p-5 sm:p-6 space-y-5">
+          {/* Logic Map */}
+          {mapFlow && (
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div className="font-semibold text-[#00171f] mb-2 flex items-center gap-2 text-sm">
+                <MapPin className="h-4 w-4 text-gray-500" />
+                Logic Map
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">{mapFlow}</p>
             </div>
+          )}
+          
+          {/* User Prompt */}
+          <div className="rounded-xl border border-gray-200 bg-white p-4 relative group">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCopy}
+              aria-label="Copy prompt"
+              className="h-8 w-8 absolute top-3 right-3 text-gray-400 hover:text-[#00171f] hover:bg-gray-100 rounded-lg transition-all duration-200 print:hidden opacity-0 group-hover:opacity-100"
+            >
+              {hasCopied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+            </Button>
+            <div className="font-semibold text-[#00171f] mb-2 flex items-center gap-2 text-sm">
+              <MessageSquare className="h-4 w-4 text-gray-500" />
+              User Prompt
+            </div>
+            <p className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed pr-10">
+              {userPrompt}
+            </p>
+          </div>
 
-            {acceptanceCriteria && acceptanceCriteria.length > 0 && (
-                <div className="space-y-4 bg-gradient-to-r from-green-50/80 to-emerald-50/80 backdrop-blur-xl border border-green-100 rounded-2xl p-5">
-                <div className="font-bold text-green-800 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  Acceptance Criteria
-                </div>
-                <ul className="space-y-3">
-                    {acceptanceCriteria.map((criterion, index) => (
-                    <li key={index} className="flex items-start gap-3 text-sm sm:text-base text-slate-600 font-medium leading-relaxed">
-                        <CheckCircle className="h-5 w-5 mt-0.5 text-green-500 flex-shrink-0" />
-                        <span>{criterion}</span>
-                    </li>
-                    ))}
-                </ul>
-                </div>
-            )}
+          {/* Acceptance Criteria */}
+          {acceptanceCriteria && acceptanceCriteria.length > 0 && (
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div className="font-semibold text-[#00171f] mb-3 flex items-center gap-2 text-sm">
+                <ListChecks className="h-4 w-4 text-gray-500" />
+                Acceptance Criteria
+              </div>
+              <ul className="space-y-2.5">
+                {acceptanceCriteria.map((criterion, index) => (
+                  <li key={index} className="flex items-start gap-2.5 text-sm text-gray-700 leading-relaxed">
+                    <CheckCircle2 className="h-4 w-4 mt-0.5 text-[#00171f] flex-shrink-0" />
+                    <span>{criterion}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

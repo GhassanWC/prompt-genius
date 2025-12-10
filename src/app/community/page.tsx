@@ -8,10 +8,9 @@ import type { Project } from '@/lib/projects';
 import { Card, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, ArrowRight, Search, Lock, Rocket } from 'lucide-react';
+import { ArrowLeft, Search, Lock, Rocket, GitFork, Check } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { getTier, Tier } from '@/lib/tiers';
 import { auth } from '@/lib/firebase';
@@ -23,27 +22,23 @@ type CommunityProject = Project & {
   cloneCount?: number;
 };
 
-function getInitials(name: string | null | undefined) {
-  if (!name) return 'A';
-  return name.charAt(0).toUpperCase();
-}
 
 function AccessDenied() {
   return (
     <div className="max-w-2xl mx-auto">
-      <Card className="text-center p-8 border-primary/20 shadow-lg">
+      <Card className="text-center p-8 border-gray-200 shadow-lg bg-white rounded-2xl">
         <CardContent className="p-0">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 mb-6">
-            <Lock className="h-8 w-8 text-primary" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mb-6">
+            <Lock className="h-8 w-8 text-[#00171f]" />
           </div>
-          <h2 className="font-headline text-2xl font-bold text-foreground">
+          <h2 className="font-headline text-2xl font-bold text-[#00171f]">
             Exclusive Feature
           </h2>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-2 text-gray-600">
             Access to the community showcase is available for Plus and Pro members.
           </p>
           <Link href="/#pricing">
-            <Button className="mt-6">
+            <Button className="mt-6 bg-[#00171f] hover:bg-[#00171f]/90 text-white rounded-full px-6 py-3 font-semibold">
               <Rocket className="mr-2 h-4 w-4" />
               Upgrade Your Plan
             </Button>
@@ -54,7 +49,7 @@ function AccessDenied() {
   );
 }
 
-const PAGE_SIZE = 12; // number of projects to fetch per lazy-load batch
+const PAGE_SIZE = 12;
 
 const formatCommunityDate = (value?: string | Date | null) =>
   value ? new Date(value).toLocaleDateString() : '—';
@@ -70,7 +65,6 @@ export default function CommunityPage() {
     [tier]
   );
 
-  // Data + lazy loading state
   const [publicProjects, setPublicProjects] = useState<CommunityProject[]>([]);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -79,7 +73,6 @@ export default function CommunityPage() {
   const [clonedSourceIds, setClonedSourceIds] = useState<Set<string>>(() => new Set());
   const [cloningProjectId, setCloningProjectId] = useState<string | null>(null);
 
-  // Search remains client-side
   const [searchTerm, setSearchTerm] = useState('');
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -96,7 +89,6 @@ export default function CommunityPage() {
     fetchTierInfo();
   }, [subscriptionPlan]);
 
-  // Reset list when access toggles (or page reload)
   useEffect(() => {
     if (!canAccessCommunity) {
       setPublicProjects([]);
@@ -249,16 +241,16 @@ export default function CommunityPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 text-slate-900 relative overflow-x-hidden">
-      {/* Background blobs */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] bg-gradient-to-br from-blue-300/40 via-indigo-300/30 to-purple-300/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-[-20%] right-[-15%] w-[50vw] h-[50vw] bg-gradient-to-tl from-purple-300/30 via-pink-300/20 to-indigo-300/10 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-gradient-to-r from-cyan-200/20 to-blue-200/15 rounded-full blur-2xl animate-pulse delay-500" />
+    <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+      {/* Subtle geometric background pattern */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/70 backdrop-blur-xl shadow-lg shadow-black/5">
+      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-0 font-bold group">
             <Image
@@ -268,7 +260,7 @@ export default function CommunityPage() {
               height={60}
               className="ml-1 mr-1"
             />
-            <h1 className="font-headline text-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hidden sm:block">
+            <h1 className="font-headline text-xl text-[#00171f] tracking-tight hidden sm:block">
               Prompt Genius AI
             </h1>
           </Link>
@@ -276,7 +268,7 @@ export default function CommunityPage() {
             <UserNav />
           ) : (
             <Link href="/login">
-              <Button className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg shadow-indigo-500/25 active:scale-95 transition-all duration-200 font-medium px-6 py-2 rounded-full">
+              <Button className="bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 active:scale-95 transition-all duration-200 font-medium px-6 py-2 rounded-full">
                 Sign In
               </Button>
             </Link>
@@ -288,7 +280,7 @@ export default function CommunityPage() {
         <div className="mb-8">
           <Link
             href={user ? '/dashboard' : '/'}
-            className="inline-flex items-center text-sm text-slate-600 hover:text-indigo-600 transition-all duration-200 font-medium group"
+            className="inline-flex items-center text-sm text-gray-600 hover:text-[#00171f] transition-all duration-200 font-medium group"
           >
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             {user ? 'Back to Dashboard' : 'Back to Home'}
@@ -296,10 +288,10 @@ export default function CommunityPage() {
         </div>
 
         <div className="text-center mb-10 sm:mb-14">
-          <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
+          <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f]">
             Community Spotlight
           </h1>
-          <p className="mt-3 text-base sm:text-lg text-slate-600 max-w-xl mx-auto font-medium leading-relaxed">
+          <p className="mt-3 text-base sm:text-lg text-gray-600 max-w-xl mx-auto font-medium leading-relaxed">
             Browse public projects you can clone and adapt to your own ideas.
           </p>
         </div>
@@ -314,7 +306,7 @@ export default function CommunityPage() {
               {Array.from({ length: 6 }).map((_, idx) => (
                 <Card
                   key={idx}
-                  className="border border-slate-200/80 bg-white/90 shadow-md shadow-slate-200/80 rounded-2xl"
+                  className="border border-gray-200 bg-white shadow-sm rounded-2xl"
                 >
                   <CardContent className="p-5 space-y-4">
                     <div className="flex items-center gap-3">
@@ -343,12 +335,12 @@ export default function CommunityPage() {
             <div className="max-w-2xl mx-auto mb-12 sm:mb-16">
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
-                  <Search className="h-5 w-5 text-black" />
+                  <Search className="h-5 w-5 text-[#00171f]" />
                 </div>
                 <Input
                   type="search"
                   placeholder="Search community projects..."
-                  className="w-full bg-white/80 text-base font-medium rounded-2xl border border-white/50 shadow-lg shadow-black/5 backdrop-blur-xl focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 pl-16 pr-4 py-4"
+                  className="w-full bg-white text-base font-medium rounded-2xl border border-gray-200 shadow-sm focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 pl-12 pr-4 py-4"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -359,10 +351,10 @@ export default function CommunityPage() {
               <section className="space-y-6">
                 <div className="w-full space-y-6">
                   <div className="flex items-center justify-between px-1 sm:px-0">
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-gray-500">
                       Filtered results are paginated for easier browsing.
                     </p>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                    <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
                       Clones:{' '}
                       {filteredProjects
                         .reduce((sum, project) => sum + (project.cloneCount ?? 0), 0)
@@ -371,13 +363,11 @@ export default function CommunityPage() {
                   </div>
 
                   <div className="grid w-full gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-5">
-                    {filteredProjects.map((project, index) => {
-                      const rowIndex = index;
+                    {filteredProjects.map((project) => {
                       const createdDate = formatCommunityDate(project.createdAt as any);
-                      const cloneCount = (project.cloneCount ?? 0).toLocaleString();
+                      const cloneCount = project.cloneCount ?? 0;
                       const authorName =
                         (project as any).author?.displayName || 'Community project';
-                      const initials = getInitials((project as any).author?.displayName ?? project.name);
 
                       return (
                         <Link
@@ -385,63 +375,57 @@ export default function CommunityPage() {
                           href={`/projects/${project.id}`}
                           className="group block h-full"
                         >
-                          <Card className="h-full border border-slate-200/80 bg-white/95 shadow-md shadow-slate-200/80 rounded-2xl transition-transform duration-200 group-hover:-translate-y-1 group-hover:shadow-lg">
+                          <Card className="h-full border border-gray-200 bg-white shadow-sm rounded-2xl transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:border-[#00171f]/30">
                             <CardContent className="p-5 flex flex-col h-full">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="h-10 w-10 border border-indigo-100 bg-indigo-50">
-                                    <AvatarFallback className="text-xs font-semibold text-indigo-700">
-                                      {initials}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <CardTitle className="text-sm sm:text-base font-semibold text-slate-900 line-clamp-2">
-                                      {project.name}
-                                    </CardTitle>
-                                    <p className="text-xs text-slate-500 mt-0.5">
-                                      {authorName}
-                                    </p>
-                                  </div>
-                                </div>
-                                <span className="text-[11px] font-semibold text-slate-400">
-                                  #{rowIndex + 1}
-                                </span>
-                              </div>
+                              {/* Project Title */}
+                              <CardTitle className="text-sm sm:text-base font-semibold text-[#00171f] line-clamp-2">
+                                {project.name}
+                              </CardTitle>
+                              
+                              {/* Author Name */}
+                              <p className="text-xs text-gray-500 mt-1">
+                                {authorName}
+                              </p>
 
-                              <p className="mt-4 text-sm text-slate-700 leading-relaxed line-clamp-4">
+                              {/* Description */}
+                              <p className="mt-4 text-sm text-gray-600 leading-relaxed line-clamp-4 flex-grow">
                                 {project.idea || 'No description provided.'}
                               </p>
 
-                              <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
-                                <span>Created: {createdDate}</span>
-                                <span>
-                                  Clones:{' '}
-                                  <span className="font-semibold text-slate-900">
-                                    {cloneCount}
-                                  </span>
+                              {/* Clone Button with Counter */}
+                              <CardFooter className="mt-4 p-0 flex items-center justify-between">
+                                <span className="text-xs text-gray-500">
+                                  {createdDate}
                                 </span>
-                              </div>
-
-                              <CardFooter className="mt-4 p-0 flex items-center justify-end">
                                 {clonedSourceIds.has(project.id) ? (
-                                  <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-emerald-700">
-                                    Cloned
-                                  </span>
+                                  <div 
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 border border-gray-200 cursor-default"
+                                    title="Cloned"
+                                  >
+                                    <Check className="h-3.5 w-3.5 text-[#00171f]" />
+                                    <span className="text-xs font-medium text-[#00171f]">
+                                      {cloneCount}
+                                    </span>
+                                  </div>
                                 ) : (
                                   <Button
                                     variant="default"
                                     size="sm"
-                                    className={`rounded-full px-4 py-2 text-xs font-semibold tracking-[0.2em] transition-all duration-200 shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 ${
+                                    title="Clone"
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 h-auto rounded-full transition-all duration-200 shadow-md bg-[#00171f] text-white hover:bg-[#00171f]/90 ${
                                       cloningProjectId === project.id ? 'cursor-wait opacity-80' : ''
                                     }`}
                                     onClick={(event) => handleCloneProject(project.id, event)}
                                     disabled={!user || Boolean(cloningProjectId)}
                                   >
                                     {cloningProjectId === project.id ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                     ) : (
-                                      'Clone'
+                                      <GitFork className="h-3.5 w-3.5" />
                                     )}
+                                    <span className="text-xs font-medium">
+                                      {cloneCount}
+                                    </span>
                                   </Button>
                                 )}
                               </CardFooter>
@@ -452,32 +436,32 @@ export default function CommunityPage() {
                     })}
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-100" />
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100" />
                 </div>
 
                 <div ref={sentinelRef} className="flex h-16 items-center justify-center">
                   {loadingMore && (
                     <div className="flex gap-2">
-                      <Skeleton className="h-3 w-3 rounded-full" />
-                      <Skeleton className="h-3 w-3 rounded-full" />
-                      <Skeleton className="h-3 w-3 rounded-full" />
+                      <div className="h-3 w-3 rounded-full bg-[#00171f]/30 animate-pulse" />
+                      <div className="h-3 w-3 rounded-full bg-[#00171f]/30 animate-pulse delay-100" />
+                      <div className="h-3 w-3 rounded-full bg-[#00171f]/30 animate-pulse delay-200" />
                     </div>
                   )}
                   {!hasMore && !loadingMore && (
-                    <p className="text-sm text-slate-500">You’ve reached the end.</p>
+                    <p className="text-sm text-gray-500">You've reached the end.</p>
                   )}
                 </div>
               </section>
             ) : (
-              <div className="text-center py-20 border-2 border-dashed border-indigo-200 rounded-3xl bg-white/60 backdrop-blur-xl">
-                <Search className="mx-auto h-16 w-16 text-indigo-300" />
-                <h3 className="mt-6 text-2xl font-bold text-slate-800">No Projects Found</h3>
-                <p className="mt-3 text-slate-600 font-medium">
+              <div className="text-center py-20 border-2 border-dashed border-gray-300 rounded-3xl bg-gray-50">
+                <Search className="mx-auto h-16 w-16 text-gray-400" />
+                <h3 className="mt-6 text-2xl font-bold text-[#00171f]">No Projects Found</h3>
+                <p className="mt-3 text-gray-600 font-medium">
                   Your search for "{searchTerm}" did not match any projects.
                 </p>
                 <Button
                   variant="outline"
-                  className="mt-8 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border-2 border-indigo-200 text-indigo-700 font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:shadow-lg"
+                  className="mt-8 bg-white hover:bg-gray-50 border-2 border-[#00171f] text-[#00171f] font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:shadow-lg"
                   onClick={() => setSearchTerm('')}
                 >
                   Clear Search
