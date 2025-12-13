@@ -3,7 +3,10 @@ runConfig:
   maxInstances: 1
 
 env:
-  # Public Firebase (client) config – needed at build & runtime
+  # -------------------------
+  # Public (client) config
+  # Safe to be public; needed at BUILD so Next.js can embed in browser bundle
+  # -------------------------
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     secret: NEXT_PUBLIC_FIREBASE_API_KEY
     availability: [ BUILD, RUNTIME ]
@@ -23,7 +26,17 @@ env:
     secret: NEXT_PUBLIC_FIREBASE_APP_ID
     availability: [ BUILD, RUNTIME ]
 
-  # Server-only (runtime)
+  # Public analytics / app info (public by design; ensure available at BUILD)
+  - variable: NEXT_PUBLIC_GA_ID
+    secret: NEXT_PUBLIC_GA_ID
+    availability: [ BUILD, RUNTIME ]
+  - variable: NEXT_PUBLIC_APP_URL
+    secret: NEXT_PUBLIC_APP_URL
+    availability: [ BUILD, RUNTIME ]
+
+  # -------------------------
+  # Server-only secrets (NEVER expose to client)
+  # -------------------------
   - variable: OPENAI_API_KEY
     secret: OPENAI_API_KEY
     availability: [ RUNTIME ]
@@ -33,6 +46,7 @@ env:
   - variable: GOOGLE_API_KEY
     secret: GOOGLE_API_KEY
     availability: [ RUNTIME ]
+
   - variable: LEMONSQUEEZY_API_KEY
     secret: LEMONSQUEEZY_API_KEY
     availability: [ RUNTIME ]
@@ -40,27 +54,28 @@ env:
     secret: LEMONSQUEEZY_WEBHOOK_SECRET
     availability: [ RUNTIME ]
 
-  # Not sensitive but useful at build/runtime (only if you use them in code)
-  - variable: LEMONSQUEEZY_STORE_ID
-    secret: LEMONSQUEEZY_STORE_ID
-    availability: [ BUILD, RUNTIME ]
-  - variable: LEMONSQUEEZY_PLUS_PLAN_ID
-    secret: LEMONSQUEEZY_PLUS_PLAN_ID
-    availability: [ BUILD, RUNTIME ]
-  - variable: LEMONSQUEEZY_PRO_PLAN_ID
-    secret: LEMONSQUEEZY_PRO_PLAN_ID
-    availability: [ BUILD, RUNTIME ]
+  # Migration / admin ops secret should be server-only
   - variable: MIGRATION_SECRET
     secret: MIGRATION_SECRET
-  - variable: NEXT_PUBLIC_GA_ID
-    secret: NEXT_PUBLIC_GA_ID
-  - variable: NEXT_PUBLIC_LEMONSQUEEZY_PRO_PLAN_ID
-    secret: NEXT_PUBLIC_LEMONSQUEEZY_PRO_PLAN_ID
-  - variable: NEXT_PUBLIC_LEMONSQUEEZY_PLUS_PLAN_ID
-    secret: NEXT_PUBLIC_LEMONSQUEEZY_PLUS_PLAN_ID
-  - variable: NEXT_PUBLIC_APP_URL
-    secret: NEXT_PUBLIC_APP_URL
+    availability: [ RUNTIME ]
+
+  # -------------------------
+  # Lemon Squeezy non-secret IDs
+  # Prefer server-only unless you truly need them in the browser
+  # -------------------------
+  - variable: LEMONSQUEEZY_STORE_ID
+    secret: LEMONSQUEEZY_STORE_ID
+    availability: [ RUNTIME ]
+  - variable: LEMONSQUEEZY_PLUS_PLAN_ID
+    secret: LEMONSQUEEZY_PLUS_PLAN_ID
+    availability: [ RUNTIME ]
+  - variable: LEMONSQUEEZY_PRO_PLAN_ID
+    secret: LEMONSQUEEZY_PRO_PLAN_ID
+    availability: [ RUNTIME ]
+
+  # -------------------------
   # Firebase Admin SDK credentials (server-only)
+  # -------------------------
   - variable: FIREBASE_PROJECT_ID
     secret: FIREBASE_PROJECT_ID
     availability: [ RUNTIME ]
