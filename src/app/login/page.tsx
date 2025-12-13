@@ -1,7 +1,6 @@
-
 'use client';
 
-import { Github, Eye, EyeOff } from 'lucide-react';
+import { Github, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 function GoogleIcon() {
     return (
@@ -35,26 +35,33 @@ function ForgotPasswordDialog({ onSendResetLink }: { onSendResetLink: (email: st
     }
     
     return (
-         <AlertDialogContent>
+         <AlertDialogContent className="rounded-2xl">
             <AlertDialogHeader>
-                <AlertDialogTitle>Forgot Password?</AlertDialogTitle>
-                <AlertDialogDescription>
+                <AlertDialogTitle className="font-headline text-[#00171f]">Forgot Password?</AlertDialogTitle>
+                <AlertDialogDescription className="text-gray-600 font-medium">
                     No problem. Enter your email address and we'll send you a link to reset your password.
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <div className="py-2">
-                <Label htmlFor="reset-email">Email Address</Label>
+                <Label htmlFor="reset-email" className="text-[#00171f] font-semibold">Email Address</Label>
                 <Input
                     id="reset-email"
                     type="email"
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="mt-2 border-gray-200 rounded-xl focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 font-medium"
                 />
             </div>
             <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleSend} disabled={!email.trim()}>Send Reset Link</AlertDialogAction>
+                <AlertDialogCancel className="rounded-full border-gray-200 hover:bg-gray-50">Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                    onClick={handleSend} 
+                    disabled={!email.trim()}
+                    className="bg-[#00171f] hover:bg-[#00171f]/90 text-white rounded-full"
+                >
+                    Send Reset Link
+                </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
     )
@@ -138,45 +145,78 @@ export default function LoginPage() {
 
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 relative overflow-hidden">
-          {/* Enhanced animated background */}
-          <div className="fixed inset-0 pointer-events-none z-0">
-            <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] bg-gradient-to-br from-blue-300/40 via-indigo-300/30 to-purple-300/20 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-[-20%] right-[-15%] w-[50vw] h-[50vw] bg-gradient-to-tl from-purple-300/30 via-pink-300/20 to-indigo-300/10 rounded-full blur-3xl animate-pulse delay-1000" />
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-gradient-to-r from-cyan-200/20 to-blue-200/15 rounded-full blur-2xl animate-pulse delay-500" />
+        <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+          {/* Subtle geometric background pattern */}
+          <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }} />
           </div>
 
-          <AlertDialog open={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen}>
-            <Tabs defaultValue="signin" className="w-full max-w-md relative z-10">
-              {/* Enhanced header section */}
-              <div className="flex flex-col items-center mb-8 text-center">
-                <Link href="/" className="mb-4 group">
-                  <img
-                   src="/logo.png"
-                   alt="Prompt Genius Logo"
-                   width={60}
-                   height={60}
-                   className="ml-1 mr-1"
-                  />
-                  </Link>
-                <h1 className="font-headline text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-b from-slate-900 via-indigo-800 to-purple-700 bg-clip-text text-transparent">
+          {/* Header */}
+          <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+            <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+              <Link href="/" className="flex items-center gap-0 font-bold group">
+                <Image
+                  src="/logo.png"
+                  alt="Prompt Genius Logo"
+                  width={60}
+                  height={60}
+                  className='ml-1 mr-1'
+                />
+                <span className="font-headline text-xl text-[#00171f] tracking-tight">
                   Prompt Genius AI
-                </h1>
-                <p className="mt-3 text-lg text-slate-600 font-medium">
-                  Sign in or create an account to start.
-                </p>
-              </div>
+                </span>
+              </Link>
+              <Button asChild variant="ghost" className="text-gray-600 hover:text-[#00171f]">
+                <Link href="/" className="flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Home
+                </Link>
+              </Button>
+            </div>
+          </header>
 
-              {/* Enhanced tabs */}
-              <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-lg shadow-black/5 p-1 mb-6">
-                <TabsTrigger value="signin" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium">Sign In</TabsTrigger>
-                <TabsTrigger value="signup" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-200 font-medium">Sign Up</TabsTrigger>
+          {/* Main content */}
+          <main className="relative z-10 flex items-center justify-center min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8">
+            {/* Decorative elements */}
+            <div className="absolute top-20 left-10 w-20 h-20 border border-gray-200 rounded-full animate-float opacity-50" />
+            <div className="absolute bottom-20 right-10 w-32 h-32 border border-gray-200 rounded-full animate-float delay-300 opacity-50" />
+            <div className="absolute top-40 right-20 w-3 h-3 bg-[#00171f] rounded-full animate-subtle-pulse" />
+            <div className="absolute bottom-40 left-20 w-2 h-2 bg-[#00171f] rounded-full animate-subtle-pulse delay-200" />
+
+            <AlertDialog open={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen}>
+              <Tabs defaultValue="signin" className="w-full max-w-md relative z-10">
+                {/* Header section */}
+                <div className="flex flex-col items-center mb-8 text-center">
+                  <h1 className="font-headline text-3xl sm:text-4xl font-bold tracking-tight text-[#00171f]">
+                    Welcome Back
+                  </h1>
+                  <p className="mt-3 text-lg text-gray-600 font-medium">
+                    Sign in or create an account to start.
+                  </p>
+                </div>
+
+              {/* Tabs */}
+              <TabsList className="grid w-full grid-cols-2 bg-gray-50 border border-gray-200 rounded-2xl shadow-sm p-1 mb-6">
+                <TabsTrigger 
+                  value="signin" 
+                  className="data-[state=active]:bg-[#00171f] data-[state=active]:text-white rounded-xl transition-all duration-200 font-medium"
+                >
+                  Sign In
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="signup" 
+                  className="data-[state=active]:bg-[#00171f] data-[state=active]:text-white rounded-xl transition-all duration-200 font-medium"
+                >
+                  Sign Up
+                </TabsTrigger>
               </TabsList>
 
               {error && (
                 <Alert variant="destructive" className="mb-6 bg-red-50 border-red-200 text-red-800 rounded-2xl">
                   <AlertTriangle className="h-5 w-5" />
-                  <AlertTitle className="font-semibold">Login Failed</AlertTitle>
+                  <AlertTitle className="font-semibold">Error</AlertTitle>
                   <AlertDescription className="font-medium">{error}</AlertDescription>
                 </Alert>
               )}
@@ -188,15 +228,15 @@ export default function LoginPage() {
               )}
 
               <TabsContent value="signin">
-                <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
-                    <CardTitle className="text-2xl font-bold text-indigo-800">Sign In</CardTitle>
-                    <CardDescription className="text-slate-600 font-medium">Enter your credentials to access your account.</CardDescription>
+                <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
+                  <CardHeader className="bg-white border-b border-gray-200">
+                    <CardTitle className="font-headline text-2xl font-bold text-[#00171f]">Sign In</CardTitle>
+                    <CardDescription className="text-gray-600 font-medium">Enter your credentials to access your account.</CardDescription>
                   </CardHeader>
-                  <CardContent className="p-8 space-y-6">
+                  <CardContent className="bg-white p-8 space-y-6">
                     <form onSubmit={handleEmailSignIn} className="space-y-6">
                       <div className="space-y-3">
-                        <Label htmlFor="email-in" className="text-slate-700 font-semibold">Email</Label>
+                        <Label htmlFor="email-in" className="text-[#00171f] font-semibold">Email</Label>
                         <Input 
                           id="email-in" 
                           type="email" 
@@ -204,11 +244,11 @@ export default function LoginPage() {
                           required 
                           value={email} 
                           onChange={(e) => setEmail(e.target.value)}
-                          className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                          className="border-gray-200 rounded-xl focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 font-medium"
                         />
                       </div>
                       <div className="space-y-3">
-                        <Label htmlFor="password-in" className="text-slate-700 font-semibold">Password</Label>
+                        <Label htmlFor="password-in" className="text-[#00171f] font-semibold">Password</Label>
                         <div className="relative">
                           <Input 
                             id="password-in" 
@@ -216,13 +256,13 @@ export default function LoginPage() {
                             required 
                             value={password} 
                             onChange={(e) => setPassword(e.target.value)} 
-                            className="pr-12 bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                            className="pr-12 border-gray-200 rounded-xl focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 font-medium"
                           />
                           <Button 
                             type="button" 
                             variant="ghost" 
                             size="icon" 
-                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-400 hover:text-[#00171f] hover:bg-gray-50 rounded-lg transition-all duration-200"
                             onClick={() => setPasswordVisible(!passwordVisible)}
                           >
                             {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -231,7 +271,7 @@ export default function LoginPage() {
                         </div>
                         <div className="text-left">
                           <AlertDialogTrigger asChild>
-                            <Button variant="link" size="sm" type="button" className="p-0 h-auto text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                            <Button variant="link" size="sm" type="button" className="p-0 h-auto text-sm text-[#00171f] hover:text-[#00171f]/80 font-medium">
                               Forgot password?
                             </Button>
                           </AlertDialogTrigger>
@@ -239,30 +279,30 @@ export default function LoginPage() {
                       </div>
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold py-3 rounded-full transition-all duration-200" 
+                        className="w-full bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 font-semibold py-3 rounded-full transition-all duration-200 active:scale-95" 
                         disabled={loading}
                       >
                         {loading ? 'Signing In...' : 'Sign In'}
                       </Button>
                     </form>
 
-                    {/* Enhanced divider */}
+                    {/* Divider */}
                     <div className="relative my-8">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-white/50" />
+                        <span className="w-full border-t border-gray-200" />
                       </div>
                       <div className="relative flex justify-center text-sm uppercase">
-                        <span className="bg-white/90 backdrop-blur-xl px-4 text-slate-500 font-medium">Or continue with</span>
+                        <span className="bg-white px-4 text-gray-500 font-medium">Or continue with</span>
                       </div>
                     </div>
 
-                    {/* Enhanced social buttons */}
+                    {/* Social buttons */}
                     <div className="grid grid-cols-2 gap-4">
                       <Button 
                         variant="outline" 
                         onClick={() => handleProviderSignIn('google')} 
                         disabled={loading}
-                        className="bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
+                        className="bg-white border-gray-200 hover:bg-gray-50 hover:border-[#00171f]/30 text-gray-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
                       >
                         <GoogleIcon /> 
                         <span className="ml-2">Google</span>
@@ -271,7 +311,7 @@ export default function LoginPage() {
                         variant="outline" 
                         onClick={() => handleProviderSignIn('github')} 
                         disabled={loading}
-                        className="bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
+                        className="bg-white border-gray-200 hover:bg-gray-50 hover:border-[#00171f]/30 text-gray-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
                       >
                         <Github className="mr-2 h-5 w-5" />
                         GitHub
@@ -282,39 +322,39 @@ export default function LoginPage() {
               </TabsContent>
 
               <TabsContent value="signup">
-                <Card className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl shadow-black/5 rounded-2xl overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border-b border-white/50">
-                    <CardTitle className="text-2xl font-bold text-indigo-800">Sign Up</CardTitle>
-                    <CardDescription className="text-slate-600 font-medium">Create an account to get started.</CardDescription>
+                <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
+                  <CardHeader className="bg-white border-b border-gray-200">
+                    <CardTitle className="font-headline text-2xl font-bold text-[#00171f]">Sign Up</CardTitle>
+                    <CardDescription className="text-gray-600 font-medium">Create an account to get started.</CardDescription>
                   </CardHeader>
-                  <CardContent className="p-8 space-y-6">
+                  <CardContent className="bg-white p-8 space-y-6">
                     <form onSubmit={handleEmailSignUp} className="space-y-6">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-3">
-                          <Label htmlFor="firstname-up" className="text-slate-700 font-semibold">First Name</Label>
+                          <Label htmlFor="firstname-up" className="text-[#00171f] font-semibold">First Name</Label>
                           <Input 
                             id="firstname-up" 
                             placeholder="John" 
                             required 
                             value={firstName} 
                             onChange={(e) => setFirstName(e.target.value)}
-                            className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                            className="border-gray-200 rounded-xl focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 font-medium"
                           />
                         </div>
                         <div className="space-y-3">
-                          <Label htmlFor="lastname-up" className="text-slate-700 font-semibold">Last Name</Label>
+                          <Label htmlFor="lastname-up" className="text-[#00171f] font-semibold">Last Name</Label>
                           <Input 
                             id="lastname-up" 
                             placeholder="Doe" 
                             required 
                             value={lastName} 
                             onChange={(e) => setLastName(e.target.value)}
-                            className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                            className="border-gray-200 rounded-xl focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 font-medium"
                           />
                         </div>
                       </div>
                       <div className="space-y-3">
-                        <Label htmlFor="email-up" className="text-slate-700 font-semibold">Email</Label>
+                        <Label htmlFor="email-up" className="text-[#00171f] font-semibold">Email</Label>
                         <Input 
                           id="email-up" 
                           type="email" 
@@ -322,11 +362,11 @@ export default function LoginPage() {
                           required 
                           value={email} 
                           onChange={(e) => setEmail(e.target.value)}
-                          className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                          className="border-gray-200 rounded-xl focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 font-medium"
                         />
                       </div>
                       <div className="space-y-3">
-                        <Label htmlFor="password-up" className="text-slate-700 font-semibold">Password</Label>
+                        <Label htmlFor="password-up" className="text-[#00171f] font-semibold">Password</Label>
                         <div className="relative">
                           <Input 
                             id="password-up" 
@@ -334,13 +374,13 @@ export default function LoginPage() {
                             required 
                             value={password} 
                             onChange={(e) => setPassword(e.target.value)}
-                            className="pr-12 bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 font-medium"
+                            className="pr-12 border-gray-200 rounded-xl focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 font-medium"
                           />
                           <Button 
                             type="button" 
                             variant="ghost" 
                             size="icon" 
-                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-400 hover:text-[#00171f] hover:bg-gray-50 rounded-lg transition-all duration-200"
                             onClick={() => setPasswordVisible(!passwordVisible)}
                           >
                             {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -350,30 +390,30 @@ export default function LoginPage() {
                       </div>
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-xl shadow-indigo-500/25 font-semibold py-3 rounded-full transition-all duration-200" 
+                        className="w-full bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 font-semibold py-3 rounded-full transition-all duration-200 active:scale-95" 
                         disabled={loading}
                       >
                         {loading ? 'Creating Account...' : 'Create Account'}
                       </Button>
                     </form>
 
-                    {/* Enhanced divider */}
+                    {/* Divider */}
                     <div className="relative my-8">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-white/50" />
+                        <span className="w-full border-t border-gray-200" />
                       </div>
                       <div className="relative flex justify-center text-sm uppercase">
-                        <span className="bg-white/90 backdrop-blur-xl px-4 text-slate-500 font-medium">Or sign up with</span>
+                        <span className="bg-white px-4 text-gray-500 font-medium">Or sign up with</span>
                       </div>
                     </div>
 
-                    {/* Enhanced social buttons */}
+                    {/* Social buttons */}
                     <div className="grid grid-cols-2 gap-4">
                       <Button 
                         variant="outline" 
                         onClick={() => handleProviderSignIn('google')} 
                         disabled={loading}
-                        className="bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
+                        className="bg-white border-gray-200 hover:bg-gray-50 hover:border-[#00171f]/30 text-gray-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
                       >
                         <GoogleIcon /> 
                         <span className="ml-2">Google</span>
@@ -382,7 +422,7 @@ export default function LoginPage() {
                         variant="outline" 
                         onClick={() => handleProviderSignIn('github')} 
                         disabled={loading}
-                        className="bg-white/80 backdrop-blur-xl border border-white/50 hover:bg-white hover:border-indigo-200 text-slate-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
+                        className="bg-white border-gray-200 hover:bg-gray-50 hover:border-[#00171f]/30 text-gray-700 font-medium py-3 rounded-xl transition-all duration-200 hover:shadow-lg"
                       >
                         <Github className="mr-2 h-5 w-5" />
                         GitHub
@@ -394,6 +434,7 @@ export default function LoginPage() {
             </Tabs>
             <ForgotPasswordDialog onSendResetLink={handleSendResetLink} />
           </AlertDialog>
+          </main>
         </div>
     );
 }
