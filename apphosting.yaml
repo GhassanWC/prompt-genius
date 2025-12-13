@@ -32,7 +32,7 @@ env:
     availability: [ RUNTIME ]
   - variable: GOOGLE_API_KEY
     secret: GOOGLE_API_KEY
-    availability: [ BUILD, RUNTIME ]
+    availability: [ RUNTIME ]
   - variable: LEMONSQUEEZY_API_KEY
     secret: LEMONSQUEEZY_API_KEY
     availability: [ RUNTIME ]
