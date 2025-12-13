@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
           getUserProjectCounts(uid),
         ]);
 
-        const totalProjects = userCounts.projectCount + userCounts.clonedProjectCount;
+        const totalProjects = userCounts.projectCount;
 
         if (totalProjects >= (userSubscription?.cumulative_quantity ?? 1)) {
           return jsonError('You have reached the maximum number of projects for your plan. Please upgrade to create more projects.', 402);  
