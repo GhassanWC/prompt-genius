@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Sparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { enhancePrompt } from "@/ai/flows/enhance-prompt";
+import { auth } from "@/lib/firebase";
 
 
 type PromptData = Partial<Prompt>;
@@ -118,18 +118,33 @@ export function PromptEditDialog({ prompt, userId, open, onOpenChange, onSave }:
     }
     setIsEnhancing(true);
     try {
-      const result = await enhancePrompt({ prompt: userPrompt });
-      setUserPrompt(result.enhancedPrompt);
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: 'enhancePrompt', prompt: userPrompt }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to enhance prompt.');
+      }
+
+      const { enhancedPrompt } = await res.json();
+      setUserPrompt(enhancedPrompt);
       toast({
         title: "Prompt Enhanced",
         description: "The user prompt has been improved by AI.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error enhancing prompt:", error);
       toast({
         variant: "destructive",
         title: "Enhancement Failed",
-        description: "Could not enhance the prompt. Please try again.",
+        description: error?.message || "Could not enhance the prompt. Please try again.",
       });
     } finally {
       setIsEnhancing(false);

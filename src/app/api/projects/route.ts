@@ -27,6 +27,8 @@ import {
 } from '@/lib/project-server';
 import { getSubscriptionByUserId } from '@/lib/subscription-server';
 import { decomposeIdea } from '@/ai/flows/decompose-idea';
+import { enhanceAiRole } from '@/ai/flows/enhance-ai-role';
+import { enhancePrompt } from '@/ai/flows/enhance-prompt';
 type Json = Record<string, any>;
 
 
@@ -115,6 +117,8 @@ export async function GET(req: NextRequest) {
  *
  * Body actions:
  * - { action: "decomposeIdea", idea }                             -> returns { plan }
+ * - { action: "enhanceAiRole", role }                             -> returns { enhancedRole }
+ * - { action: "enhancePrompt", prompt }                           -> returns { enhancedPrompt }
  * - { action: "createProject", projectName, plan }                -> returns { projectId }
  * - { action: "addPrompt", projectId, prompt }                    -> returns { promptId }
  * - { action: "generateImage", projectId, idea }
@@ -133,6 +137,20 @@ export async function POST(req: NextRequest) {
         if (!idea || typeof idea !== 'string') return jsonError('idea is required and must be a string');
         const plan = await decomposeIdea({ idea });
         return NextResponse.json({ plan });
+      }
+
+      case 'enhanceAiRole': {
+        const { role } = body;
+        if (!role || typeof role !== 'string') return jsonError('role is required and must be a string');
+        const result = await enhanceAiRole({ role });
+        return NextResponse.json({ enhancedRole: result.enhancedRole });
+      }
+
+      case 'enhancePrompt': {
+        const { prompt } = body;
+        if (!prompt || typeof prompt !== 'string') return jsonError('prompt is required and must be a string');
+        const result = await enhancePrompt({ prompt });
+        return NextResponse.json({ enhancedPrompt: result.enhancedPrompt });
       }
 
       case 'createProject': {

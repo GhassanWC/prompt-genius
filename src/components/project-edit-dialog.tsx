@@ -10,7 +10,7 @@ import type { Project } from "@/lib/projects";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles } from "lucide-react";
-import { enhanceAiRole } from "@/ai/flows/enhance-ai-role";
+import { auth } from "@/lib/firebase";
 
 type FeatureKey =
   | 'projectLimit'
@@ -113,8 +113,23 @@ export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadO
 
     setIsEnhancingRole(true);
     try {
-      const result = await enhanceAiRole({ role: aiRole });
-      setAiRole(result.enhancedRole);
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: 'enhanceAiRole', role: aiRole }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to enhance AI role.');
+      }
+
+      const { enhancedRole } = await res.json();
+      setAiRole(enhancedRole);
       toast({
         title: "AI Role Enhanced",
         description: "The persona has been refined for better use with your builder.",
