@@ -26,6 +26,7 @@ import {
   getUserProjectCounts,
 } from '@/lib/project-server';
 import { getSubscriptionByUserId } from '@/lib/subscription-server';
+import { decomposeIdea } from '@/ai/flows/decompose-idea';
 type Json = Record<string, any>;
 
 
@@ -113,6 +114,7 @@ export async function GET(req: NextRequest) {
  * POST /api/projects
  *
  * Body actions:
+ * - { action: "decomposeIdea", idea }                             -> returns { plan }
  * - { action: "createProject", projectName, plan }                -> returns { projectId }
  * - { action: "addPrompt", projectId, prompt }                    -> returns { promptId }
  * - { action: "generateImage", projectId, idea }
@@ -126,6 +128,13 @@ export async function POST(req: NextRequest) {
     const action = body?.action as string;
 
     switch (action) {
+      case 'decomposeIdea': {
+        const { idea } = body;
+        if (!idea || typeof idea !== 'string') return jsonError('idea is required and must be a string');
+        const plan = await decomposeIdea({ idea });
+        return NextResponse.json({ plan });
+      }
+
       case 'createProject': {
         const { projectName, plan } = body;
         

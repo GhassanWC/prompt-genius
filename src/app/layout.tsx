@@ -4,7 +4,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
 import { AlertTriangle } from 'lucide-react';
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import { AnalyticsListener } from '@/components/analytics-listener';
 export const metadata: Metadata = {
   title: 'Prompt Genius AI',
@@ -74,11 +73,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const isFirebaseConfigured = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-  const areAiKeysConfigured = !!process.env.GOOGLE_API_KEY;
-  const isConfigured = isFirebaseConfigured && areAiKeysConfigured;
-
-
   return (
     <html lang="en" style={{scrollBehavior: 'smooth'}} className="light">
       <head>
@@ -110,16 +104,11 @@ export default function RootLayout({
         )}
       </head>
       <body className="font-body antialiased">
-        {isConfigured ? (
-            <AuthProvider>
+          <AuthProvider>
               <AnalyticsListener />
               {children}
-              <SpeedInsights/>
               <Toaster />
-            </AuthProvider>
-        ) : (
-            <MissingEnvVarsError />
-        )}
+          </AuthProvider>
       </body>
     </html>
   );

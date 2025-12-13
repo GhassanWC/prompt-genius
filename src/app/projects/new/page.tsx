@@ -3,7 +3,6 @@
 
 import { useState, type FormEvent, useEffect, useCallback } from "react";
 import { Loader2, Sparkles, AlertTriangle, Lock, ArrowLeft } from "lucide-react";
-import { decomposeIdea } from "@/ai/flows/decompose-idea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,7 +60,22 @@ export default function NewProjectPage() {
           throw new Error(`You have reached the ${planLimit}-project limit for the ${currentPlan} plan. Please upgrade to create more projects.`);
       }
 
-      const plan = await decomposeIdea({ idea });
+      // Call decomposeIdea on the server
+      const decomposeRes = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: 'decomposeIdea', idea }),
+      });
+
+      if (!decomposeRes.ok) {
+        const errorData = await decomposeRes.json();
+        throw new Error(errorData.error || 'Failed to generate project plan.');
+      }
+
+      const { plan } = await decomposeRes.json();
 
       if (!plan.developmentPlan || plan.developmentPlan.length === 0) {
         throw new Error(plan.enhancedIdea || "The AI could not generate a plan for this idea. Please make sure it's a software development topic and try rephrasing.");
