@@ -7,7 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { type Project, type Prompt as PromptType, type Role } from '@/lib/projects';
-import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Copy, Lock, Globe } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Copy, Lock, Globe, Sparkles } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
 import { PromptCard } from '@/components/prompt-card';
@@ -16,10 +16,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ShareDialog } from '@/components/share-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { auth } from '@/lib/firebase';
 
 export default function ProjectPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, subscriptionPlan } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const params = useParams();
@@ -30,6 +31,8 @@ export default function ProjectPage() {
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<Role | null>(null);
   const [isShareDialogOpen, setShareDialogOpen] = useState(false);
+  const [hasExecutionFollowUpAccess, setHasExecutionFollowUpAccess] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
 
   const projectId = params.id as string;
 
@@ -93,6 +96,63 @@ export default function ProjectPage() {
         fetchProjectData();
     }
   }, [authLoading, fetchProjectData]);
+
+  // Check if user has access to execution follow-up agent
+  useEffect(() => {
+    if (authLoading) {
+      setCheckingAccess(true);
+      return;
+    }
+
+    if (!user) {
+      setHasExecutionFollowUpAccess(false);
+      setCheckingAccess(false);
+      return;
+    }
+
+    // If user is on pro tier, they have access
+    // We verify via API but also fallback to subscriptionPlan check
+    const isProTier = subscriptionPlan === 'pro';
+    
+    if (isProTier) {
+      // Optimistically set to true since user is on pro tier
+      setHasExecutionFollowUpAccess(true);
+      setCheckingAccess(false);
+
+      // Verify via API in background (optional, for logging/debugging)
+      (async () => {
+        try {
+          const token = await auth.currentUser?.getIdToken();
+          const res = await fetch('/api/subscription/features', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            cache: 'no-store',
+            body: JSON.stringify({ 
+              userId: user.uid, 
+              feature: 'executionFollowUpAgent' 
+            }),
+          });
+
+          if (res.ok) {
+            const data: { enabled: boolean } = await res.json();
+            if (!data.enabled) {
+              console.warn('[Execution Follow-Up] User is on pro tier but feature flag is disabled in Firebase. Please update the tier document.');
+            }
+            setHasExecutionFollowUpAccess(data.enabled === true);
+          }
+        } catch (error) {
+          console.error('[Execution Follow-Up] Error verifying feature access:', error);
+          // Keep access enabled since user is on pro tier
+        }
+      })();
+    } else {
+      setHasExecutionFollowUpAccess(false);
+      setCheckingAccess(false);
+    }
+  }, [user, subscriptionPlan, authLoading]);
 
   const handleTogglePromptStatus = async (promptId: string, newStatus: boolean) => {
     if (!user || userRole === 'viewer') return;
@@ -486,6 +546,29 @@ export default function ProjectPage() {
           )}
         </section>
       </main>
+
+      {/* Floating Execution Follow-Up Agent Button */}
+      {/* Show button if user is on pro tier (either via API check or subscriptionPlan check) */}
+      {!checkingAccess && (hasExecutionFollowUpAccess || subscriptionPlan === 'pro') && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link href="/execution-follow-up">
+                <Button
+                  className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-[#00171f] hover:bg-[#00171f]/90 text-white shadow-2xl shadow-[#00171f]/30 hover:shadow-[#00171f]/40 border-0 transition-all duration-300 hover:scale-110 group"
+                  size="icon"
+                >
+                  <Sparkles className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="bg-[#00171f] text-white border-0 shadow-lg">
+              <p className="font-medium">Execution Follow-Up Agent</p>
+              <p className="text-xs text-white/80 mt-1">Repair prompts when AI doesn&apos;t follow instructions</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
     </div>
     {project && user && userRole === 'owner' && (
       <ShareDialog

@@ -14,6 +14,7 @@ type FeatureKey =
   | "publicProjects"
   | "communityAccess"
   | "aiPromptEnhancement"
+  | "executionFollowUpAgent"
   | "support";
 
 interface Payload {
@@ -116,6 +117,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
         break;
 
+      case "executionFollowUpAgent":
+        if (features.executionFollowUpAgent !== true) {
+          return NextResponse.json({ enabled: false });
+        }
+        break;
+
       case "support":
         if (features.support !== "priority") {
           return NextResponse.json({ enabled: false });
@@ -127,7 +134,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     return NextResponse.json({ enabled: true });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('[subscription/features POST] Error:', error?.message || error, error?.stack);
     return NextResponse.json({ enabled: false });
   }
 }

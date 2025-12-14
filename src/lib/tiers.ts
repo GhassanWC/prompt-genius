@@ -10,6 +10,7 @@ export interface Tier {
     publicProjects: boolean;
     communityAccess: boolean;
     aiPromptEnhancement: boolean;
+    executionFollowUpAgent: boolean;
     support: 'none' | 'community' | 'priority';
   };
 }
@@ -33,6 +34,7 @@ export const getTier = async (tierId: string): Promise<Tier | null> => {
         publicProjects: false,
         communityAccess: false,
         aiPromptEnhancement: false,
+        executionFollowUpAgent: false,
         support: 'none'
       }
     };

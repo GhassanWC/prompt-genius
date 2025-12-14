@@ -51,6 +51,14 @@ export const PAGE_ACCESS_CONFIG: PageAccessConfig[] = [
     message: 'Community access requires Plus plan or higher'
   },
   {
+    path: '/execution-follow-up',
+    name: 'Execution Follow-Up Agent',
+    requiredTier: 'pro',
+    requiredFeatures: ['executionFollowUpAgent'],
+    redirectTo: '/dashboard',
+    message: 'Execution Follow-Up Agent is only available for Pro tier users'
+  },
+  {
     path: '/profile',
     name: 'Profile',
     requiredTier: 'free',
