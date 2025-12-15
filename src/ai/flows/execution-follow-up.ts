@@ -35,7 +35,7 @@ const executionFollowUpGenkitPrompt = ai.definePrompt({
   name: 'executionFollowUpPrompt',
   input: {schema: ExecutionFollowUpInputSchema},
   output: {schema: ExecutionFollowUpOutputSchema},
-  prompt: (input) => `You are an expert prompt repair agent specializing in analyzing execution failures. Your task is to identify why an AI tool failed to follow a prompt correctly and generate a corrective prompt that will steer the AI back on track.
+  prompt: `You are an expert prompt repair agent specializing in analyzing execution failures. Your task is to identify why an AI tool failed to follow a prompt correctly and generate a corrective prompt that will steer the AI back on track.
 
 **Your Role:**
 - Analyze the gap between what was requested and what was actually produced
@@ -61,15 +61,26 @@ const executionFollowUpGenkitPrompt = ai.definePrompt({
 
 **Original Prompt:**
 \`\`\`
-${input.originalPrompt}
+{{{originalPrompt}}}
 \`\`\`
 
 **What the AI Actually Did:**
 \`\`\`
-${input.actualOutput}
+{{{actualOutput}}}
 \`\`\`
 
-${input.desiredOutcome ? `**Desired Outcome:**\n\`\`\`\n${input.desiredOutcome}\n\`\`\`\n\n` : ''}${input.aiTool ? `**AI Tool Used:** ${input.aiTool}\n\n` : ''}Now analyze the execution gap and provide:
+{{#if desiredOutcome}}
+**Desired Outcome:**
+\`\`\`
+{{{desiredOutcome}}}
+\`\`\`
+
+{{/if}}
+{{#if aiTool}}
+**AI Tool Used:** {{{aiTool}}}
+
+{{/if}}
+Now analyze the execution gap and provide:
 1. A detailed gap analysis explaining why the prompt failed in execution
 2. A corrective, copy-paste ready prompt that fixes all identified issues
 3. A list of specific key issues that were found
