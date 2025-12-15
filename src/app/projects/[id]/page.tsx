@@ -115,11 +115,12 @@ export default function ProjectPage() {
     const isProTier = subscriptionPlan === 'pro';
     
     if (isProTier) {
-      // Optimistically set to true since user is on pro tier
+      // Pro tier users always have access - set immediately
       setHasExecutionFollowUpAccess(true);
       setCheckingAccess(false);
 
       // Verify via API in background (optional, for logging/debugging)
+      // But don't override the access setting for pro users
       (async () => {
         try {
           const token = await auth.currentUser?.getIdToken();
@@ -140,8 +141,10 @@ export default function ProjectPage() {
             const data: { enabled: boolean } = await res.json();
             if (!data.enabled) {
               console.warn('[Execution Follow-Up] User is on pro tier but feature flag is disabled in Firebase. Please update the tier document.');
+              // Don't change hasExecutionFollowUpAccess - pro users should always have access
             }
-            setHasExecutionFollowUpAccess(data.enabled === true);
+            // For pro users, we keep access enabled regardless of API response
+            // The button visibility is also checked via subscriptionPlan === 'pro' as a fallback
           }
         } catch (error) {
           console.error('[Execution Follow-Up] Error verifying feature access:', error);
@@ -549,7 +552,7 @@ export default function ProjectPage() {
 
       {/* Floating Execution Follow-Up Agent Button */}
       {/* Show button if user is on pro tier (either via API check or subscriptionPlan check) */}
-      {!checkingAccess && (hasExecutionFollowUpAccess || subscriptionPlan === 'pro') && (
+      {!checkingAccess && user && (hasExecutionFollowUpAccess || subscriptionPlan === 'pro') && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
