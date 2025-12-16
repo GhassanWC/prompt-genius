@@ -23,6 +23,7 @@ import {
   Globe,
   Lock,
   GitFork,
+  Sparkles,
 } from "lucide-react";
 import { UserNav } from "@/components/user-nav";
 import { Logo } from "@/components/logo";
@@ -57,6 +58,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { getTier, Tier } from "@/lib/tiers";
 import { auth } from "@/lib/firebase";
@@ -88,6 +95,8 @@ export default function DashboardPage() {
   const [tier, setTier] = useState<Tier | null>(null);
   const [userSubscriptionProjectCount, setUserSubscriptionProjectCount] =
     useState<number | null>(null);
+  const [hasExecutionFollowUpAccess, setHasExecutionFollowUpAccess] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
 
   const fetchProjects = useCallback(async () => {
     if (!user) return;
@@ -194,6 +203,60 @@ export default function DashboardPage() {
         });
     }
   }, [user]);
+
+  // Check if user has access to execution follow-up agent
+  useEffect(() => {
+    if (authLoading) {
+      setCheckingAccess(true);
+      return;
+    }
+
+    if (!user) {
+      setHasExecutionFollowUpAccess(false);
+      setCheckingAccess(false);
+      return;
+    }
+
+    // If user is on pro tier, they have access
+    const isProTier = subscriptionPlan === 'pro';
+    
+    if (isProTier) {
+      // Pro tier users always have access - set immediately
+      setHasExecutionFollowUpAccess(true);
+      setCheckingAccess(false);
+
+      // Verify via API in background (optional, for logging/debugging)
+      (async () => {
+        try {
+          const token = await auth.currentUser?.getIdToken();
+          const res = await fetch('/api/subscription/features', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            cache: 'no-store',
+            body: JSON.stringify({ 
+              userId: user.uid, 
+              feature: 'executionFollowUpAgent' 
+            }),
+          });
+
+          if (res.ok) {
+            const data: { enabled: boolean } = await res.json();
+            if (!data.enabled) {
+              console.warn('[Execution Follow-Up] User is on pro tier but feature flag is disabled in Firebase.');
+            }
+          }
+        } catch (error) {
+          console.error('[Execution Follow-Up] Error verifying feature access:', error);
+        }
+      })();
+    } else {
+      setHasExecutionFollowUpAccess(false);
+      setCheckingAccess(false);
+    }
+  }, [user, subscriptionPlan, authLoading]);
 
   const openDeleteDialog = (project: Project, e: React.MouseEvent) => {
     e.preventDefault();
@@ -416,7 +479,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-32 space-y-10">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <p className="text-3xl sm:text-4xl font-bold font-headline text-[#00171f]">
             Your workspace
@@ -875,6 +938,28 @@ export default function DashboardPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Floating Execution Follow-Up Agent Button */}
+      {!checkingAccess && user && (hasExecutionFollowUpAccess || subscriptionPlan === 'pro') && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link href="/execution-follow-up">
+                <Button
+                  className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-[#00171f] hover:bg-[#00171f]/90 text-white shadow-2xl shadow-[#00171f]/30 hover:shadow-[#00171f]/40 border-0 transition-all duration-300 hover:scale-110 group"
+                  size="icon"
+                >
+                  <Sparkles className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="bg-[#00171f] text-white border-0 shadow-lg">
+              <p className="font-medium">Execution Follow-Up Agent</p>
+              <p className="text-xs text-white/80 mt-1">Repair prompts when AI doesn&apos;t follow instructions</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
     </div>
   );
 }

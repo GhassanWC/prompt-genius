@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
-import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageSquare, Rocket, XCircle, Loader2, Mail } from 'lucide-react';
+import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageSquare, Rocket, XCircle, Loader2, Mail, Bot, Wrench, Users, Lightbulb, ListChecks, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserNav } from '@/components/user-nav';
@@ -35,19 +35,19 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: Sparkles,
-      title: 'AI-Powered Idea Enhancement',
-      description: 'Turn your vague concepts into detailed, actionable project plans. Our AI refines your ideas, adding depth and clarity.',
+      icon: Lightbulb,
+      title: 'Convert Ideas into Projects',
+      description: 'Transform your vague concepts into structured projects with step-by-step prompts and AI roles. Our AI breaks down your ideas into actionable development plans with copy-paste ready prompts for every task.',
     },
     {
-      icon: ClipboardCheck,
-      title: 'Step-by-Step Prompt Generation',
-      description: 'Receive a complete, sequential development plan with copy-paste ready prompts for both frontend and backend tasks.',
+      icon: ListChecks,
+      title: 'Step-by-Step Prompts & AI Roles',
+      description: 'Get a complete sequential development plan with detailed prompts for each step. Each prompt includes specific AI roles and instructions, making it easy to execute your project from start to finish.',
     },
     {
-      icon: Code,
-      title: 'Multi-Platform Support',
-      description: 'Get prompts tailored for a variety of platforms, including Firebase, Replit, Lovable, n8n, and ChatGPT.',
+      icon: Share2,
+      title: 'Share & Collaborate',
+      description: 'Share your projects with teammates and friends. Make your projects public to showcase your work or keep them private for your team. Collaborate seamlessly with built-in sharing features.',
     },
   ];
 
@@ -189,33 +189,159 @@ export default function LandingPage() {
         <div className="h-px w-32 mx-auto bg-[#00171f]/20 mb-12" />
 
         {/* FEATURES SECTION */}
-        <section id="features" className="py-20 sm:py-24 lg:py-32 relative bg-gray-50/50">
+        <section id="features" className="py-20 sm:py-24 lg:py-32 relative overflow-hidden">
+          {/* Animated background elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 left-10 w-72 h-72 bg-[#00171f]/5 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#00171f]/5 rounded-full blur-3xl animate-pulse delay-1000" />
+          </div>
+          
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="text-center">
-              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f]">
+            <div className="text-center mb-16">
+              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] mb-4">
                 A Smarter Way to Build
               </h2>
               <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 font-medium">
-                From concept to code, we've got you covered. Our features are designed to eliminate guesswork and accelerate your development process.
+                Transform your ideas into actionable projects with AI-powered prompts, share with your team, and build faster with our comprehensive development tools.
               </p>
             </div>
-            <div className="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {features.map((feature, i) => (
-                <Card
-                  key={i}
-                  className="relative bg-white border border-gray-200 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 transition-all duration-500 group overflow-hidden rounded-2xl"
-                >
-                  <CardHeader className="relative z-10">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#00171f] text-white shadow-lg group-hover:scale-110 transition-all duration-300">
-                      <feature.icon className="h-8 w-8" />
+            
+            <div className="grid gap-6 md:gap-8 lg:grid-cols-3">
+              {features.map((feature, i) => {
+                const isMiddle = i === 1;
+                return (
+                  <div
+                    key={i}
+                    className={`relative group ${isMiddle ? 'lg:-mt-8' : ''}`}
+                  >
+                    {/* Gradient background card */}
+                    <div className={`relative h-full rounded-3xl p-8 sm:p-10 overflow-hidden transition-all duration-500 ${
+                      isMiddle 
+                        ? 'bg-gradient-to-br from-[#00171f] to-[#00171f]/90 text-white shadow-2xl scale-105' 
+                        : 'bg-white border-2 border-gray-100 hover:border-[#00171f]/30 shadow-lg hover:shadow-2xl'
+                    }`}>
+                      {/* Decorative gradient overlay */}
+                      {!isMiddle && (
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#00171f]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      )}
+                      
+                      {/* Animated background pattern */}
+                      <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500">
+                        <div className="absolute inset-0" style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                        }} />
+                      </div>
+                      
+                      <div className="relative z-10 flex flex-col items-center text-center">
+                        {/* Icon with animated background - Centered */}
+                        <div className={`relative flex items-center justify-center mb-8 ${
+                          isMiddle 
+                            ? 'bg-white/20 backdrop-blur-sm' 
+                            : 'bg-gradient-to-br from-[#00171f] to-[#00171f]/80'
+                        } rounded-2xl p-6 w-24 h-24 shadow-xl group-hover:scale-110 transition-transform duration-300`}>
+                          <feature.icon className={`h-14 w-14 ${isMiddle ? 'text-white' : 'text-white'}`} />
+                          {/* Glow effect */}
+                          <div className={`absolute inset-0 rounded-2xl ${
+                            isMiddle ? 'bg-white/30' : 'bg-[#00171f]/20'
+                          } blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                        </div>
+                        
+                        {/* Title */}
+                        <h3 className={`text-2xl font-bold font-headline mb-4 ${
+                          isMiddle ? 'text-white' : 'text-[#00171f]'
+                        }`}>
+                          {feature.title}
+                        </h3>
+                        
+                        {/* Description */}
+                        <p className={`leading-relaxed text-base ${
+                          isMiddle ? 'text-gray-100' : 'text-gray-600'
+                        } font-medium`}>
+                          {feature.description}
+                        </p>
+                      </div>
+                      
+                      {/* Corner accent */}
+                      <div className={`absolute top-0 right-0 w-32 h-32 ${
+                        isMiddle ? 'bg-white/10' : 'bg-[#00171f]/5'
+                      } rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                     </div>
-                    <CardTitle className="mt-6 font-headline text-[#00171f] text-xl font-bold">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="relative z-10">
-                    <p className="text-gray-600 font-medium leading-relaxed">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* GOLDEN FEATURE - Execution Follow-Up Agent */}
+        <section className="py-20 sm:py-24 lg:py-32 relative bg-gradient-to-br from-amber-50 via-white to-amber-50/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+              <div className="relative bg-gradient-to-br from-amber-100/50 via-white to-amber-50/50 rounded-3xl border-2 border-amber-200/50 shadow-2xl shadow-amber-500/10 p-8 sm:p-12 overflow-hidden">
+                {/* PRO FEATURE Badge - Top Right */}
+                <div className="absolute top-6 right-6 z-20 bg-gradient-to-r from-amber-400 to-amber-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg border-2 border-white">
+                  PRO FEATURE
+                </div>
+                
+                {/* Decorative elements */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-200/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-300/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+                
+                <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-8 sm:gap-10">
+                  {/* Full Robot Illustration */}
+                  <div className="relative flex-shrink-0">
+                    <div className="relative w-32 h-40 sm:w-40 sm:h-48 flex flex-col items-center justify-center">
+                      {/* Robot Head */}
+                      <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 rounded-2xl flex items-center justify-center shadow-xl shadow-amber-500/30 mb-2">
+                        <Bot className="h-10 w-10 sm:h-12 sm:w-12 text-white" />
+                      </div>
+                      {/* Robot Body */}
+                      <div className="relative w-24 h-16 sm:w-28 sm:h-20 bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 rounded-xl shadow-lg flex items-center justify-center">
+                        {/* Body details */}
+                        <div className="flex gap-2">
+                          <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+                          <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+                          <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+                        </div>
+                      </div>
+                      {/* Robot Arms */}
+                      <div className="absolute left-0 top-8 sm:top-10 flex flex-col gap-2">
+                        <div className="w-3 h-8 sm:w-4 sm:h-10 bg-gradient-to-b from-amber-600 to-amber-700 rounded-full"></div>
+                      </div>
+                      <div className="absolute right-0 top-8 sm:top-10 flex flex-col gap-2">
+                        <div className="w-3 h-8 sm:w-4 sm:h-10 bg-gradient-to-b from-amber-600 to-amber-700 rounded-full"></div>
+                      </div>
+                      {/* Wrench in hand */}
+                      <div className="absolute -right-2 top-12 sm:top-14 w-6 h-6 sm:w-8 sm:h-8 bg-[#00171f] rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                        <Wrench className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                      </div>
+                      {/* Robot Legs */}
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-3">
+                        <div className="w-4 h-6 sm:w-5 sm:h-8 bg-gradient-to-b from-amber-700 to-amber-800 rounded-b-lg"></div>
+                        <div className="w-4 h-6 sm:w-5 sm:h-8 bg-gradient-to-b from-amber-700 to-amber-800 rounded-b-lg"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 text-center sm:text-left">
+                    <h2 className="text-3xl sm:text-4xl font-bold font-headline text-[#00171f] mb-3">
+                      Execution Follow-Up Agent
+                    </h2>
+                    <p className="text-gray-700 leading-relaxed text-base sm:text-lg mb-6 font-medium">
+                      When AI tools drift from your instructions, our agent analyzes the gap and generates corrective prompts to realign them with your intent. Repair broken prompts and get back on track instantly.
+                    </p>
+                    <div className="flex justify-center sm:justify-start">
+                      <Button asChild className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white border-0 shadow-lg shadow-amber-500/30 font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:shadow-xl hover:scale-105">
+                        <Link href={loading ? "/login" : user ? "/execution-follow-up" : "/login"}>
+                          Try Execution Follow-Up Agent
+                          <ArrowRight className="ml-2 h-5 w-5" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -322,9 +448,10 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
                   <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> 1 project</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Full Prompt Generation</p>
-                  <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Public Projects</p>
-                  <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Community Access</p>
+                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Convert ideas into projects</p>
+                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Step-by-step prompts & AI roles</p>
+                  <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Share projects with team</p>
+                  <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Public projects</p>
                   <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> AI Prompt Enhancement</p>
                   <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Execution Follow-Up Agent</p>
                   <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> No Support</p>                
@@ -355,11 +482,12 @@ export default function LandingPage() {
                   </p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
-                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> 10+ projects</p>
-                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Full Prompt Generation</p>
-                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Public Projects & Sharing</p>
-                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Community Access</p>
-                  <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-500" /> AI Prompt Enhancement</p>
+                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> 10+ projects per month</p>
+                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Convert ideas into projects</p>
+                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Step-by-step prompts & AI roles</p>
+                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Share projects with team</p>
+                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Public projects & sharing</p>
+                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> AI Prompt Enhancement</p>
                   <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-500" /> Execution Follow-Up Agent</p>
                   <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Community Support</p>
                 </CardContent>
@@ -392,10 +520,11 @@ export default function LandingPage() {
                   </p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> 30+ projects</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Full Prompt Generation</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Public Projects & Sharing</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Community Access</p>
+                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> 30+ projects per month</p>
+                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Convert ideas into projects</p>
+                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Step-by-step prompts & AI roles</p>
+                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Share projects with team</p>
+                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Public projects & sharing</p>
                   <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> AI Prompt Enhancement</p>
                   <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Execution Follow-Up Agent</p>
                   <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Priority Support</p>

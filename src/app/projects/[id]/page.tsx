@@ -550,28 +550,6 @@ export default function ProjectPage() {
         </section>
       </main>
 
-      {/* Floating Execution Follow-Up Agent Button */}
-      {/* Show button if user is on pro tier (either via API check or subscriptionPlan check) */}
-      {!checkingAccess && user && (hasExecutionFollowUpAccess || subscriptionPlan === 'pro') && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link href="/execution-follow-up">
-                <Button
-                  className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-[#00171f] hover:bg-[#00171f]/90 text-white shadow-2xl shadow-[#00171f]/30 hover:shadow-[#00171f]/40 border-0 transition-all duration-300 hover:scale-110 group"
-                  size="icon"
-                >
-                  <Sparkles className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
-                </Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="left" className="bg-[#00171f] text-white border-0 shadow-lg">
-              <p className="font-medium">Execution Follow-Up Agent</p>
-              <p className="text-xs text-white/80 mt-1">Repair prompts when AI doesn&apos;t follow instructions</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
     </div>
     {project && user && userRole === 'owner' && (
       <ShareDialog
