@@ -171,17 +171,9 @@ function parseDataUri(dataUri: string): { buffer: Buffer; contentType: string } 
 
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
-    // Check if user is admin/master admin
-    const isAdmin = await isUserAdmin(userId);
-    
-    let snap;
-    if (isAdmin) {
-      // Admins can see all projects (both public and private)
-      snap = await col('projects').get();
-    } else {
-      // Regular users only see projects they're members of
-      snap = await col('projects').where(`members.${userId}`, '==', true).get();
-    }
+    // Always return only projects where the user is a member (their own projects)
+    // This applies to both regular users and admins - admins see all projects in admin dashboard, not here
+    const snap = await col('projects').where(`members.${userId}`, '==', true).get();
 
     const projects: Project[] = snap.docs.map((d: any) => {
       const data: any = d.data();

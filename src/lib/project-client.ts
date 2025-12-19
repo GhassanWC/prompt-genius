@@ -37,31 +37,11 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, number> = {
 // Function to get all projects for a user
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
-    // Check if user is admin/master admin
-    let isAdmin = false;
-    try {
-      const userDocRef = doc(db, 'users', userId);
-      const userDocSnap = await getDoc(userDocRef);
-      if (userDocSnap.exists()) {
-        const userData = userDocSnap.data();
-        isAdmin = !!(userData?.isAdmin || userData?.masterAdmin);
-      }
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-    }
-
+    // Always return only projects where the user is a member (their own projects)
+    // This applies to both regular users and admins - admins see all projects in admin dashboard, not here
     const projectsCollectionRef = collection(db, 'projects');
-    let querySnapshot;
-    
-    if (isAdmin) {
-      // Admins can see all projects (both public and private)
-      const q = query(projectsCollectionRef, orderBy('createdAt', 'desc'));
-      querySnapshot = await getDocs(q);
-    } else {
-      // Regular users only see projects they're members of
-      const q = query(projectsCollectionRef, where(`members.${userId}`, "==", true));
-      querySnapshot = await getDocs(q);
-    }
+    const q = query(projectsCollectionRef, where(`members.${userId}`, "==", true));
+    const querySnapshot = await getDocs(q);
     
     const projects: Project[] = [];
     querySnapshot.forEach((doc) => {
