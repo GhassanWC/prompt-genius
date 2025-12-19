@@ -9,6 +9,7 @@ import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
 import { generateImage } from '@/ai/flows/generate-image';
 import type { Project, Prompt, Role, Collaborator, ProjectClone } from '@/lib/projects';
 import { getSubscriptionByUserId } from '@/lib/subscription-server';
+import { isUserAdmin } from '@/lib/auth';
 
 export type SubscriptionPlan = 'free' | 'plus' | 'pro';
 
@@ -170,7 +171,17 @@ function parseDataUri(dataUri: string): { buffer: Buffer; contentType: string } 
 
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
-    const snap = await col('projects').where(`members.${userId}`, '==', true).get();
+    // Check if user is admin/master admin
+    const isAdmin = await isUserAdmin(userId);
+    
+    let snap;
+    if (isAdmin) {
+      // Admins can see all projects (both public and private)
+      snap = await col('projects').get();
+    } else {
+      // Regular users only see projects they're members of
+      snap = await col('projects').where(`members.${userId}`, '==', true).get();
+    }
 
     const projects: Project[] = snap.docs.map((d: any) => {
       const data: any = d.data();
@@ -236,8 +247,18 @@ export const getProject = async (userId: string | null, projectId: string): Prom
     clarificationSteps: data.clarificationSteps || [],
   };
 
+  // Public projects are readable by anyone
   if (project.isPublic) return project;
+  
+  // Private projects are readable by collaborators
   if (userId && project.members?.[userId]) return project;
+  
+  // Admins and master admins can view private projects
+  if (userId) {
+    const isAdmin = await isUserAdmin(userId);
+    if (isAdmin) return project;
+  }
+  
   return null;
 };
 
@@ -316,10 +337,12 @@ export const cloneProjectForUser = async (
 
   const sourceData: any = sourceDoc.data();
 
-  // Only allow cloning if the project is public or the user is already a member
+  // Only allow cloning if the project is public, the user is already a member, or user is admin
   const isMember = !!sourceData.members?.[userId];
   const isPublic = !!sourceData.isPublic;
-  if (!isPublic && !isMember) {
+  const isAdmin = await isUserAdmin(userId);
+  
+  if (!isPublic && !isMember && !isAdmin) {
     throw new Error("You don't have permission to clone this project.");
   }
 

@@ -37,10 +37,32 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, number> = {
 // Function to get all projects for a user
 export const getProjectsForUser = async (userId: string): Promise<Project[]> => {
   try {
+    // Check if user is admin/master admin
+    let isAdmin = false;
+    try {
+      const userDocRef = doc(db, 'users', userId);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        isAdmin = !!(userData?.isAdmin || userData?.masterAdmin);
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+    }
+
     const projectsCollectionRef = collection(db, 'projects');
-    // Query for projects where the user is a member (using the members object)
-    const q = query(projectsCollectionRef, where(`members.${userId}`, "==", true));
-    const querySnapshot = await getDocs(q);
+    let querySnapshot;
+    
+    if (isAdmin) {
+      // Admins can see all projects (both public and private)
+      const q = query(projectsCollectionRef, orderBy('createdAt', 'desc'));
+      querySnapshot = await getDocs(q);
+    } else {
+      // Regular users only see projects they're members of
+      const q = query(projectsCollectionRef, where(`members.${userId}`, "==", true));
+      querySnapshot = await getDocs(q);
+    }
+    
     const projects: Project[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
@@ -102,12 +124,29 @@ export const getProject = async (userId: string | null, projectId: string): Prom
             return projectData;
         }
 
-        // Private projects are only readable by collaborators
+        // Private projects are readable by collaborators
         if (userId && projectData.members && projectData.members[userId] === true) {
             return projectData;
         }
+
+        // Admins and master admins can view private projects
+        if (userId) {
+            try {
+                const userDocRef = doc(db, 'users', userId);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    if (userData?.isAdmin || userData?.masterAdmin) {
+                        return projectData;
+                    }
+                }
+            } catch (error) {
+                // If we can't check admin status, continue with normal access check
+                console.error('Error checking admin status:', error);
+            }
+        }
     }
-    // If we are here, the project is private and user is not a collaborator, or it doesn't exist.
+    // If we are here, the project is private and user is not a collaborator or admin, or it doesn't exist.
     return null;
 }
 
