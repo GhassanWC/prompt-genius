@@ -64,6 +64,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   subscriptionPlan: SubscriptionPlan | null;
+  isAdmin: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithGithub: () => Promise<void>;
   signUpWithEmail: (email: string, pass: string, firstName: string, lastName: string) => Promise<any>;
@@ -82,6 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -94,6 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         const token = await auth.currentUser?.getIdToken(); // ensure user is signed in first!
     
+        // Fetch subscription plan
         const res = await fetch('/api/projects?subscriptionPlan=true', {
           method: 'GET',
           headers: {
@@ -108,8 +111,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         const {plan} = await res.json();
         setSubscriptionPlan(plan);
+
+        // Fetch isAdmin from Firestore
+        try {
+          const userRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setIsAdmin(!!userData.isAdmin);
+          } else {
+            setIsAdmin(false);
+          }
+        } catch (error) {
+          console.error('Error fetching admin status:', error);
+          setIsAdmin(false);
+        }
       } else {
         setSubscriptionPlan(null);
+        setIsAdmin(false);
       }
       setUser(user);
       setLoading(false);
@@ -278,7 +297,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = { 
     user, 
     loading, 
-    subscriptionPlan, 
+    subscriptionPlan,
+    isAdmin,
     signInWithGoogle, 
     signInWithGithub, 
     signUpWithEmail, 

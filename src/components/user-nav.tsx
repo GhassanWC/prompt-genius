@@ -12,14 +12,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, MessageSquare, User as UserIcon, LayoutDashboard, Rocket, CreditCard, KeyIcon, PlusCircle, Crown } from 'lucide-react';
+import { LogOut, MessageSquare, User as UserIcon, LayoutDashboard, Rocket, CreditCard, KeyIcon, PlusCircle, Crown, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { FeedbackDialog } from './feedback-dialog';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
 export function UserNav() {
-  const { user, signOut, subscriptionPlan } = useAuth();
+  const { user, signOut, subscriptionPlan, isAdmin } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -76,6 +76,12 @@ export function UserNav() {
             <LayoutDashboard className="mr-2 h-4 w-4" />
             <span>Dashboard</span>
           </DropdownMenuItem>
+          {isAdmin && (
+            <DropdownMenuItem onClick={() => router.push('/admin')}>
+              <Shield className="mr-2 h-4 w-4" />
+              <span>Admin Dashboard</span>
+            </DropdownMenuItem>
+          )}
            <DropdownMenuItem onClick={() => router.push('/profile/details')}>
             <UserIcon className="mr-2 h-4 w-4" />
             <span>Profile</span>
