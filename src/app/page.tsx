@@ -36,18 +36,18 @@ export default function LandingPage() {
   const features = [
     {
       icon: Lightbulb,
-      title: 'Convert Ideas into Projects',
-      description: 'Transform your vague concepts into structured projects with step-by-step prompts and AI roles. Our AI breaks down your ideas into actionable development plans with copy-paste ready prompts for every task.',
+      title: 'Turn Ideas into Actionable Prompts',
+      description: 'Stuck on what to ask your AI? Describe your product idea and get a complete breakdown with copy-paste ready prompts. Each prompt includes the right AI role and clear instructions — no guesswork.',
     },
     {
       icon: ListChecks,
-      title: 'Step-by-Step Prompts & AI Roles',
-      description: 'Get a complete sequential development plan with detailed prompts for each step. Each prompt includes specific AI roles and instructions, making it easy to execute your project from start to finish.',
+      title: 'Step-by-Step Development Plan',
+      description: 'Get a sequential roadmap with prompts for every task. From setup to deployment, each step has a ready-to-use prompt with specific AI roles. Just copy, paste, and build.',
     },
     {
       icon: Share2,
       title: 'Share & Collaborate',
-      description: 'Share your projects with teammates and friends. Make your projects public to showcase your work or keep them private for your team. Collaborate seamlessly with built-in sharing features.',
+      description: 'Share your project prompts with your team. Make projects public to showcase your work or keep them private. Collaborate seamlessly with built-in sharing features.',
     },
   ];
 
@@ -161,21 +161,21 @@ export default function LandingPage() {
           <div className="absolute bottom-40 left-20 w-2 h-2 bg-[#00171f] rounded-full animate-subtle-pulse delay-200" />
           
           <h1 className="animate-fade-in-up font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-[#00171f] leading-tight">
-            Turn Your Vague Idea<br />
+            Build Your Product Faster<br />
             <span className="relative">
-              Into a Concrete Plan
+              With Ready-to-Use AI Prompts
               <svg className="absolute -bottom-2 left-0 w-full h-3 text-[#00171f]/20" viewBox="0 0 200 8" preserveAspectRatio="none">
                 <path d="M0 7 Q50 0 100 7 T200 7" stroke="currentColor" strokeWidth="2" fill="none"/>
               </svg>
             </span>
           </h1>
           <p className="mt-8 mx-auto max-w-3xl text-lg sm:text-xl text-gray-600 leading-relaxed animate-fade-in-up delay-100">
-            Stop wondering where to start. Prompt Genius AI decomposes your biggest ideas into a clear, sequential development plan with actionable prompts for every step.
+            For developers and builders who want to ship faster. Turn your product idea into step-by-step AI prompts — no overwhelm, no blank pages, just copy-paste ready prompts for every task.
           </p>
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in-up delay-200">
             <Button asChild size="lg" className="w-full sm:w-auto bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-xl shadow-[#00171f]/20 group active:scale-95 transition-all duration-200 font-semibold px-8 py-3 rounded-full text-lg">
               <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
-                Start Forging
+                Start Building
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
@@ -199,10 +199,10 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="text-center mb-16">
               <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] mb-4">
-                A Smarter Way to Build
+                How It Works
               </h2>
               <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 font-medium">
-                Transform your ideas into actionable projects with AI-powered prompts, share with your team, and build faster with our comprehensive development tools.
+                Describe your product idea. We break it down into step-by-step prompts with specific AI roles. Copy, paste, and build — no more staring at blank pages wondering what to ask your AI.
               </p>
             </div>
             
@@ -354,10 +354,10 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f]">
-                Loved by Developers and Founders
+                Loved by Developers and Builders
               </h2>
               <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 font-medium">
-                Don't just take our word for it. Here's what our users have to say about their experience with Prompt Genius AI.
+                See how developers and builders are shipping products faster with ready-to-use AI prompts.
               </p>
               <div className="mt-10">
                 <Button
@@ -556,10 +556,10 @@ export default function LandingPage() {
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-white mb-8">
-              Ready to Transform Your Ideas?
+              Stop Staring at Blank Pages
             </h2>
             <p className="text-xl sm:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto font-medium">
-              Join thousands of developers who are building faster and smarter with Prompt Genius AI.
+              Join developers and builders who are shipping products faster with ready-to-use AI prompts.
             </p>
             <Button asChild size="lg" className="bg-white hover:bg-gray-100 text-[#00171f] border-0 shadow-xl group active:scale-95 transition-all duration-200 font-bold px-10 py-4 rounded-full text-lg">
               <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
