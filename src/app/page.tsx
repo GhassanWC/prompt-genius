@@ -153,7 +153,7 @@ export default function LandingPage() {
 
       <main className="relative z-10">
         {/* HERO SECTION */}
-        <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-36 text-center relative">
+        <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24 text-center relative">
           {/* Decorative elements */}
           <div className="absolute top-20 left-10 w-20 h-20 border border-gray-200 rounded-full animate-float opacity-50" />
           <div className="absolute bottom-20 right-10 w-32 h-32 border border-gray-200 rounded-full animate-float delay-300 opacity-50" />
@@ -161,7 +161,7 @@ export default function LandingPage() {
           <div className="absolute bottom-40 left-20 w-2 h-2 bg-[#00171f] rounded-full animate-subtle-pulse delay-200" />
           
           <h1 className="animate-fade-in-up font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-[#00171f] leading-tight">
-            Build Your Product Faster<br />
+            Build Your First Project Now<br />
             <span className="relative">
               With Ready-to-Use AI Prompts
               <svg className="absolute -bottom-2 left-0 w-full h-3 text-[#00171f]/20" viewBox="0 0 200 8" preserveAspectRatio="none">
@@ -169,18 +169,18 @@ export default function LandingPage() {
               </svg>
             </span>
           </h1>
-          <p className="mt-8 mx-auto max-w-3xl text-lg sm:text-xl text-gray-600 leading-relaxed animate-fade-in-up delay-100">
-            For developers and builders who want to ship faster. Turn your product idea into step-by-step AI prompts — no overwhelm, no blank pages, just copy-paste ready prompts for every task.
+          <p className="mt-6 mx-auto max-w-3xl text-lg sm:text-xl text-gray-600 leading-relaxed animate-fade-in-up delay-100">
+            Stop staring at blank pages. Turn your product idea into step-by-step AI prompts in seconds — copy, paste, and build faster than ever.
           </p>
-          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in-up delay-200">
-            <Button asChild size="lg" className="w-full sm:w-auto bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-xl shadow-[#00171f]/20 group active:scale-95 transition-all duration-200 font-semibold px-8 py-3 rounded-full text-lg">
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in-up delay-200">
+            <Button asChild size="lg" className="w-full sm:w-auto bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-xl shadow-[#00171f]/20 group active:scale-95 transition-all duration-200 font-semibold px-10 py-4 rounded-full text-lg">
               <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
-                Start Building
+                Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-2 border-[#00171f] text-[#00171f] hover:bg-[#00171f] hover:text-white transition-all duration-200 font-medium px-8 py-3 rounded-full text-lg">
-              <Link href="#features">Learn More</Link>
+            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-2 border-[#00171f] text-[#00171f] hover:bg-[#00171f] hover:text-white transition-all duration-200 font-medium px-8 py-4 rounded-full text-lg">
+              <Link href="#features">See How It Works</Link>
             </Button>
           </div>
         </section>
@@ -428,8 +428,8 @@ export default function LandingPage() {
         <div className="h-px w-32 mx-auto bg-[#00171f]/20 my-12" />
 
         {/* PRICING SECTION */}
-        <section id="pricing" className="py-20 sm:py-24 lg:py-32 bg-gray-50/50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="pricing" className="py-20 sm:py-24 lg:py-32 bg-gray-50/50 overflow-visible">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
             <div className="text-center">
               <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f]">
                 Simple, Transparent Pricing
@@ -438,7 +438,7 @@ export default function LandingPage() {
                 Choose the plan that's right for you. Get started for free, and upgrade when you're ready to build more.
               </p>
             </div>
-            <div className="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+            <div className="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto overflow-visible">
               {/* Hobbyist */}
               <Card className="flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 transition-all duration-500 group rounded-2xl overflow-hidden">
                 <CardHeader className="text-center">
@@ -447,14 +447,18 @@ export default function LandingPage() {
                   <p className="text-5xl font-bold pt-6 text-[#00171f]">Free</p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> 1 project</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Convert ideas into projects</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Step-by-step prompts & AI roles</p>
-                  <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Share projects with team</p>
-                  <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Public projects</p>
-                  <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> AI Prompt Enhancement</p>
-                  <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Execution Follow-Up Agent</p>
-                  <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> No Support</p>                
+                  <div className="space-y-3">
+                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> <span className="font-semibold">1 project</span></p>
+                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Convert ideas into projects</p>
+                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Step-by-step prompts & AI roles</p>
+                  </div>
+                  <div className="pt-2 border-t border-gray-200 space-y-3">
+                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Share projects with team</p>
+                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Public projects</p>
+                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> AI Prompt Enhancement</p>
+                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Execution Follow-Up Agent</p>
+                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> No Support</p>
+                  </div>
                 </CardContent>
                 <div className="p-6 pt-0">
                   <Button asChild className="w-full bg-white hover:bg-gray-50 border-2 border-[#00171f] text-[#00171f] font-semibold py-3 rounded-full transition-all duration-200 hover:shadow-lg">
@@ -466,15 +470,16 @@ export default function LandingPage() {
               </Card>
               
               {/* Plus (highlighted) */}
-              <Card className="flex flex-col bg-[#00171f] text-white border-0 shadow-2xl shadow-[#00171f]/30 relative overflow-hidden scale-105 z-10 rounded-2xl">
-                <div className="absolute top-0 right-0 left-0 h-1 bg-white/30" />
-                <CardHeader className="text-center">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="font-headline text-2xl text-white font-bold">Plus</CardTitle>
-                    <div className="text-xs font-bold uppercase text-[#00171f] bg-white px-4 py-2 rounded-full shadow-lg">
-                      Most Popular
-                    </div>
+              <Card className="flex flex-col bg-[#00171f] text-white border-2 border-[#00171f] shadow-2xl shadow-[#00171f]/30 relative scale-105 z-10 rounded-2xl overflow-visible">
+                <div className="absolute top-0 right-0 left-0 h-1 bg-white/30 rounded-t-2xl" />
+                {/* Most Popular Badge - Positioned outside card to avoid clipping */}
+                <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-30">
+                  <div className="text-xs font-bold uppercase text-white bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2.5 rounded-full shadow-2xl border-2 border-white/30 whitespace-nowrap">
+                    Most Popular
                   </div>
+                </div>
+                <CardHeader className="text-center relative pt-8">
+                  <CardTitle className="font-headline text-2xl text-white font-bold">Plus</CardTitle>
                   <CardDescription className="text-gray-300 font-medium">For individuals and small teams shipping projects.</CardDescription>
                   <p className="pt-6">
                     <span className="text-5xl font-bold text-white">$7</span>
@@ -482,14 +487,18 @@ export default function LandingPage() {
                   </p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
-                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> 10+ projects per month</p>
-                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Convert ideas into projects</p>
-                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Step-by-step prompts & AI roles</p>
-                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Share projects with team</p>
-                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Public projects & sharing</p>
-                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> AI Prompt Enhancement</p>
-                  <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-500" /> Execution Follow-Up Agent</p>
-                  <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Community Support</p>
+                  <div className="space-y-3">
+                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">10+ projects per month</span></p>
+                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Convert ideas into projects</p>
+                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Step-by-step prompts & AI roles</p>
+                  </div>
+                  <div className="pt-2 border-t border-white/20 space-y-3">
+                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">Share projects with team</span></p>
+                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">Public projects & sharing</span></p>
+                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">AI Prompt Enhancement</span></p>
+                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-500" /> Execution Follow-Up Agent</p>
+                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Community Support</p>
+                  </div>
                 </CardContent>
                 <div className="p-6 pt-0">
                   <Button onClick={() => {
@@ -520,14 +529,18 @@ export default function LandingPage() {
                   </p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> 30+ projects per month</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Convert ideas into projects</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Step-by-step prompts & AI roles</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Share projects with team</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Public projects & sharing</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> AI Prompt Enhancement</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Execution Follow-Up Agent</p>
-                  <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Priority Support</p>
+                  <div className="space-y-3">
+                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> <span className="font-semibold">30+ projects per month</span></p>
+                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Convert ideas into projects</p>
+                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Step-by-step prompts & AI roles</p>
+                  </div>
+                  <div className="pt-2 border-t border-gray-200 space-y-3">
+                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Share projects with team</p>
+                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Public projects & sharing</p>
+                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> AI Prompt Enhancement</p>
+                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> <span className="font-semibold text-[#00171f]">Execution Follow-Up Agent</span></p>
+                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> <span className="font-semibold text-[#00171f]">Priority Support</span></p>
+                  </div>
                 </CardContent>
                 <div className="p-6 pt-0">
                   <Button onClick={() => {
@@ -542,6 +555,87 @@ export default function LandingPage() {
                   </Button>
                 </div>
               </Card>
+            </div>
+            
+            {/* Feature Comparison Table */}
+            <div className="mt-20 max-w-5xl mx-auto">
+              <div className="text-center mb-8">
+                <h3 className="font-headline text-2xl font-bold text-[#00171f] mb-2">
+                  Compare Plans Side-by-Side
+                </h3>
+                <p className="text-gray-600 font-medium">
+                  See exactly what each plan includes
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-gray-200 bg-gray-50">
+                        <th className="text-left p-4 font-headline font-bold text-[#00171f]">Feature</th>
+                        <th className="text-center p-4 font-headline font-bold text-[#00171f]">Hobbyist</th>
+                        <th className="text-center p-4 font-headline font-bold text-[#00171f] relative">
+                          <div className="flex items-center justify-center gap-2">
+                            Plus
+                            <span className="text-xs font-bold uppercase text-white bg-[#00171f] px-2 py-1 rounded-full">Most Popular</span>
+                          </div>
+                        </th>
+                        <th className="text-center p-4 font-headline font-bold text-[#00171f]">Pro</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      <tr className="hover:bg-gray-50 transition-colors">
+                        <td className="p-4 font-medium text-gray-700">Projects per month</td>
+                        <td className="p-4 text-center text-gray-600">1</td>
+                        <td className="p-4 text-center text-[#00171f] font-semibold">10+</td>
+                        <td className="p-4 text-center text-[#00171f] font-semibold">30+</td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 transition-colors">
+                        <td className="p-4 font-medium text-gray-700">Convert ideas into projects</td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 transition-colors">
+                        <td className="p-4 font-medium text-gray-700">Step-by-step prompts & AI roles</td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 transition-colors bg-amber-50/30">
+                        <td className="p-4 font-medium text-gray-700">Share projects with team</td>
+                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 transition-colors bg-amber-50/30">
+                        <td className="p-4 font-medium text-gray-700">Public projects & sharing</td>
+                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 transition-colors bg-amber-50/30">
+                        <td className="p-4 font-medium text-gray-700">AI Prompt Enhancement</td>
+                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 transition-colors bg-blue-50/30">
+                        <td className="p-4 font-medium text-gray-700">Execution Follow-Up Agent</td>
+                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300" /></td>
+                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 transition-colors">
+                        <td className="p-4 font-medium text-gray-700">Support</td>
+                        <td className="p-4 text-center text-gray-400">None</td>
+                        <td className="p-4 text-center text-[#00171f] font-medium">Community</td>
+                        <td className="p-4 text-center text-[#00171f] font-semibold">Priority</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </section>
