@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { ShareDialog } from '@/components/share-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { auth } from '@/lib/firebase';
 
 export default function ProjectPage() {
@@ -410,143 +411,168 @@ export default function ProjectPage() {
             </div>
           </div>
 
-          {/* Overview: AI role + idea stacked */}
-          <div className="flex flex-col gap-6">
-            {project.aiRole && (
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
-                <div className="flex items-center justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-sm font-semibold tracking-[0.15em] text-gray-500 uppercase">
-                      AI Role
-                    </h2>
-                    <span className="text-[11px] text-gray-400 hidden sm:inline">
-                      Persona for your builder
-                    </span>
+          {/* Tabs for Project Info & Development Plan */}
+          <Tabs defaultValue="project-info" className="w-full">
+            <TabsList className="bg-transparent border-b border-gray-200 rounded-none p-0 h-auto w-full justify-start gap-0 mb-6">
+              <TabsTrigger 
+                value="project-info" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:text-[#00171f] hover:text-[#00171f] transition-colors"
+              >
+                Project Info & AI role
+              </TabsTrigger>
+              <TabsTrigger 
+                value="development-plan" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:text-[#00171f] hover:text-[#00171f] transition-colors"
+              >
+                Development plan
+                {prompts.length > 0 && (
+                  <span className="ml-2 text-xs text-gray-400">({prompts.length})</span>
+                )}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="project-info" className="mt-0">
+              {/* Overview: AI role + idea stacked */}
+              <div className="flex flex-col gap-6">
+                {project.aiRole && (
+                  <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-sm font-semibold tracking-[0.15em] text-gray-500 uppercase">
+                          AI Role
+                        </h2>
+                        <span className="text-[11px] text-gray-400 hidden sm:inline">
+                          Persona for your builder
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-full border-gray-200 text-gray-500 hover:text-[#00171f] hover:border-gray-300 bg-white"
+                        onClick={handleCopyAiRole}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <div className="rounded-xl bg-gray-50 px-4 py-3 max-h-[360px] overflow-y-auto border border-gray-100">
+                      <pre className="whitespace-pre-wrap text-xs sm:text-sm text-[#00171f] leading-relaxed font-mono">
+                        {project.aiRole}
+                      </pre>
+                    </div>
                   </div>
+                )}
+
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <h2 className="text-sm font-semibold tracking-[0.15em] text-gray-500 uppercase">
+                      Project Idea
+                    </h2>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full border-gray-200 text-gray-500 hover:text-[#00171f] hover:border-gray-300 bg-white"
+                      onClick={handleCopyIdea}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <p className="text-sm sm:text-base text-[#00171f] leading-relaxed">
+                    {project.idea}
+                  </p>
+                </div>
+              </div>
+
+              {/* High-level summary */}
+              <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <h2 className="text-xs font-semibold tracking-[0.15em] text-gray-500 uppercase">
+                    Project Summary
+                  </h2>
                   <Button
                     variant="outline"
                     size="icon"
                     className="h-8 w-8 rounded-full border-gray-200 text-gray-500 hover:text-[#00171f] hover:border-gray-300 bg-white"
-                    onClick={handleCopyAiRole}
+                    onClick={handleCopySummary}
                   >
                     <Copy className="h-3.5 w-3.5" />
                   </Button>
                 </div>
-                <div className="rounded-xl bg-gray-50 px-4 py-3 max-h-[360px] overflow-y-auto border border-gray-100">
-                  <pre className="whitespace-pre-wrap text-xs sm:text-sm text-[#00171f] leading-relaxed font-mono">
-                    {project.aiRole}
-                  </pre>
-                </div>
-              </div>
-            )}
-
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold tracking-[0.15em] text-gray-500 uppercase">
-                  Project Idea
-                </h2>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 rounded-full border-gray-200 text-gray-500 hover:text-[#00171f] hover:border-gray-300 bg-white"
-                  onClick={handleCopyIdea}
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-              <p className="text-sm sm:text-base text-[#00171f] leading-relaxed">
-                {project.idea}
-              </p>
-            </div>
-          </div>
-
-          {/* High-level summary */}
-          <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <h2 className="text-xs font-semibold tracking-[0.15em] text-gray-500 uppercase">
-                Project Summary
-              </h2>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 rounded-full border-gray-200 text-gray-500 hover:text-[#00171f] hover:border-gray-300 bg-white"
-                onClick={handleCopySummary}
-              >
-                <Copy className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-            {project.summary && project.summary.trim().length > 0 ? (
-              <p className="whitespace-pre-wrap text-sm sm:text-base text-[#00171f] leading-relaxed">
-                {project.summary}
-              </p>
-            ) : (
-              <>
-                <p className="text-sm sm:text-base text-[#00171f] leading-relaxed mb-3">
-                  This project, <span className="font-semibold">{project.name}</span>, turns the idea above into a
-                  structured set of AI-ready build steps that you can paste into any coding assistant or app builder.
-                </p>
-                <p className="text-sm sm:text-base text-[#00171f] leading-relaxed mb-3">
-                  The development plan currently contains{' '}
-                  <span className="font-semibold">
-                    {prompts.length} step{prompts.length === 1 ? '' : 's'}
-                  </span>
-                  , each one focused on a concrete feature or enhancement—such as specific screens, flows, API
-                  endpoints, or behaviours—that together implement the full experience described in the idea.
-                </p>
-                <p className="text-sm sm:text-base text-[#00171f] leading-relaxed">
-                  The AI role at the top gives any model clear instructions about how to behave (coding style,
-                  architecture, security, performance, UX, and more), while each prompt in the plan is a single,
-                  well-scoped action with acceptance criteria. This combination makes it easy for the AI to understand
-                  what to build and in what order, without you needing to re-explain the project every time.
-                </p>
-              </>
-            )}
-          </div>
-        </section>
-        
-        {/* Development plan */}
-        <section className="w-full mt-14 sm:mt-18 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
-          {prompts.length > 0 ? (
-            <div className="space-y-8">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <h3 className="text-2xl sm:text-3xl font-bold font-headline text-[#00171f]">
-                    Development plan
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                    Follow these prompts in order. You can copy the whole plan or work step‑by‑step.
+                {project.summary && project.summary.trim().length > 0 ? (
+                  <p className="whitespace-pre-wrap text-sm sm:text-base text-[#00171f] leading-relaxed">
+                    {project.summary}
                   </p>
-                </div>
-                <p className="text-xs font-medium text-gray-500">
-                  {prompts.length} step{prompts.length === 1 ? '' : 's'}
-                </p>
+                ) : (
+                  <>
+                    <p className="text-sm sm:text-base text-[#00171f] leading-relaxed mb-3">
+                      This project, <span className="font-semibold">{project.name}</span>, turns the idea above into a
+                      structured set of AI-ready build steps that you can paste into any coding assistant or app builder.
+                    </p>
+                    <p className="text-sm sm:text-base text-[#00171f] leading-relaxed mb-3">
+                      The development plan currently contains{' '}
+                      <span className="font-semibold">
+                        {prompts.length} step{prompts.length === 1 ? '' : 's'}
+                      </span>
+                      , each one focused on a concrete feature or enhancement—such as specific screens, flows, API
+                      endpoints, or behaviours—that together implement the full experience described in the idea.
+                    </p>
+                    <p className="text-sm sm:text-base text-[#00171f] leading-relaxed">
+                      The AI role at the top gives any model clear instructions about how to behave (coding style,
+                      architecture, security, performance, UX, and more), while each prompt in the plan is a single,
+                      well-scoped action with acceptance criteria. This combination makes it easy for the AI to understand
+                      what to build and in what order, without you needing to re-explain the project every time.
+                    </p>
+                  </>
+                )}
               </div>
+            </TabsContent>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {prompts.map((prompt, index) => (
-                  <div key={prompt.id}>
-                    <PromptCard
-                      {...prompt}
-                      stepNumber={index + 1}
-                      isReadOnly={!canEdit}
-                      onStatusChange={handleTogglePromptStatus}
-                    />
+            <TabsContent value="development-plan" className="mt-0">
+              {/* Development plan */}
+              <div className="w-full">
+                {prompts.length > 0 ? (
+                  <div className="space-y-8">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                      <div>
+                        <h3 className="text-2xl sm:text-3xl font-bold font-headline text-[#00171f]">
+                          Development plan
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                          Follow these prompts in order. You can copy the whole plan or work step‑by‑step.
+                        </p>
+                      </div>
+                      <p className="text-xs font-medium text-gray-500">
+                        {prompts.length} step{prompts.length === 1 ? '' : 's'}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {prompts.map((prompt, index) => (
+                        <div key={prompt.id}>
+                          <PromptCard
+                            {...prompt}
+                            stepNumber={index + 1}
+                            isReadOnly={!canEdit}
+                            onStatusChange={handleTogglePromptStatus}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                ) : (
+                  <div className="mt-10 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center">
+                    <p className="text-sm sm:text-base text-gray-600 font-medium">
+                      This project doesn&apos;t have any prompts yet.
+                    </p>
+                    {canEdit && (
+                      <p className="mt-2 text-xs text-gray-500">
+                        Open the project editor to generate or add steps for your development plan.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-          ) : (
-            <div className="mt-10 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center">
-              <p className="text-sm sm:text-base text-gray-600 font-medium">
-                This project doesn&apos;t have any prompts yet.
-              </p>
-              {canEdit && (
-                <p className="mt-2 text-xs text-gray-500">
-                  Open the project editor to generate or add steps for your development plan.
-                </p>
-              )}
-            </div>
-          )}
+            </TabsContent>
+          </Tabs>
         </section>
       </main>
 

@@ -572,13 +572,113 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
+              {/* Mobile Card Layout */}
+              <div className="md:hidden divide-y divide-gray-100">
+                {visibleProjects.map((project, index) => {
+                  const isOwner = project.roles[user.uid] === "owner";
+                  const modifiedAt = (project as any).updatedAt ?? project.createdAt;
+                  const globalIndex = (currentPage - 1) * projectsPageSize + index;
+                  return (
+                    <div key={project.id} className="p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs text-gray-400 font-medium">#{globalIndex + 1}</span>
+                            <Link
+                              href={`/projects/${project.id}`}
+                              className="text-sm font-semibold text-[#00171f] hover:text-[#00171f]/70 truncate"
+                            >
+                              {project.name}
+                            </Link>
+                          </div>
+                          <p className="text-xs text-gray-500 mb-1">
+                            {isOwner ? "Owner" : "Contributor"}
+                          </p>
+                          {cloneProjectIds.has(project.id) && (
+                            <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#00171f]">
+                              Cloned
+                            </span>
+                          )}
+                        </div>
+                        {isOwner && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 hover:border-gray-300 rounded-xl transition-all duration-200 flex-shrink-0"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <MoreVertical className="h-4 w-4 text-gray-500" />
+                                <span className="sr-only">Project options</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                              className="bg-white border border-gray-200 shadow-xl rounded-2xl"
+                            >
+                              <DropdownMenuItem
+                                onClick={(e) => handleToggleVisibility(project, e)}
+                                className="hover:bg-gray-50 focus:bg-gray-50 rounded-lg transition-colors duration-200"
+                              >
+                                {project.isPublic ? (
+                                  <>
+                                    <Lock className="mr-2 h-4 w-4" />
+                                    <span>Make Private</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Globe className="mr-2 h-4 w-4" />
+                                    <span>Make Public</span>
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-gray-200" />
+                              <DropdownMenuItem
+                                className="text-red-600 focus:bg-red-50 focus:text-red-700 rounded-lg transition-colors duration-200"
+                                onClick={(e) => openDeleteDialog(project, e)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Delete</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {project.idea || "No description provided"}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+                        <div className="flex flex-col gap-1">
+                          <span>Created: {formatDate(project.createdAt)}</span>
+                          <span>Modified: {formatDate(modifiedAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <GitFork className="h-3.5 w-3.5 text-gray-400" />
+                          <span className="font-semibold text-[#00171f]">
+                            {project.cloneCount ?? 0}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Table Layout */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="min-w-full table-auto text-sm text-gray-700">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="w-12 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">#</th>
-                      <th className="w-24 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Image</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Title</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Title</th>
                       <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Description</th>
                       <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Created</th>
                       <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Modified</th>
@@ -594,22 +694,7 @@ export default function DashboardPage() {
                       return (
                         <tr key={project.id} className="border-b border-gray-100 transition-colors duration-150 hover:bg-gray-50">
                           <td className="px-4 py-4 text-sm text-gray-500">{globalIndex + 1}</td>
-                          <td className="px-4 py-4">
-                            {project.imageUrl ? (
-                              <Image
-                                src={project.imageUrl}
-                                alt={project.name}
-                                width={48}
-                                height={48}
-                                className="h-12 w-12 rounded-xl object-cover"
-                              />
-                            ) : (
-                              <div className="h-12 w-12 rounded-xl border border-gray-200 bg-gray-100 flex items-center justify-center">
-                                <Logo className="h-6 w-6 text-gray-400" />
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-4">
+                          <td className="px-6 py-4">
                             <div className="flex flex-col gap-1">
                               <Link
                                 href={`/projects/${project.id}`}
@@ -765,13 +850,67 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
+              {/* Mobile Card Layout */}
+              <div className="md:hidden divide-y divide-gray-100">
+                {visibleClones.map((clone, index) => {
+                  const relative = formatDistanceToNow(clone.createdAt, { addSuffix: true });
+                  const cloneIndex = (currentClonesPage - 1) * clonesPageSize + index;
+                  return (
+                    <div key={clone.id} className="p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs text-gray-400 font-medium">#{cloneIndex + 1}</span>
+                            <Link
+                              href={`/projects/${clone.cloneProjectId}`}
+                              className="text-sm font-semibold text-[#00171f] hover:text-[#00171f]/70 truncate"
+                            >
+                              {clone.sourceProjectName}
+                            </Link>
+                          </div>
+                          <p className="text-xs text-gray-500">{relative}</p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50 shadow-sm flex-shrink-0"
+                          disabled={deletingCloneId === clone.cloneProjectId}
+                          onClick={() =>
+                            handleDeleteClone(clone.cloneProjectId, clone.sourceProjectName)
+                          }
+                        >
+                          {deletingCloneId === clone.cloneProjectId ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "Remove"
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {clone.sourceIdea || "No description provided"}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+                        <div className="flex flex-col gap-1">
+                          <span>Created: {formatDate(clone.createdAt)}</span>
+                          <span>Modified: {formatDate(clone.createdAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <GitFork className="h-3.5 w-3.5 text-gray-400" />
+                          <span className="font-semibold text-[#00171f]">1</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Table Layout */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="min-w-full table-auto text-sm text-gray-700">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="w-12 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">#</th>
-                      <th className="w-24 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Image</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Title</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Title</th>
                       <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Description</th>
                       <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Created</th>
                       <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Modified</th>
@@ -786,22 +925,7 @@ export default function DashboardPage() {
                       return (
                         <tr key={clone.id} className="border-b border-gray-100 transition-colors duration-150 hover:bg-gray-50">
                           <td className="px-4 py-4 text-sm text-gray-500">{cloneIndex + 1}</td>
-                          <td className="px-4 py-4">
-                            {clone.sourceImageUrl ? (
-                              <Image
-                                src={clone.sourceImageUrl}
-                                alt={clone.sourceProjectName}
-                                width={48}
-                                height={48}
-                                className="h-12 w-12 rounded-xl object-cover"
-                              />
-                            ) : (
-                              <div className="h-12 w-12 rounded-xl border border-gray-200 bg-gray-100 flex items-center justify-center">
-                                <Logo className="h-6 w-6 text-gray-400" />
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-4">
+                          <td className="px-6 py-4">
                             <div className="flex flex-col gap-1">
                               <Link
                                 href={`/projects/${clone.cloneProjectId}`}
