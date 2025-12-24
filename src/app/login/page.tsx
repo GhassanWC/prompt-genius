@@ -2,6 +2,7 @@
 
 import { Github, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -145,16 +146,16 @@ export default function LoginPage() {
 
 
     return (
-        <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+        <div className="min-h-screen bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white relative overflow-x-hidden">
           {/* Subtle geometric background pattern */}
-          <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+          <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02] dark:opacity-[0.05]">
             <div className="absolute inset-0" style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
             }} />
           </div>
 
           {/* Header */}
-          <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+          <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-[#00171f]/95 backdrop-blur-sm">
             <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
               <Link href="/" className="flex items-center gap-0 font-bold group">
                 <Image
@@ -164,79 +165,87 @@ export default function LoginPage() {
                   height={60}
                   className='ml-1 mr-1'
                 />
-                <span className="font-headline text-xl text-[#00171f] tracking-tight">
+                <span className="font-headline text-xl text-[#00171f] dark:text-white tracking-tight">
                   Prompt Genius AI
                 </span>
               </Link>
-              <Button asChild variant="ghost" className="text-gray-600 hover:text-[#00171f]">
-                <Link href="/" className="flex items-center gap-2">
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Home
-                </Link>
-              </Button>
+              <div className="flex items-center gap-6">
+                <div className="hidden md:block">
+                  <ThemeToggle />
+                </div>
+                <Button asChild variant="ghost" className="text-gray-600 dark:text-gray-300 hover:text-[#00171f] dark:hover:text-white">
+                  <Link href="/" className="flex items-center gap-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Home
+                  </Link>
+                </Button>
+                <div className="md:hidden">
+                  <ThemeToggle />
+                </div>
+              </div>
             </div>
           </header>
 
           {/* Main content */}
           <main className="relative z-10 flex items-center justify-center min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8">
             {/* Decorative elements */}
-            <div className="absolute top-20 left-10 w-20 h-20 border border-gray-200 rounded-full animate-float opacity-50" />
-            <div className="absolute bottom-20 right-10 w-32 h-32 border border-gray-200 rounded-full animate-float delay-300 opacity-50" />
-            <div className="absolute top-40 right-20 w-3 h-3 bg-[#00171f] rounded-full animate-subtle-pulse" />
-            <div className="absolute bottom-40 left-20 w-2 h-2 bg-[#00171f] rounded-full animate-subtle-pulse delay-200" />
+            <div className="absolute top-20 left-10 w-20 h-20 border border-gray-200 dark:border-gray-700 rounded-full animate-float opacity-50" />
+            <div className="absolute bottom-20 right-10 w-32 h-32 border border-gray-200 dark:border-gray-700 rounded-full animate-float delay-300 opacity-50" />
+            <div className="absolute top-40 right-20 w-3 h-3 bg-[#00171f] dark:bg-white rounded-full animate-subtle-pulse" />
+            <div className="absolute bottom-40 left-20 w-2 h-2 bg-[#00171f] dark:bg-white rounded-full animate-subtle-pulse delay-200" />
 
             <AlertDialog open={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen}>
               <Tabs defaultValue="signin" className="w-full max-w-md relative z-10">
                 {/* Header section */}
                 <div className="flex flex-col items-center mb-8 text-center">
-                  <h1 className="font-headline text-3xl sm:text-4xl font-bold tracking-tight text-[#00171f]">
+                  <h1 className="font-headline text-3xl sm:text-4xl font-bold tracking-tight text-[#00171f] dark:text-white">
                     Welcome Back
                   </h1>
-                  <p className="mt-3 text-lg text-gray-600 font-medium">
+                  <p className="mt-3 text-lg text-gray-600 dark:text-gray-300 font-medium">
                     Sign in or create an account to start.
                   </p>
                 </div>
 
               {/* Tabs */}
-              <TabsList className="grid w-full grid-cols-2 bg-gray-50 border border-gray-200 rounded-2xl shadow-sm p-1 mb-6">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-1 mb-6">
                 <TabsTrigger 
                   value="signin" 
-                  className="data-[state=active]:bg-[#00171f] data-[state=active]:text-white rounded-xl transition-all duration-200 font-medium"
+                  className="data-[state=active]:bg-[#00171f] dark:data-[state=active]:bg-white data-[state=active]:text-white dark:data-[state=active]:text-[#00171f] rounded-xl transition-all duration-200 font-medium"
                 >
                   Sign In
                 </TabsTrigger>
                 <TabsTrigger 
                   value="signup" 
-                  className="data-[state=active]:bg-[#00171f] data-[state=active]:text-white rounded-xl transition-all duration-200 font-medium"
+                  className="data-[state=active]:bg-[#00171f] dark:data-[state=active]:bg-white data-[state=active]:text-white dark:data-[state=active]:text-[#00171f] rounded-xl transition-all duration-200 font-medium"
                 >
                   Sign Up
                 </TabsTrigger>
               </TabsList>
 
               {error && (
-                <Alert variant="destructive" className="mb-6 bg-red-50 border-red-200 text-red-800 rounded-2xl">
+                <Alert variant="destructive" className="mb-6 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-2xl">
                   <AlertTriangle className="h-5 w-5" />
                   <AlertTitle className="font-semibold">Error</AlertTitle>
                   <AlertDescription className="font-medium">{error}</AlertDescription>
                 </Alert>
               )}
               {info && (
-                <Alert className="mb-6 bg-green-50 border-green-200 text-green-800 rounded-2xl">
+                <Alert className="mb-6 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 rounded-2xl">
                   <AlertTitle className="font-semibold">Check Your Email</AlertTitle>
                   <AlertDescription className="font-medium">{info}</AlertDescription>
                 </Alert>
               )}
 
               <TabsContent value="signin">
-                <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
-                  <CardHeader className="bg-white border-b border-gray-200">
-                    <CardTitle className="font-headline text-2xl font-bold text-[#00171f]">Sign In</CardTitle>
-                    <CardDescription className="text-gray-600 font-medium">Enter your credentials to access your account.</CardDescription>
+                <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
+                  <CardHeader className="bg-white dark:bg-[#00171f] border-b border-gray-200 dark:border-gray-800">
+                    <CardTitle className="font-headline text-2xl font-bold text-[#00171f] dark:text-white">Sign In</CardTitle>
+                    <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">Enter your credentials to access your account.</CardDescription>
                   </CardHeader>
-                  <CardContent className="bg-white p-8 space-y-6">
+                  <CardContent className="bg-white dark:bg-[#00171f] p-8 space-y-6">
                     <form onSubmit={handleEmailSignIn} className="space-y-6">
                       <div className="space-y-3">
-                        <Label htmlFor="email-in" className="text-[#00171f] font-semibold">Email</Label>
+                        <Label htmlFor="email-in" className="text-[#00171f] dark:text-white font-semibold">Email</Label>
                         <Input 
                           id="email-in" 
                           type="email" 
@@ -248,7 +257,7 @@ export default function LoginPage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <Label htmlFor="password-in" className="text-[#00171f] font-semibold">Password</Label>
+                        <Label htmlFor="password-in" className="text-[#00171f] dark:text-white font-semibold">Password</Label>
                         <div className="relative">
                           <Input 
                             id="password-in" 
@@ -322,12 +331,12 @@ export default function LoginPage() {
               </TabsContent>
 
               <TabsContent value="signup">
-                <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
-                  <CardHeader className="bg-white border-b border-gray-200">
-                    <CardTitle className="font-headline text-2xl font-bold text-[#00171f]">Sign Up</CardTitle>
-                    <CardDescription className="text-gray-600 font-medium">Create an account to get started.</CardDescription>
+                <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
+                  <CardHeader className="bg-white dark:bg-[#00171f] border-b border-gray-200 dark:border-gray-800">
+                    <CardTitle className="font-headline text-2xl font-bold text-[#00171f] dark:text-white">Sign Up</CardTitle>
+                    <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">Create an account to get started.</CardDescription>
                   </CardHeader>
-                  <CardContent className="bg-white p-8 space-y-6">
+                  <CardContent className="bg-white dark:bg-[#00171f] p-8 space-y-6">
                     <form onSubmit={handleEmailSignUp} className="space-y-6">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-3">

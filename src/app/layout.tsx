@@ -3,6 +3,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
+import { ThemeProvider } from '@/context/theme-context';
 import { AlertTriangle } from 'lucide-react';
 import { AnalyticsListener } from '@/components/analytics-listener';
 export const metadata: Metadata = {
@@ -87,7 +88,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" style={{scrollBehavior: 'smooth'}} className="light">
+    <html lang="en" style={{scrollBehavior: 'smooth'}} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -117,11 +118,13 @@ export default function RootLayout({
         )}
       </head>
       <body className="font-body antialiased">
-          <AuthProvider>
-              <AnalyticsListener />
-              {children}
-              <Toaster />
-          </AuthProvider>
+          <ThemeProvider>
+            <AuthProvider>
+                <AnalyticsListener />
+                {children}
+                <Toaster />
+            </AuthProvider>
+          </ThemeProvider>
       </body>
     </html>
   );

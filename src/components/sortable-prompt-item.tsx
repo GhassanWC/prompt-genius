@@ -37,15 +37,15 @@ export function SortablePromptItem({ prompt, stepNumber, onEdit, onDelete, isRea
   return (
     <div ref={setNodeRef} style={style} {...attributes} className="relative">
       <Card className={cn(
-        "mb-2 bg-white border border-gray-200 rounded-xl transition-all duration-200 hover:border-gray-300 hover:shadow-sm",
-        isDragging && "shadow-lg border-gray-300"
+        "mb-2 bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 rounded-xl transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-sm",
+        isDragging && "shadow-lg border-gray-300 dark:border-gray-700"
       )}>
         <CardContent className="p-3 sm:p-4 flex items-center gap-3">
           <Button 
             variant="ghost" 
             size="icon" 
             className={cn(
-              "touch-none h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg",
+              "touch-none h-8 w-8 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg",
               isReadOnly ? "cursor-not-allowed opacity-50" : "cursor-grab active:cursor-grabbing"
             )} 
             {...listeners} 
@@ -53,12 +53,12 @@ export function SortablePromptItem({ prompt, stepNumber, onEdit, onDelete, isRea
           >
             <GripVertical className="h-4 w-4" />
           </Button>
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#00171f] text-sm font-bold text-white">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#00171f] dark:bg-white text-sm font-bold text-white dark:text-[#00171f]">
             {stepNumber}
           </div>
           <div className="flex-grow text-left overflow-hidden min-w-0">
-            <p className="font-semibold text-[#00171f] truncate text-sm sm:text-base">{prompt.title}</p>
-            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+            <p className="font-semibold text-[#00171f] dark:text-white truncate text-sm sm:text-base">{prompt.title}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
               {prompt.userPrompt}
             </p>
           </div>
@@ -68,7 +68,7 @@ export function SortablePromptItem({ prompt, stepNumber, onEdit, onDelete, isRea
               size="icon" 
               onClick={() => onEdit(prompt)} 
               disabled={isReadOnly}
-              className="h-8 w-8 text-gray-500 hover:text-[#00171f] hover:bg-gray-100 rounded-lg"
+              className="h-8 w-8 text-gray-500 dark:text-gray-400 hover:text-[#00171f] dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
             >
               <Pencil className="h-4 w-4" />
               <span className="sr-only">Edit</span>
@@ -76,7 +76,7 @@ export function SortablePromptItem({ prompt, stepNumber, onEdit, onDelete, isRea
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg" 
+              className="h-8 w-8 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg" 
               onClick={() => onDelete(prompt.id)} 
               disabled={isReadOnly}
             >

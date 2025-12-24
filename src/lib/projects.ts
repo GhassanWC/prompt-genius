@@ -31,6 +31,7 @@ export interface Project {
   roles: Record<string, Role>;
   members: Record<string, boolean>; // Object with user IDs as keys and boolean values
   clarificationSteps?: ClarificationStep[];
+  tags?: string[]; // Array of tag strings
   author?: {
     displayName: string;
     photoURL: string | null;

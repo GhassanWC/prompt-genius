@@ -148,15 +148,15 @@ export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadO
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
+      <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 flex-shrink-0 border-b">
           <DialogTitle>Edit Project Details</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             Keep your project name, AI role, and original idea in sync. Changes here update what you see on the
             project page and what gets copied with &quot;Copy All&quot;.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6 py-4">
+        <div className="space-y-4 sm:space-y-6 px-4 sm:px-6 py-4 overflow-y-auto flex-1 min-h-0">
           {/* Project name */}
           <div className="space-y-2">
             <Label htmlFor="project-name" className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-500">
@@ -190,7 +190,7 @@ export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadO
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="h-8 w-8 rounded-full border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 bg-white"
+                    className="h-8 w-8 rounded-full border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-700 bg-white dark:bg-[#00171f]"
                     onClick={handleEnhanceRole}
                     disabled={isEnhancingRole}
                   >
@@ -207,7 +207,7 @@ export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadO
               id="project-ai-role"
               value={aiRole}
               onChange={(e) => setAiRole(e.target.value)}
-              className="min-h-[220px] font-mono text-xs sm:text-sm leading-relaxed resize-y"
+              className="min-h-[150px] sm:min-h-[180px] max-h-[250px] sm:max-h-[300px] font-mono text-xs sm:text-sm leading-relaxed resize-y overflow-y-auto w-full"
               placeholder="You are an expert full‑stack web developer, proficient in..."
               disabled={isReadOnly}
             />
@@ -225,7 +225,7 @@ export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadO
               id="project-idea"
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
-              className="min-h-[200px] text-sm sm:text-base leading-relaxed resize-y"
+              className="min-h-[130px] sm:min-h-[160px] max-h-[230px] sm:max-h-[280px] text-sm sm:text-base leading-relaxed resize-y overflow-y-auto w-full"
               placeholder="Describe the problem you want to solve, who it is for, and the core features..."
               disabled={isReadOnly}
             />
@@ -243,16 +243,16 @@ export function ProjectEditDialog({ project, open, onOpenChange, onSave, isReadO
               id="project-summary"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              className="min-h-[140px] text-sm sm:text-base leading-relaxed resize-y"
+              className="min-h-[100px] sm:min-h-[120px] max-h-[180px] sm:max-h-[220px] text-sm sm:text-base leading-relaxed resize-y overflow-y-auto w-full"
               placeholder="Optional: summarize the project idea, key features, and how the AI should use the prompts to implement it."
               disabled={isReadOnly}
             />
           </div>
         </div>
-        <DialogFooter>
-          <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancel</Button>
+        <DialogFooter className="px-4 sm:px-6 pb-4 sm:pb-6 pt-4 flex-shrink-0 border-t gap-2">
+          <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isSaving} className="w-full sm:w-auto">Cancel</Button>
           {!isReadOnly && (
-            <Button type="button" onClick={handleSave} disabled={isSaving}>
+            <Button type="button" onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
               {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Changes'}
             </Button>
           )}

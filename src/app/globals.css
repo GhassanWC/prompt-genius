@@ -105,9 +105,10 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-    background-color: #ffffff;
-    background-image: none;
     min-height: 100vh;
+  }
+  .dark body {
+    background-color: hsl(var(--background));
   }
 }
 

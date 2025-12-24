@@ -1,12 +1,13 @@
 
 'use client';
 
-import { useState, type FormEvent, useEffect, useCallback } from "react";
+import { useState, type FormEvent, useEffect, useCallback, Suspense } from "react";
 import { Loader2, Sparkles, AlertTriangle, Lock, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { TagInput } from "@/components/tag-input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
@@ -15,13 +16,22 @@ import Image from 'next/image';
 import { getTier } from "@/lib/tiers";
 import { auth } from "@/lib/firebase";
 import { UserNav } from "@/components/user-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useSearchParams } from 'next/navigation';
+import { getTemplateById } from '@/lib/templates';
 
-export default function NewProjectPage() {
+function NewProjectPageContent() {
   const { user, loading: authLoading, subscriptionPlan } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const templateId = searchParams.get('template');
 
-  const [projectName, setProjectName] = useState("");
-  const [idea, setIdea] = useState("");
+  // Initialize with template if provided
+  const template = templateId ? getTemplateById(templateId) : null;
+
+  const [projectName, setProjectName] = useState(template?.name || "");
+  const [idea, setIdea] = useState(template?.idea || "");
+  const [tags, setTags] = useState<string[]>(template?.tags || []);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -87,7 +97,7 @@ export default function NewProjectPage() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ action: 'createProject', projectName, plan }),
+        body: JSON.stringify({ action: 'createProject', projectName, plan, tags }),
       });
       console.log("Create project response:", res);
       if (!res.ok) {
@@ -140,7 +150,15 @@ export default function NewProjectPage() {
               Prompt Genius AI
             </h1>
           </Link>
-          <UserNav />
+          <div className="flex items-center gap-6">
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
+            <UserNav />
+            <div className="md:hidden">
+              <ThemeToggle />
+            </div>
+          </div>
         </div>
       </header>
 
@@ -194,6 +212,21 @@ export default function NewProjectPage() {
               required
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tags" className="text-base font-semibold text-[#00171f]">
+              Tags (Optional)
+            </Label>
+            <TagInput
+              tags={tags}
+              onChange={setTags}
+              placeholder="e.g., web-app, saas, mobile..."
+              maxTags={10}
+            />
+            <p className="text-sm text-gray-500">
+              Add tags to organize and filter your projects. Press Enter to add a tag.
+            </p>
+          </div>
           
           <Button 
             type="submit" 
@@ -233,5 +266,17 @@ export default function NewProjectPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function NewProjectPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="h-16 w-16 animate-spin text-[#00171f]" />
+      </div>
+    }>
+      <NewProjectPageContent />
+    </Suspense>
   );
 }

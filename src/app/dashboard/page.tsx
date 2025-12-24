@@ -26,6 +26,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { UserNav } from "@/components/user-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 import Link from "next/link";
 import Image from "next/image";
@@ -445,23 +446,23 @@ export default function DashboardPage() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-16 w-16 animate-spin text-[#00171f]" />
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#00171f]">
+        <Loader2 className="h-16 w-16 animate-spin text-[#00171f] dark:text-white" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white relative overflow-x-hidden">
       {/* Subtle geometric background pattern */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02] dark:opacity-[0.05]">
         <div className="absolute inset-0" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-[#00171f]/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-0 font-bold group">
             <Image
@@ -471,17 +472,25 @@ export default function DashboardPage() {
               height={60}
               className="ml-1 mr-1"
             />
-            <h1 className="font-headline text-xl text-[#00171f] tracking-tight hidden sm:block">
+            <h1 className="font-headline text-xl text-[#00171f] dark:text-white tracking-tight hidden sm:block">
               Prompt Genius AI
             </h1>
           </Link>
-          <UserNav />
+          <div className="flex items-center gap-6">
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
+            <UserNav />
+            <div className="md:hidden">
+              <ThemeToggle />
+            </div>
+          </div>
         </div>
       </header>
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-32 space-y-10">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <p className="text-3xl sm:text-4xl font-bold font-headline text-[#00171f]">
+          <p className="text-3xl sm:text-4xl font-bold font-headline text-[#00171f] dark:text-white">
             Your workspace
           </p>
           <Link href={atLimit ? "/dashboard" : "/projects/new"}>
@@ -498,7 +507,7 @@ export default function DashboardPage() {
         {error && (
           <Alert
             variant="destructive"
-            className="bg-red-50 border-red-200 text-red-800 rounded-2xl"
+            className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 rounded-2xl"
           >
             <AlertTriangle className="h-5 w-5" />
             <AlertTitle className="font-semibold">Could Not Load Projects</AlertTitle>
@@ -507,28 +516,28 @@ export default function DashboardPage() {
         )}
 
         {tier && (
-          <Card className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
-            <CardHeader className="bg-gray-50 border-b border-gray-100">
-              <CardTitle className="text-2xl font-bold text-[#00171f] capitalize">{tier.name}</CardTitle>
-              <CardDescription className="text-gray-600 font-medium">
+          <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+              <CardTitle className="text-2xl font-bold text-[#00171f] dark:text-white capitalize">{tier.name}</CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">
                 You have created {projectsUsed} of {projectLimit} available projects.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#00171f] rounded-full transition-all duration-500"
+                  className="h-full bg-[#00171f] dark:bg-white rounded-full transition-all duration-500"
                   style={{ width: `${usagePercentage}%` }}
                 />
               </div>
             </CardContent>
             {atLimit && (
-              <CardFooter className="bg-amber-50 border-t border-amber-200">
-                <div className="w-full text-center text-sm text-amber-700 font-medium mt-2">
+              <CardFooter className="bg-amber-50 dark:bg-amber-900/30 border-t border-amber-200 dark:border-amber-800">
+                <div className="w-full text-center text-sm text-amber-700 dark:text-amber-300 font-medium mt-2">
                   You've reached your project limit.
                   <Link
                     href="/#pricing"
-                    className="ml-1 mr-1 text-[#00171f] hover:text-[#00171f]/80 underline font-semibold"
+                    className="ml-1 mr-1 text-[#00171f] dark:text-white hover:text-[#00171f]/80 dark:hover:text-white/80 underline font-semibold"
                   >
                     Upgrade your plan
                   </Link>
@@ -540,20 +549,20 @@ export default function DashboardPage() {
         )}
 
         <Tabs defaultValue="created" className="space-y-5">
-          <TabsList className="bg-transparent border-b border-gray-200 rounded-none p-0 h-auto w-full justify-start gap-0">
+          <TabsList className="bg-transparent border-b border-gray-200 dark:border-gray-800 rounded-none p-0 h-auto w-full justify-start gap-0">
             <TabsTrigger 
               value="created" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:text-[#00171f] hover:text-[#00171f] transition-colors"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors"
             >
               Created
-              <span className="ml-2 text-xs text-gray-400">({projectsUsed})</span>
+              <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">({projectsUsed})</span>
             </TabsTrigger>
             <TabsTrigger 
               value="cloned" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:text-[#00171f] hover:text-[#00171f] transition-colors"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors"
             >
               Cloned
-              <span className="ml-2 text-xs text-gray-400">({clones.length})</span>
+              <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">({clones.length})</span>
             </TabsTrigger>
           </TabsList>
 
@@ -561,19 +570,19 @@ export default function DashboardPage() {
           {loadingProjects ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 rounded-2xl bg-gray-100" />
+                <Skeleton key={i} className="h-12 rounded-2xl bg-gray-100 dark:bg-gray-800" />
               ))}
             </div>
           ) : displayedProjects.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-              <FolderOpen className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-4 text-lg font-semibold text-[#00171f]">No projects yet</p>
-              <p className="text-sm text-gray-500">Create your first project to get started.</p>
+            <div className="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-8 text-center">
+              <FolderOpen className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+              <p className="mt-4 text-lg font-semibold text-[#00171f] dark:text-white">No projects yet</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Create your first project to get started.</p>
             </div>
           ) : (
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm overflow-hidden">
               {/* Mobile Card Layout */}
-              <div className="md:hidden divide-y divide-gray-100">
+              <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-800">
                 {visibleProjects.map((project, index) => {
                   const isOwner = project.roles[user.uid] === "owner";
                   const modifiedAt = (project as any).updatedAt ?? project.createdAt;
@@ -583,19 +592,19 @@ export default function DashboardPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs text-gray-400 font-medium">#{globalIndex + 1}</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">#{globalIndex + 1}</span>
                             <Link
                               href={`/projects/${project.id}`}
-                              className="text-sm font-semibold text-[#00171f] hover:text-[#00171f]/70 truncate"
+                              className="text-sm font-semibold text-[#00171f] dark:text-white hover:text-[#00171f]/70 dark:hover:text-white/70 truncate"
                             >
                               {project.name}
                             </Link>
                           </div>
-                          <p className="text-xs text-gray-500 mb-1">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                             {isOwner ? "Owner" : "Contributor"}
                           </p>
                           {cloneProjectIds.has(project.id) && (
-                            <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#00171f]">
+                            <span className="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#00171f] dark:text-white">
                               Cloned
                             </span>
                           )}
@@ -606,13 +615,13 @@ export default function DashboardPage() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 hover:border-gray-300 rounded-xl transition-all duration-200 flex-shrink-0"
+                                className="h-8 w-8 bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 rounded-xl transition-all duration-200 flex-shrink-0"
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
                                 }}
                               >
-                                <MoreVertical className="h-4 w-4 text-gray-500" />
+                                <MoreVertical className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                                 <span className="sr-only">Project options</span>
                               </Button>
                             </DropdownMenuTrigger>
@@ -622,11 +631,11 @@ export default function DashboardPage() {
                                 e.preventDefault();
                                 e.stopPropagation();
                               }}
-                              className="bg-white border border-gray-200 shadow-xl rounded-2xl"
+                              className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-xl rounded-2xl"
                             >
                               <DropdownMenuItem
                                 onClick={(e) => handleToggleVisibility(project, e)}
-                                className="hover:bg-gray-50 focus:bg-gray-50 rounded-lg transition-colors duration-200"
+                                className="hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-50 dark:focus:bg-gray-800 rounded-lg transition-colors duration-200 text-[#00171f] dark:text-white"
                               >
                                 {project.isPublic ? (
                                   <>
@@ -640,9 +649,9 @@ export default function DashboardPage() {
                                   </>
                                 )}
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-gray-200" />
+                              <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-800" />
                               <DropdownMenuItem
-                                className="text-red-600 focus:bg-red-50 focus:text-red-700 rounded-lg transition-colors duration-200"
+                                className="text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/30 focus:text-red-700 dark:focus:text-red-300 rounded-lg transition-colors duration-200"
                                 onClick={(e) => openDeleteDialog(project, e)}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
@@ -652,17 +661,17 @@ export default function DashboardPage() {
                           </DropdownMenu>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                         {project.idea || "No description provided"}
                       </p>
-                      <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-800">
                         <div className="flex flex-col gap-1">
                           <span>Created: {formatDate(project.createdAt)}</span>
                           <span>Modified: {formatDate(modifiedAt)}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <GitFork className="h-3.5 w-3.5 text-gray-400" />
-                          <span className="font-semibold text-[#00171f]">
+                          <GitFork className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                          <span className="font-semibold text-[#00171f] dark:text-white">
                             {project.cloneCount ?? 0}
                           </span>
                         </div>
@@ -674,53 +683,53 @@ export default function DashboardPage() {
 
               {/* Desktop Table Layout */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="min-w-full table-auto text-sm text-gray-700">
-                  <thead className="bg-gray-50">
+                    <table className="min-w-full table-auto text-sm text-gray-700 dark:text-gray-300">
+                  <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
-                      <th className="w-12 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">#</th>
-                      <th className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Title</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Description</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Created</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Modified</th>
-                      <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Clones</th>
-                      <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Action</th>
+                      <th className="w-12 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">#</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Title</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Description</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Created</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Modified</th>
+                      <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Clones</th>
+                      <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-[#00171f]">
                     {visibleProjects.map((project, index) => {
                       const isOwner = project.roles[user.uid] === "owner";
                       const modifiedAt = (project as any).updatedAt ?? project.createdAt;
                       const globalIndex = (currentPage - 1) * projectsPageSize + index;
                       return (
-                        <tr key={project.id} className="border-b border-gray-100 transition-colors duration-150 hover:bg-gray-50">
-                          <td className="px-4 py-4 text-sm text-gray-500">{globalIndex + 1}</td>
+                        <tr key={project.id} className="border-b border-gray-100 dark:border-gray-800 transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-900">
+                          <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">{globalIndex + 1}</td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col gap-1">
                               <Link
                                 href={`/projects/${project.id}`}
-                                className="text-sm font-semibold text-[#00171f] hover:text-[#00171f]/70"
+                                className="text-sm font-semibold text-[#00171f] dark:text-white hover:text-[#00171f]/70 dark:hover:text-white/70"
                               >
                                 {project.name}
                               </Link>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
                                 {isOwner ? "Owner" : "Contributor"}
                               </p>
                             </div>
                             {cloneProjectIds.has(project.id) && (
-                              <span className="mt-1 inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#00171f]">
+                              <span className="mt-1 inline-flex items-center rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#00171f] dark:text-white">
                                 Cloned
                               </span>
                             )}
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-600 line-clamp-2 overflow-hidden break-words text-ellipsis whitespace-normal">
+                          <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300 line-clamp-2 overflow-hidden break-words text-ellipsis whitespace-normal">
                             {project.idea || "No description provided"}
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-500">{formatDate(project.createdAt)}</td>
-                          <td className="px-4 py-4 text-sm text-gray-500">{formatDate(modifiedAt)}</td>
+                          <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">{formatDate(project.createdAt)}</td>
+                          <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">{formatDate(modifiedAt)}</td>
                           <td className="px-4 py-4">
                             <div className="flex items-center justify-center gap-1.5">
-                              <GitFork className="h-3.5 w-3.5 text-gray-400" />
-                              <span className="text-sm font-semibold text-[#00171f]">
+                              <GitFork className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                              <span className="text-sm font-semibold text-[#00171f] dark:text-white">
                                 {project.cloneCount ?? 0}
                               </span>
                             </div>
@@ -732,13 +741,13 @@ export default function DashboardPage() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-10 w-10 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 hover:border-gray-300 rounded-xl transition-all duration-200"
+                                    className="h-10 w-10 bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 rounded-xl transition-all duration-200"
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
                                     }}
                                   >
-                                    <MoreVertical className="h-5 w-5 text-gray-500" />
+                                    <MoreVertical className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                                     <span className="sr-only">Project options</span>
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -748,11 +757,11 @@ export default function DashboardPage() {
                                     e.preventDefault();
                                     e.stopPropagation();
                                   }}
-                                  className="bg-white border border-gray-200 shadow-xl rounded-2xl"
+                                  className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-xl rounded-2xl"
                                 >
                                   <DropdownMenuItem
                                     onClick={(e) => handleToggleVisibility(project, e)}
-                                    className="hover:bg-gray-50 focus:bg-gray-50 rounded-lg transition-colors duration-200"
+                                    className="hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-50 dark:focus:bg-gray-800 rounded-lg transition-colors duration-200 text-[#00171f] dark:text-white"
                                   >
                                     {project.isPublic ? (
                                       <>
@@ -766,9 +775,9 @@ export default function DashboardPage() {
                                       </>
                                     )}
                                   </DropdownMenuItem>
-                                  <DropdownMenuSeparator className="bg-gray-200" />
+                                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-800" />
                                   <DropdownMenuItem
-                                    className="text-red-600 focus:bg-red-50 focus:text-red-700 rounded-lg transition-colors duration-200"
+                                    className="text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/30 focus:text-red-700 dark:focus:text-red-300 rounded-lg transition-colors duration-200"
                                     onClick={(e) => openDeleteDialog(project, e)}
                                   >
                                     <Trash2 className="mr-2 h-4 w-4" />
@@ -784,7 +793,7 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50">
+              <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
                 <div className="flex items-center gap-3">
                   <Select
                     value={projectsPageSize.toString()}
@@ -793,7 +802,7 @@ export default function DashboardPage() {
                       setCurrentPage(1);
                     }}
                   >
-                    <SelectTrigger className="w-[70px] h-8 border-gray-200 bg-white text-sm">
+                    <SelectTrigger className="w-[70px] h-8 border-gray-200 dark:border-gray-700 bg-white dark:bg-[#00171f] text-sm text-[#00171f] dark:text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -804,7 +813,7 @@ export default function DashboardPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {visibleProjects.length} of {displayedProjects.length} projects
                   </span>
                 </div>
@@ -814,11 +823,11 @@ export default function DashboardPage() {
                     size="sm"
                     disabled={currentPage <= 1}
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                    className="border-gray-200 text-gray-600 hover:bg-gray-50"
+                    className="border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                   >
                     Previous
                   </Button>
-                  <span className="text-sm font-medium text-gray-600">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                     Page {currentPage} / {totalProjectPages}
                   </span>
                   <Button
@@ -826,7 +835,7 @@ export default function DashboardPage() {
                     size="sm"
                     disabled={currentPage >= totalProjectPages}
                     onClick={() => setCurrentPage((prev) => Math.min(totalProjectPages, prev + 1))}
-                    className="border-gray-200 text-gray-600 hover:bg-gray-50"
+                    className="border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                   >
                     Next
                   </Button>
@@ -838,20 +847,20 @@ export default function DashboardPage() {
 
           <TabsContent value="cloned" className="mt-4">
           {loadingClones ? (
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-              <Loader2 className="mx-auto h-6 w-6 animate-spin text-gray-500" />
-              <p className="mt-3 text-sm text-gray-500">Loading...</p>
+            <div className="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-8 text-center">
+              <Loader2 className="mx-auto h-6 w-6 animate-spin text-gray-500 dark:text-gray-400" />
+              <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Loading...</p>
             </div>
           ) : clones.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-              <GitFork className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-4 text-lg font-semibold text-[#00171f]">No clones yet</p>
-              <p className="text-sm text-gray-500">Clone a community project to get started.</p>
+            <div className="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-8 text-center">
+              <GitFork className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+              <p className="mt-4 text-lg font-semibold text-[#00171f] dark:text-white">No clones yet</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Clone a community project to get started.</p>
             </div>
           ) : (
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm overflow-hidden">
               {/* Mobile Card Layout */}
-              <div className="md:hidden divide-y divide-gray-100">
+              <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-800">
                 {visibleClones.map((clone, index) => {
                   const relative = formatDistanceToNow(clone.createdAt, { addSuffix: true });
                   const cloneIndex = (currentClonesPage - 1) * clonesPageSize + index;
@@ -860,20 +869,20 @@ export default function DashboardPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs text-gray-400 font-medium">#{cloneIndex + 1}</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">#{cloneIndex + 1}</span>
                             <Link
                               href={`/projects/${clone.cloneProjectId}`}
-                              className="text-sm font-semibold text-[#00171f] hover:text-[#00171f]/70 truncate"
+                              className="text-sm font-semibold text-[#00171f] dark:text-white hover:text-[#00171f]/70 dark:hover:text-white/70 truncate"
                             >
                               {clone.sourceProjectName}
                             </Link>
                           </div>
-                          <p className="text-xs text-gray-500">{relative}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{relative}</p>
                         </div>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50 shadow-sm flex-shrink-0"
+                          className="text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 shadow-sm flex-shrink-0"
                           disabled={deletingCloneId === clone.cloneProjectId}
                           onClick={() =>
                             handleDeleteClone(clone.cloneProjectId, clone.sourceProjectName)
@@ -886,17 +895,17 @@ export default function DashboardPage() {
                           )}
                         </Button>
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                         {clone.sourceIdea || "No description provided"}
                       </p>
-                      <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-800">
                         <div className="flex flex-col gap-1">
                           <span>Created: {formatDate(clone.createdAt)}</span>
                           <span>Modified: {formatDate(clone.createdAt)}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <GitFork className="h-3.5 w-3.5 text-gray-400" />
-                          <span className="font-semibold text-[#00171f]">1</span>
+                          <GitFork className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                          <span className="font-semibold text-[#00171f] dark:text-white">1</span>
                         </div>
                       </div>
                     </div>
@@ -906,52 +915,52 @@ export default function DashboardPage() {
 
               {/* Desktop Table Layout */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="min-w-full table-auto text-sm text-gray-700">
-                  <thead className="bg-gray-50">
+                    <table className="min-w-full table-auto text-sm text-gray-700 dark:text-gray-300">
+                  <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
-                      <th className="w-12 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">#</th>
-                      <th className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Title</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Description</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Created</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Modified</th>
-                      <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Clones</th>
-                      <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">Action</th>
+                      <th className="w-12 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">#</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Title</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Description</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Created</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Modified</th>
+                      <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Clones</th>
+                      <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-[#00171f]">
                     {visibleClones.map((clone, index) => {
                       const relative = formatDistanceToNow(clone.createdAt, { addSuffix: true });
                       const cloneIndex = (currentClonesPage - 1) * clonesPageSize + index;
                       return (
-                        <tr key={clone.id} className="border-b border-gray-100 transition-colors duration-150 hover:bg-gray-50">
-                          <td className="px-4 py-4 text-sm text-gray-500">{cloneIndex + 1}</td>
+                        <tr key={clone.id} className="border-b border-gray-100 dark:border-gray-800 transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-900">
+                          <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">{cloneIndex + 1}</td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col gap-1">
                               <Link
                                 href={`/projects/${clone.cloneProjectId}`}
-                                className="text-sm font-semibold text-[#00171f] hover:text-[#00171f]/70"
+                                className="text-sm font-semibold text-[#00171f] dark:text-white hover:text-[#00171f]/70 dark:hover:text-white/70"
                               >
                                 {clone.sourceProjectName}
                               </Link>
-                              <span className="text-xs text-gray-500">{relative}</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">{relative}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-600 line-clamp-2">
+                          <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                             {clone.sourceIdea || "No description provided"}
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-500">{formatDate(clone.createdAt)}</td>
-                          <td className="px-4 py-4 text-sm text-gray-500">{formatDate(clone.createdAt)}</td>
+                          <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">{formatDate(clone.createdAt)}</td>
+                          <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">{formatDate(clone.createdAt)}</td>
                           <td className="px-4 py-4">
                             <div className="flex items-center justify-center gap-1.5">
-                              <GitFork className="h-3.5 w-3.5 text-gray-400" />
-                              <span className="text-sm font-semibold text-[#00171f]">1</span>
+                              <GitFork className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                              <span className="text-sm font-semibold text-[#00171f] dark:text-white">1</span>
                             </div>
                           </td>
                           <td className="px-4 py-4 text-right">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50 shadow-sm"
+                              className="text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 shadow-sm"
                               disabled={deletingCloneId === clone.cloneProjectId}
                               onClick={() =>
                                 handleDeleteClone(clone.cloneProjectId, clone.sourceProjectName)
@@ -970,7 +979,7 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50">
+              <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
                 <div className="flex items-center gap-3">
                   <Select
                     value={clonesPageSize.toString()}
@@ -979,7 +988,7 @@ export default function DashboardPage() {
                       setCurrentClonesPage(1);
                     }}
                   >
-                    <SelectTrigger className="w-[70px] h-8 border-gray-200 bg-white text-sm">
+                    <SelectTrigger className="w-[70px] h-8 border-gray-200 dark:border-gray-700 bg-white dark:bg-[#00171f] text-sm text-[#00171f] dark:text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -990,7 +999,7 @@ export default function DashboardPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {visibleClones.length} of {clones.length} clones
                   </span>
                 </div>
@@ -1000,11 +1009,11 @@ export default function DashboardPage() {
                     size="sm"
                     disabled={currentClonesPage <= 1}
                     onClick={() => setCurrentClonesPage((prev) => Math.max(1, prev - 1))}
-                    className="border-gray-200 text-gray-600 hover:bg-gray-50"
+                    className="border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                   >
                     Previous
                   </Button>
-                  <span className="text-sm font-medium text-gray-600">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                     Page {currentClonesPage} / {totalClonePages}
                   </span>
                   <Button
@@ -1014,7 +1023,7 @@ export default function DashboardPage() {
                     onClick={() =>
                       setCurrentClonesPage((prev) => Math.min(totalClonePages, prev + 1))
                     }
-                    className="border-gray-200 text-gray-600 hover:bg-gray-50"
+                    className="border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                   >
                     Next
                   </Button>
@@ -1027,22 +1036,22 @@ export default function DashboardPage() {
       </main>
 
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <AlertDialogContent className="bg-white border border-gray-200 shadow-2xl rounded-2xl">
+        <AlertDialogContent className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-2xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-bold text-[#00171f]">
+            <AlertDialogTitle className="text-2xl font-bold text-[#00171f] dark:text-white">
               Are you absolutely sure?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600 font-medium leading-relaxed">
+            <AlertDialogDescription className="text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
               This action cannot be undone. This will permanently delete the
               project{" "}
-              <span className="font-bold text-red-600">
+              <span className="font-bold text-red-600 dark:text-red-400">
                 "{projectToDelete?.name}"
               </span>{" "}
               and all of its associated prompts.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all duration-200">
+            <AlertDialogCancel className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-xl transition-all duration-200">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

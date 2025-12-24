@@ -34,6 +34,7 @@ import {
   ToggleRight,
 } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -551,16 +552,16 @@ export default function AdminDashboardPage() {
   // Early returns AFTER all hooks
   if (checkingAdmin || authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-16 w-16 animate-spin text-[#00171f]" />
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#00171f]">
+        <Loader2 className="h-16 w-16 animate-spin text-[#00171f] dark:text-white" />
       </div>
     );
   }
 
   if (!isAdmin || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Card className="max-w-md w-full border-red-200 bg-red-50">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#00171f]">
+        <Card className="max-w-md w-full border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
           <CardHeader>
             <CardTitle className="text-red-800 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
@@ -583,9 +584,9 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white relative overflow-x-hidden">
       {/* Subtle geometric background pattern */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02] dark:opacity-[0.05]">
         <div
           className="absolute inset-0"
           style={{
@@ -595,7 +596,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-[#00171f]/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-0 font-bold group">
             <Image
@@ -605,16 +606,22 @@ export default function AdminDashboardPage() {
               height={60}
               className="ml-1 mr-1"
             />
-            <h1 className="font-headline text-xl text-[#00171f] tracking-tight hidden sm:block">
+            <h1 className="font-headline text-xl text-[#00171f] dark:text-white tracking-tight hidden sm:block">
               Prompt Genius AI
             </h1>
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
             <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
               <Shield className="h-3 w-3 mr-1" />
               Admin
             </Badge>
             <UserNav />
+            <div className="md:hidden">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
@@ -622,15 +629,15 @@ export default function AdminDashboardPage() {
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-32 space-y-10">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold font-headline text-[#00171f]">
+            <h1 className="text-3xl sm:text-4xl font-bold font-headline text-[#00171f] dark:text-white">
               Admin Dashboard
             </h1>
-            <p className="text-gray-600 mt-2">Manage users and projects</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">Manage users and projects</p>
           </div>
           <Link href="/dashboard">
             <Button
               variant="outline"
-              className="border-gray-200 text-gray-700 hover:bg-gray-50"
+              className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               Back to Dashboard
             </Button>
@@ -641,58 +648,58 @@ export default function AdminDashboardPage() {
         <div className="space-y-6">
           {/* Primary Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="bg-white border border-gray-200 shadow-sm">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Users className="h-5 w-5 text-[#00171f]" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-[#00171f] dark:text-white">
+                  <Users className="h-5 w-5 text-[#00171f] dark:text-white" />
                   Total Users
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-[#00171f]">{users.length}</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-3xl font-bold text-[#00171f] dark:text-white">{users.length}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {analytics.activeUsers} active users
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-white border border-gray-200 shadow-sm">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <FolderOpen className="h-5 w-5 text-[#00171f]" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-[#00171f] dark:text-white">
+                  <FolderOpen className="h-5 w-5 text-[#00171f] dark:text-white" />
                   Total Projects
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-[#00171f]">{projects.length}</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-3xl font-bold text-[#00171f] dark:text-white">{projects.length}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {analytics.totalClones} clones
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-white border border-gray-200 shadow-sm">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-blue-600" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-[#00171f] dark:text-white">
+                  <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   Active Subscriptions
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-blue-600">{analytics.activeSubscriptions}</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{analytics.activeSubscriptions}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {subscriptions.length} total subscriptions
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-white border border-gray-200 shadow-sm">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-purple-600" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-[#00171f] dark:text-white">
+                  <MessageSquare className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   Total Feedbacks
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-purple-600">{feedbacks.length}</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{feedbacks.length}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {analytics.feedbackPercentage}% response rate
                 </p>
               </CardContent>
@@ -701,65 +708,65 @@ export default function AdminDashboardPage() {
 
           {/* Secondary Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="bg-white border border-gray-200 shadow-sm">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-green-600" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-[#00171f] dark:text-white">
+                  <Globe className="h-5 w-5 text-green-600 dark:text-green-400" />
                   Public Projects
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-green-600">{analytics.publicProjectsCount}</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400">{analytics.publicProjectsCount}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {analytics.privateProjectsCount} private
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-white border border-gray-200 shadow-sm">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-500" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-[#00171f] dark:text-white">
+                  <Star className="h-5 w-5 text-yellow-500 dark:text-yellow-400" />
                   Average Rating
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <p className="text-3xl font-bold text-yellow-500">{analytics.averageRating}</p>
-                  <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
+                  <p className="text-3xl font-bold text-yellow-500 dark:text-yellow-400">{analytics.averageRating}</p>
+                  <Star className="h-6 w-6 fill-yellow-400 text-yellow-400 dark:fill-yellow-500 dark:text-yellow-500" />
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {analytics.fiveStarFeedbacks} five-star reviews
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-white border border-gray-200 shadow-sm">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-emerald-600" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-[#00171f] dark:text-white">
+                  <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                   Growth (30 Days)
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-emerald-600">
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                   +{analytics.recentUsers} users
                 </p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   +{analytics.recentProjects} projects
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-white border border-gray-200 shadow-sm">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-orange-600" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-[#00171f] dark:text-white">
+                  <Activity className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                   Recent Activity (7 Days)
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                   +{analytics.last7DaysUsers} users
                 </p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   +{analytics.last7DaysProjects} projects
                 </p>
               </CardContent>
@@ -768,78 +775,78 @@ export default function AdminDashboardPage() {
 
           {/* Subscription Breakdown */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-white border border-gray-200 shadow-sm">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-indigo-600" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-[#00171f] dark:text-white">
+                  <BarChart3 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                   Subscription Tiers
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Free</span>
-                    <span className="text-lg font-bold text-[#00171f]">{analytics.freeUsers}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Free</span>
+                    <span className="text-lg font-bold text-[#00171f] dark:text-white">{analytics.freeUsers}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Plus</span>
-                    <span className="text-lg font-bold text-blue-600">{analytics.plusSubscriptions}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Plus</span>
+                    <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{analytics.plusSubscriptions}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Pro</span>
-                    <span className="text-lg font-bold text-amber-600">{analytics.proSubscriptions}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Pro</span>
+                    <span className="text-lg font-bold text-amber-600 dark:text-amber-400">{analytics.proSubscriptions}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white border border-gray-200 shadow-sm">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-green-600" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-[#00171f] dark:text-white">
+                  <Zap className="h-5 w-5 text-green-600 dark:text-green-400" />
                   Subscription Status
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Active</span>
-                    <span className="text-lg font-bold text-green-600">{analytics.activeSubscriptions}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Active</span>
+                    <span className="text-lg font-bold text-green-600 dark:text-green-400">{analytics.activeSubscriptions}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Cancelled</span>
-                    <span className="text-lg font-bold text-red-600">{analytics.cancelledSubscriptions}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Cancelled</span>
+                    <span className="text-lg font-bold text-red-600 dark:text-red-400">{analytics.cancelledSubscriptions}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Other</span>
-                    <span className="text-lg font-bold text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Other</span>
+                    <span className="text-lg font-bold text-gray-600 dark:text-gray-400">
                       {subscriptions.length - analytics.activeSubscriptions - analytics.cancelledSubscriptions}
                     </span>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white border border-gray-200 shadow-sm">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Users className="h-5 w-5 text-cyan-600" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-[#00171f] dark:text-white">
+                  <Users className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
                   User Engagement
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Active Users</span>
-                    <span className="text-lg font-bold text-cyan-600">{analytics.activeUsers}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Active Users</span>
+                    <span className="text-lg font-bold text-cyan-600 dark:text-cyan-400">{analytics.activeUsers}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Inactive Users</span>
-                    <span className="text-lg font-bold text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Inactive Users</span>
+                    <span className="text-lg font-bold text-gray-600 dark:text-gray-400">
                       {users.length - analytics.activeUsers}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Engagement Rate</span>
-                    <span className="text-lg font-bold text-[#00171f]">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Engagement Rate</span>
+                    <span className="text-lg font-bold text-[#00171f] dark:text-white">
                       {users.length > 0
                         ? ((analytics.activeUsers / users.length) * 100).toFixed(1)
                         : '0.0'}
@@ -861,31 +868,31 @@ export default function AdminDashboardPage() {
         )}
 
         <Tabs defaultValue="users" className="space-y-5">
-          <TabsList className="bg-transparent border-b border-gray-200 rounded-none p-0 h-auto w-full justify-start gap-0">
+          <TabsList className="bg-transparent border-b border-gray-200 dark:border-gray-700 rounded-none p-0 h-auto w-full justify-start gap-0">
             <TabsTrigger
               value="users"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:text-[#00171f] hover:text-[#00171f] transition-colors"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors"
             >
               <Users className="h-4 w-4 mr-2" />
               Users ({users.length})
             </TabsTrigger>
             <TabsTrigger
               value="projects"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:text-[#00171f] hover:text-[#00171f] transition-colors"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors"
             >
               <FolderOpen className="h-4 w-4 mr-2" />
               Projects ({projects.length})
             </TabsTrigger>
             <TabsTrigger
               value="subscriptions"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:text-[#00171f] hover:text-[#00171f] transition-colors"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors"
             >
               <CreditCard className="h-4 w-4 mr-2" />
               Subscriptions ({subscriptions.length})
             </TabsTrigger>
             <TabsTrigger
               value="feedbacks"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 data-[state=active]:text-[#00171f] hover:text-[#00171f] transition-colors"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors"
             >
               <MessageSquare className="h-4 w-4 mr-2" />
               Feedbacks ({feedbacks.length})
@@ -896,18 +903,18 @@ export default function AdminDashboardPage() {
             {/* Search and Filter Bar */}
             <div className="mb-4 flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <Input
                   type="text"
                   placeholder="Search users by name, email, or UID..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  className="pl-10 pr-10 border-gray-200"
+                  className="pl-10 pr-10 border-gray-200 dark:border-gray-700"
                 />
                 {userSearch && (
                   <button
                     onClick={() => setUserSearch('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -918,56 +925,56 @@ export default function AdminDashboardPage() {
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 rounded-2xl bg-gray-100" />
+                  <Skeleton key={i} className="h-16 rounded-2xl bg-gray-100 dark:bg-gray-800" />
                 ))}
               </div>
             ) : filteredUsers.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                <Users className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-4 text-lg font-semibold text-[#00171f]">
+              <div className="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-8 text-center">
+                <Users className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+                <p className="mt-4 text-lg font-semibold text-[#00171f] dark:text-white">
                   {userSearch ? 'No users match your search' : 'No users found'}
                 </p>
               </div>
             ) : (
-              <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                  <p className="text-sm text-gray-600">
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm overflow-hidden">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     Showing <span className="font-semibold">{filteredUsers.length}</span> of{' '}
                     <span className="font-semibold">{users.length}</span> users
                   </p>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full table-auto text-sm text-gray-700">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full table-auto text-sm text-gray-700 dark:text-gray-300">
+                    <thead className="bg-gray-50 dark:bg-gray-900">
                       <tr>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           User
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Email
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Created
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Projects
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Cloned
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Admin
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 bg-white">
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-[#00171f]">
                       {filteredUsers.map((user) => (
                         <tr
                           key={user.uid}
-                          className="border-b border-gray-100 transition-colors duration-150 hover:bg-gray-50"
+                          className="border-b border-gray-100 dark:border-gray-800 transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-900"
                         >
                           <td className="px-4 py-4">
                             <div className="flex items-center gap-3">
@@ -980,30 +987,30 @@ export default function AdminDashboardPage() {
                                   className="h-10 w-10 rounded-full object-cover"
                                 />
                               ) : (
-                                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                  <Users className="h-5 w-5 text-gray-400" />
+                                <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                  <Users className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                                 </div>
                               )}
                               <div>
-                                <p className="text-sm font-semibold text-[#00171f]">
+                                <p className="text-sm font-semibold text-[#00171f] dark:text-white">
                                   {user.displayName || 'No name'}
                                 </p>
-                                <p className="text-xs text-gray-500">{user.uid}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{user.uid}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-600">
+                          <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
                             {user.email || '—'}
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-500">
+                          <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
                             {user.createdAt
                               ? formatDistanceToNow(user.createdAt, { addSuffix: true })
                               : '—'}
                           </td>
-                          <td className="px-4 py-4 text-sm font-semibold text-[#00171f]">
+                          <td className="px-4 py-4 text-sm font-semibold text-[#00171f] dark:text-white">
                             {user.projectCount}
                           </td>
-                          <td className="px-4 py-4 text-sm font-semibold text-[#00171f]">
+                          <td className="px-4 py-4 text-sm font-semibold text-[#00171f] dark:text-white">
                             {user.clonedProjectCount}
                           </td>
                           <td className="px-4 py-4">
@@ -1056,18 +1063,18 @@ export default function AdminDashboardPage() {
             {/* Search and Filter Bar */}
             <div className="mb-4 flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <Input
                   type="text"
                   placeholder="Search projects by name, description, or owner..."
                   value={projectSearch}
                   onChange={(e) => setProjectSearch(e.target.value)}
-                  className="pl-10 pr-10 border-gray-200"
+                  className="pl-10 pr-10 border-gray-200 dark:border-gray-700"
                 />
                 {projectSearch && (
                   <button
                     onClick={() => setProjectSearch('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -1089,61 +1096,61 @@ export default function AdminDashboardPage() {
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 rounded-2xl bg-gray-100" />
+                  <Skeleton key={i} className="h-16 rounded-2xl bg-gray-100 dark:bg-gray-800" />
                 ))}
               </div>
             ) : filteredProjects.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                <FolderOpen className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-4 text-lg font-semibold text-[#00171f]">
+              <div className="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-8 text-center">
+                <FolderOpen className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+                <p className="mt-4 text-lg font-semibold text-[#00171f] dark:text-white">
                   {projectSearch || projectVisibilityFilter !== 'all'
                     ? 'No projects match your filters'
                     : 'No projects found'}
                 </p>
               </div>
             ) : (
-              <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                  <p className="text-sm text-gray-600">
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm overflow-hidden">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     Showing <span className="font-semibold">{filteredProjects.length}</span> of{' '}
                     <span className="font-semibold">{projects.length}</span> projects
                   </p>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full table-auto text-sm text-gray-700">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full table-auto text-sm text-gray-700 dark:text-gray-300">
+                    <thead className="bg-gray-50 dark:bg-gray-900">
                       <tr>
-                        <th className="w-24 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="w-24 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Image
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Title
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Description
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Owner
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Created
                         </th>
-                        <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Visibility
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Members
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 bg-white">
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-[#00171f]">
                       {filteredProjects.map((project) => (
                         <tr
                           key={project.id}
-                          className="border-b border-gray-100 transition-colors duration-150 hover:bg-gray-50"
+                          className="border-b border-gray-100 dark:border-gray-800 transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-900"
                         >
                           <td className="px-4 py-4">
                             {project.imageUrl ? (
@@ -1155,20 +1162,20 @@ export default function AdminDashboardPage() {
                                 className="h-12 w-12 rounded-xl object-cover"
                               />
                             ) : (
-                              <div className="h-12 w-12 rounded-xl border border-gray-200 bg-gray-100 flex items-center justify-center">
-                                <Logo className="h-6 w-6 text-gray-400" />
+                              <div className="h-12 w-12 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                <Logo className="h-6 w-6 text-gray-400 dark:text-gray-500" />
                               </div>
                             )}
                           </td>
                           <td className="px-4 py-4">
                             <Link
                               href={`/projects/${project.id}`}
-                              className="text-sm font-semibold text-[#00171f] hover:text-[#00171f]/70"
+                              className="text-sm font-semibold text-[#00171f] dark:text-white hover:text-[#00171f]/70 dark:hover:text-white/70"
                             >
                               {project.name}
                             </Link>
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-600 line-clamp-2 overflow-hidden break-words text-ellipsis whitespace-normal max-w-xs">
+                          <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300 line-clamp-2 overflow-hidden break-words text-ellipsis whitespace-normal max-w-xs">
                             {project.idea || 'No description'}
                           </td>
                           <td className="px-4 py-4">
@@ -1184,35 +1191,35 @@ export default function AdminDashboardPage() {
                                   />
                                 )}
                                 <div>
-                                  <p className="text-xs font-medium text-[#00171f]">
+                                  <p className="text-xs font-medium text-[#00171f] dark:text-white">
                                     {project.owner.displayName || 'No name'}
                                   </p>
-                                  <p className="text-xs text-gray-500">{project.owner.email}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">{project.owner.email}</p>
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-xs text-gray-400">Unknown</span>
+                              <span className="text-xs text-gray-400 dark:text-gray-500">Unknown</span>
                             )}
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-500">
+                          <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
                             {project.createdAt
                               ? formatDistanceToNow(project.createdAt, { addSuffix: true })
                               : '—'}
                           </td>
                           <td className="px-4 py-4 text-center">
                             {project.isPublic ? (
-                              <Badge className="bg-green-100 text-green-700 border-green-200">
+                              <Badge className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700">
                                 <Globe className="h-3 w-3 mr-1" />
                                 Public
                               </Badge>
                             ) : (
-                              <Badge className="bg-gray-100 text-gray-700 border-gray-200">
+                              <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700">
                                 <Lock className="h-3 w-3 mr-1" />
                                 Private
                               </Badge>
                             )}
                           </td>
-                          <td className="px-4 py-4 text-sm font-semibold text-[#00171f]">
+                          <td className="px-4 py-4 text-sm font-semibold text-[#00171f] dark:text-white">
                             {Object.keys(project.members || {}).length}
                           </td>
                           <td className="px-4 py-4">
@@ -1242,18 +1249,18 @@ export default function AdminDashboardPage() {
             {/* Search and Filter Bar */}
             <div className="mb-4 flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <Input
                   type="text"
                   placeholder="Search subscriptions by user, email, or subscription ID..."
                   value={subscriptionSearch}
                   onChange={(e) => setSubscriptionSearch(e.target.value)}
-                  className="pl-10 pr-10 border-gray-200"
+                  className="pl-10 pr-10 border-gray-200 dark:border-gray-700"
                 />
                 {subscriptionSearch && (
                   <button
                     onClick={() => setSubscriptionSearch('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -1289,65 +1296,65 @@ export default function AdminDashboardPage() {
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 rounded-2xl bg-gray-100" />
+                  <Skeleton key={i} className="h-16 rounded-2xl bg-gray-100 dark:bg-gray-800" />
                 ))}
               </div>
             ) : filteredSubscriptions.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                <CreditCard className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-4 text-lg font-semibold text-[#00171f]">
+              <div className="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-8 text-center">
+                <CreditCard className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+                <p className="mt-4 text-lg font-semibold text-[#00171f] dark:text-white">
                   {subscriptionSearch || subscriptionTierFilter !== 'all' || subscriptionStatusFilter !== 'all'
                     ? 'No subscriptions match your filters'
                     : 'No subscriptions found'}
                 </p>
               </div>
             ) : (
-              <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                  <p className="text-sm text-gray-600">
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm overflow-hidden">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     Showing <span className="font-semibold">{filteredSubscriptions.length}</span> of{' '}
                     <span className="font-semibold">{subscriptions.length}</span> subscriptions
                   </p>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full table-auto text-sm text-gray-700">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full table-auto text-sm text-gray-700 dark:text-gray-300">
+                    <thead className="bg-gray-50 dark:bg-gray-900">
                       <tr>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           User
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Tier
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Status
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Product
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Created
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Renews At
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Quantity
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 bg-white">
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-[#00171f]">
                       {filteredSubscriptions.map((subscription) => (
                         <tr
                           key={subscription.userId}
-                          className="border-b border-gray-100 transition-colors duration-150 hover:bg-gray-50"
+                          className="border-b border-gray-100 dark:border-gray-800 transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-900"
                         >
                           <td className="px-4 py-4">
                             <div>
-                              <p className="text-sm font-semibold text-[#00171f]">
+                              <p className="text-sm font-semibold text-[#00171f] dark:text-white">
                                 {subscription.userName || subscription.userEmail || 'Unknown'}
                               </p>
-                              <p className="text-xs text-gray-500">{subscription.userEmail || '—'}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{subscription.userEmail || '—'}</p>
                             </div>
                           </td>
                           <td className="px-4 py-4">
@@ -1357,7 +1364,7 @@ export default function AdminDashboardPage() {
                                   ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white border-0'
                                   : subscription.tierId === 'plus'
                                   ? 'bg-primary text-primary-foreground border-0'
-                                  : 'bg-gray-100 text-gray-700 border-gray-200'
+                                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
                               }
                             >
                               {subscription.tierId?.toUpperCase() || 'FREE'}
@@ -1367,31 +1374,31 @@ export default function AdminDashboardPage() {
                             <Badge
                               className={
                                 subscription.status === 'active'
-                                  ? 'bg-green-100 text-green-700 border-green-200'
+                                  ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700'
                                   : subscription.status === 'cancelled'
-                                  ? 'bg-red-100 text-red-700 border-red-200'
-                                  : 'bg-gray-100 text-gray-700 border-gray-200'
+                                  ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border-red-200 dark:border-red-700'
+                                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
                               }
                             >
                               {subscription.status || '—'}
                             </Badge>
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-600">
+                          <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
                             {subscription.productName || subscription.variantName || '—'}
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-500">
+                          <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
                             {subscription.createdAt
                               ? formatDistanceToNow(subscription.createdAt, { addSuffix: true })
                               : '—'}
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-500">
+                          <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
                             {subscription.renewsAt
                               ? formatDistanceToNow(subscription.renewsAt, { addSuffix: true })
                               : subscription.endsAt
                               ? `Ends ${formatDistanceToNow(subscription.endsAt, { addSuffix: true })}`
                               : '—'}
                           </td>
-                          <td className="px-4 py-4 text-sm font-semibold text-[#00171f]">
+                          <td className="px-4 py-4 text-sm font-semibold text-[#00171f] dark:text-white">
                             {subscription.cumulativeQuantity || 0}
                           </td>
                         </tr>
@@ -1407,18 +1414,18 @@ export default function AdminDashboardPage() {
             {/* Search and Filter Bar */}
             <div className="mb-4 flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <Input
                   type="text"
                   placeholder="Search feedbacks by user, email, or comments..."
                   value={feedbackSearch}
                   onChange={(e) => setFeedbackSearch(e.target.value)}
-                  className="pl-10 pr-10 border-gray-200"
+                  className="pl-10 pr-10 border-gray-200 dark:border-gray-700"
                 />
                 {feedbackSearch && (
                   <button
                     onClick={() => setFeedbackSearch('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -1442,49 +1449,49 @@ export default function AdminDashboardPage() {
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 rounded-2xl bg-gray-100" />
+                  <Skeleton key={i} className="h-16 rounded-2xl bg-gray-100 dark:bg-gray-800" />
                 ))}
               </div>
             ) : filteredFeedbacks.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-4 text-lg font-semibold text-[#00171f]">
+              <div className="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-8 text-center">
+                <MessageSquare className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+                <p className="mt-4 text-lg font-semibold text-[#00171f] dark:text-white">
                   {feedbackSearch || feedbackRatingFilter !== 'all'
                     ? 'No feedbacks match your filters'
                     : 'No feedbacks found'}
                 </p>
               </div>
             ) : (
-              <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                  <p className="text-sm text-gray-600">
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm overflow-hidden">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     Showing <span className="font-semibold">{filteredFeedbacks.length}</span> of{' '}
                     <span className="font-semibold">{feedbacks.length}</span> feedbacks
                   </p>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full table-auto text-sm text-gray-700">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full table-auto text-sm text-gray-700 dark:text-gray-300">
+                    <thead className="bg-gray-50 dark:bg-gray-900">
                       <tr>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           User
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Rating
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Comments
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           Created
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 bg-white">
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-[#00171f]">
                       {filteredFeedbacks.map((feedback) => (
                         <tr
                           key={feedback.id}
-                          className="border-b border-gray-100 transition-colors duration-150 hover:bg-gray-50"
+                          className="border-b border-gray-100 dark:border-gray-800 transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-900"
                         >
                           <td className="px-4 py-4">
                             {feedback.user ? (
@@ -1498,19 +1505,19 @@ export default function AdminDashboardPage() {
                                     className="h-10 w-10 rounded-full object-cover"
                                   />
                                 ) : (
-                                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <Users className="h-5 w-5 text-gray-400" />
+                                  <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                    <Users className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                                   </div>
                                 )}
                                 <div>
-                                  <p className="text-sm font-semibold text-[#00171f]">
+                                  <p className="text-sm font-semibold text-[#00171f] dark:text-white">
                                     {feedback.user.displayName || 'Anonymous'}
                                   </p>
-                                  <p className="text-xs text-gray-500">{feedback.user.email || '—'}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">{feedback.user.email || '—'}</p>
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-sm text-gray-400">Anonymous</span>
+                              <span className="text-sm text-gray-400 dark:text-gray-500">Anonymous</span>
                             )}
                           </td>
                           <td className="px-4 py-4">
@@ -1521,19 +1528,19 @@ export default function AdminDashboardPage() {
                                   className={`h-4 w-4 ${
                                     i < feedback.rating
                                       ? 'fill-yellow-400 text-yellow-400'
-                                      : 'text-gray-300'
+                                      : 'text-gray-300 dark:text-gray-600'
                                   }`}
                                 />
                               ))}
-                              <span className="ml-2 text-sm font-semibold text-[#00171f]">
+                              <span className="ml-2 text-sm font-semibold text-[#00171f] dark:text-white">
                                 {feedback.rating}/5
                               </span>
                             </div>
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-600 line-clamp-2 overflow-hidden break-words text-ellipsis whitespace-normal max-w-md">
+                          <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300 line-clamp-2 overflow-hidden break-words text-ellipsis whitespace-normal max-w-md">
                             {feedback.comments || 'No comments'}
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-500">
+                          <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
                             {feedback.createdAt
                               ? formatDistanceToNow(feedback.createdAt, { addSuffix: true })
                               : '—'}

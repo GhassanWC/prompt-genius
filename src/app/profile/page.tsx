@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { UserNav } from "@/components/user-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Badge } from "@/components/ui/badge";
@@ -183,23 +184,23 @@ export default function ProfilePage() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-16 w-16 animate-spin text-[#00171f]" />
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#00171f]">
+        <Loader2 className="h-16 w-16 animate-spin text-[#00171f] dark:text-white" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white relative overflow-x-hidden">
       {/* Subtle geometric background pattern */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02] dark:opacity-[0.05]">
         <div className="absolute inset-0" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-[#00171f]/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-0 font-bold group">
             <Image
@@ -209,25 +210,33 @@ export default function ProfilePage() {
               height={60}
               className='ml-1 mr-1'
             />
-            <span className="font-headline text-xl text-[#00171f] tracking-tight">
+            <span className="font-headline text-xl text-[#00171f] dark:text-white tracking-tight">
               Prompt Genius AI
             </span>
           </Link>
-          <UserNav />
+          <div className="flex items-center gap-6">
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
+            <UserNav />
+            <div className="md:hidden">
+              <ThemeToggle />
+            </div>
+          </div>
         </div>
       </header>
 
       <main className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Decorative elements */}
-        <div className="absolute top-20 left-10 w-20 h-20 border border-gray-200 rounded-full animate-float opacity-50" />
-        <div className="absolute bottom-20 right-10 w-32 h-32 border border-gray-200 rounded-full animate-float delay-300 opacity-50" />
-        <div className="absolute top-40 right-20 w-3 h-3 bg-[#00171f] rounded-full animate-subtle-pulse" />
-        <div className="absolute bottom-40 left-20 w-2 h-2 bg-[#00171f] rounded-full animate-subtle-pulse delay-200" />
+        <div className="absolute top-20 left-10 w-20 h-20 border border-gray-200 dark:border-gray-700 rounded-full animate-float opacity-50" />
+        <div className="absolute bottom-20 right-10 w-32 h-32 border border-gray-200 dark:border-gray-700 rounded-full animate-float delay-300 opacity-50" />
+        <div className="absolute top-40 right-20 w-3 h-3 bg-[#00171f] dark:bg-white rounded-full animate-subtle-pulse" />
+        <div className="absolute bottom-40 left-20 w-2 h-2 bg-[#00171f] dark:bg-white rounded-full animate-subtle-pulse delay-200" />
 
         <div className="mb-8">
           <Link
             href="/dashboard"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-[#00171f] transition-all duration-200 font-medium group"
+            className="inline-flex items-center text-sm text-gray-600 dark:text-gray-300 hover:text-[#00171f] dark:hover:text-white transition-all duration-200 font-medium group"
           >
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back to Dashboard
@@ -236,31 +245,31 @@ export default function ProfilePage() {
 
         {/* Hero section */}
         <div className="text-center mb-12 sm:mb-16">
-          <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f]">
+          <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f] dark:text-white">
             My Profile
           </h1>
-          <p className="mt-6 text-lg sm:text-xl text-gray-600 font-medium leading-relaxed">
+          <p className="mt-6 text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
             Manage your account settings and preferences.
           </p>
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-gray-50 border border-gray-200 rounded-2xl shadow-sm p-1">
+          <TabsList className="grid w-full grid-cols-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-1">
             <TabsTrigger
               value="profile"
-              className="data-[state=active]:bg-[#00171f] data-[state=active]:text-white rounded-xl transition-all duration-200 font-medium"
+              className="data-[state=active]:bg-[#00171f] dark:data-[state=active]:bg-white data-[state=active]:text-white dark:data-[state=active]:text-[#00171f] rounded-xl transition-all duration-200 font-medium text-gray-700 dark:text-gray-300"
             >
               Profile Details
             </TabsTrigger>
             <TabsTrigger
               value="password"
-              className="data-[state=active]:bg-[#00171f] data-[state=active]:text-white rounded-xl transition-all duration-200 font-medium"
+              className="data-[state=active]:bg-[#00171f] dark:data-[state=active]:bg-white data-[state=active]:text-white dark:data-[state=active]:text-[#00171f] rounded-xl transition-all duration-200 font-medium text-gray-700 dark:text-gray-300"
             >
               Change Password
             </TabsTrigger>
             <TabsTrigger
               value="subscription"
-              className="data-[state=active]:bg-[#00171f] data-[state=active]:text-white rounded-xl transition-all duration-200 font-medium"
+              className="data-[state=active]:bg-[#00171f] dark:data-[state=active]:bg-white data-[state=active]:text-white dark:data-[state=active]:text-[#00171f] rounded-xl transition-all duration-200 font-medium text-gray-700 dark:text-gray-300"
             >
               Subscription
             </TabsTrigger>
@@ -269,7 +278,7 @@ export default function ProfilePage() {
           {error && (
             <Alert
               variant="destructive"
-              className="mt-6 bg-red-50 border-red-200 text-red-800 rounded-2xl"
+              className="mt-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 rounded-2xl"
             >
               <AlertTriangle className="h-5 w-5" />
               <AlertTitle className="font-semibold">
@@ -282,12 +291,12 @@ export default function ProfilePage() {
           )}
 
           <TabsContent value="profile" className="mt-8">
-            <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
-              <CardHeader className="border-b border-gray-200">
-                <CardTitle className="font-headline text-2xl font-bold text-[#00171f]">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
+              <CardHeader className="border-b border-gray-200 dark:border-gray-800">
+                <CardTitle className="font-headline text-2xl font-bold text-[#00171f] dark:text-white">
                   Profile Information
                 </CardTitle>
-                <CardDescription className="text-gray-600 font-medium">
+                <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">
                   Update your display name and view your email address.
                 </CardDescription>
               </CardHeader>
@@ -303,14 +312,14 @@ export default function ProfilePage() {
                         name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[#00171f] font-semibold">
+                            <FormLabel className="text-[#00171f] dark:text-white font-semibold">
                               First Name
                             </FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="Your First Name"
                                 {...field}
-                                className="border-gray-200 rounded-xl focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 font-medium"
+                                className="border-gray-200 dark:border-gray-700 bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white rounded-xl focus:border-[#00171f] dark:focus:border-white focus:ring-2 focus:ring-[#00171f]/20 dark:focus:ring-white/20 transition-all duration-200 font-medium"
                               />
                             </FormControl>
                             <FormMessage />
@@ -322,14 +331,14 @@ export default function ProfilePage() {
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[#00171f] font-semibold">
+                            <FormLabel className="text-[#00171f] dark:text-white font-semibold">
                               Last Name
                             </FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="Your Last Name"
                                 {...field}
-                                className="border-gray-200 rounded-xl focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 font-medium"
+                                className="border-gray-200 dark:border-gray-700 bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white rounded-xl focus:border-[#00171f] dark:focus:border-white focus:ring-2 focus:ring-[#00171f]/20 dark:focus:ring-white/20 transition-all duration-200 font-medium"
                               />
                             </FormControl>
                             <FormMessage />
@@ -342,7 +351,7 @@ export default function ProfilePage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[#00171f] font-semibold">
+                          <FormLabel className="text-[#00171f] dark:text-white font-semibold">
                             Email
                           </FormLabel>
                           <FormControl>
@@ -350,10 +359,10 @@ export default function ProfilePage() {
                               placeholder="your@email.com"
                               {...field}
                               disabled
-                              className="bg-gray-50 border border-gray-200 rounded-xl font-medium"
+                              className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-[#00171f] dark:text-white rounded-xl font-medium"
                             />
                           </FormControl>
-                          <FormDescription className="text-gray-500 font-medium">
+                          <FormDescription className="text-gray-500 dark:text-gray-400 font-medium">
                             Your email address cannot be changed.
                           </FormDescription>
                           <FormMessage />
@@ -377,12 +386,12 @@ export default function ProfilePage() {
           </TabsContent>
 
           <TabsContent value="password" className="mt-8">
-            <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
-              <CardHeader className="border-b border-gray-200">
-                <CardTitle className="font-headline text-2xl font-bold text-[#00171f]">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
+              <CardHeader className="border-b border-gray-200 dark:border-gray-800">
+                <CardTitle className="font-headline text-2xl font-bold text-[#00171f] dark:text-white">
                   Change Password
                 </CardTitle>
-                <CardDescription className="text-gray-600 font-medium">
+                <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">
                   Enter a new password for your account.
                 </CardDescription>
               </CardHeader>
@@ -397,14 +406,14 @@ export default function ProfilePage() {
                       name="newPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[#00171f] font-semibold">
+                          <FormLabel className="text-[#00171f] dark:text-white font-semibold">
                             New Password
                           </FormLabel>
                           <FormControl>
                             <Input
                               type="password"
                               {...field}
-                              className="border-gray-200 rounded-xl focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 font-medium"
+                              className="border-gray-200 dark:border-gray-700 bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white rounded-xl focus:border-[#00171f] dark:focus:border-white focus:ring-2 focus:ring-[#00171f]/20 dark:focus:ring-white/20 transition-all duration-200 font-medium"
                             />
                           </FormControl>
                           <FormMessage />
@@ -416,14 +425,14 @@ export default function ProfilePage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[#00171f] font-semibold">
+                          <FormLabel className="text-[#00171f] dark:text-white font-semibold">
                             Confirm New Password
                           </FormLabel>
                           <FormControl>
                             <Input
                               type="password"
                               {...field}
-                              className="border-gray-200 rounded-xl focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 font-medium"
+                              className="border-gray-200 dark:border-gray-700 bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white rounded-xl focus:border-[#00171f] dark:focus:border-white focus:ring-2 focus:ring-[#00171f]/20 dark:focus:ring-white/20 transition-all duration-200 font-medium"
                             />
                           </FormControl>
                           <FormMessage />
@@ -447,48 +456,48 @@ export default function ProfilePage() {
           </TabsContent>
 
           <TabsContent value="subscription" className="mt-8">
-            <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
-              <CardHeader className="border-b border-gray-200">
-                <CardTitle className="font-headline text-2xl font-bold text-[#00171f]">
+            <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
+              <CardHeader className="border-b border-gray-200 dark:border-gray-800">
+                <CardTitle className="font-headline text-2xl font-bold text-[#00171f] dark:text-white">
                   Manage Subscription
                 </CardTitle>
-                <CardDescription className="text-gray-600 font-medium">
+                <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">
                   View your current plan and manage your subscription details.
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
-                <div className="p-6 bg-gray-50 border border-gray-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="p-6 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-600 font-medium">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">
                       Current Plan
                     </p>
-                    <p className="text-2xl font-bold text-[#00171f] capitalize">
+                    <p className="text-2xl font-bold text-[#00171f] dark:text-white capitalize">
                       {subscriptionPlan || "Free"}
                     </p>
                   </div>
                   <Badge
                     variant="outline"
-                    className="text-base bg-white border-[#00171f] text-[#00171f] font-semibold px-4 py-2 rounded-full"
+                    className="text-base bg-white dark:bg-[#00171f] border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-semibold px-4 py-2 rounded-full"
                   >
-                    <BadgeCheck className="mr-2 text-[#00171f]" />{" "}
+                    <BadgeCheck className="mr-2 text-[#00171f] dark:text-white" />{" "}
                     {subscriptionPlan || "Free"}
                   </Badge>
                 </div>
 
                 {subscriptionPlan === "free" ? (
-                  <Card className="border-2 border-gray-200 bg-gray-50 rounded-2xl overflow-hidden">
-                    <CardHeader className="border-b border-gray-200">
-                      <CardTitle className="font-headline text-xl font-bold text-[#00171f]">
+                  <Card className="border-2 border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 rounded-2xl overflow-hidden">
+                    <CardHeader className="border-b border-gray-200 dark:border-gray-800">
+                      <CardTitle className="font-headline text-xl font-bold text-[#00171f] dark:text-white">
                         Upgrade Your Plan
                       </CardTitle>
-                      <CardDescription className="text-gray-600 font-medium">
+                      <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">
                         Unlock more projects, advanced features, and priority
                         support.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="p-6">
                       <Link href="/#pricing">
-                        <Button className="w-full bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 font-semibold py-3 rounded-full transition-all duration-200 active:scale-95">
+                        <Button className="w-full bg-[#00171f] hover:bg-[#00171f]/90 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-[#00171f] border-0 shadow-lg shadow-[#00171f]/20 dark:shadow-white/20 font-semibold py-3 rounded-full transition-all duration-200 active:scale-95">
                           <Rocket className="mr-2 h-5 w-5" />
                           View Upgrade Options
                         </Button>
@@ -497,14 +506,14 @@ export default function ProfilePage() {
                   </Card>
                 ) : (
                   <div className="space-y-6">
-                    <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
                       Need to make changes? You can manage your billing details,
                       view invoices, or cancel your subscription at any time.
                     </p>
                     <Button
                       onClick={handleManageSubscription}
                       disabled={isPortalLoading}
-                      className="w-full bg-gray-600 hover:bg-gray-700 text-white border-0 shadow-lg shadow-gray-600/20 font-semibold py-3 rounded-full transition-all duration-200 active:scale-95"
+                      className="w-full bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white border-0 shadow-lg shadow-gray-600/20 font-semibold py-3 rounded-full transition-all duration-200 active:scale-95"
                     >
                       {isPortalLoading ? (
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />

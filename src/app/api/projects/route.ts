@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
       }
 
       case 'createProject': {
-        const { projectName, plan } = body;
+        const { projectName, plan, tags } = body;
         
         // Run both queries in parallel - using fast denormalized counters!
         const [userSubscription, userCounts] = await Promise.all([
@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (!projectName || !plan) return jsonError('projectName and plan are required');
-        const projectId = await createProjectWithPrompts(uid, projectName, plan);
+        const projectId = await createProjectWithPrompts(uid, projectName, plan, tags);
         return NextResponse.json({ projectId });
       }
 

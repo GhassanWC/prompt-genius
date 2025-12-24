@@ -8,6 +8,7 @@ import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageS
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserNav } from '@/components/user-nav';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { FeedbackDialog } from '@/components/feedback-dialog';
@@ -36,6 +37,7 @@ export default function LandingPage() {
 
   const navLinks = [
     { name: 'Features', href: '#features' },
+    { name: 'Templates', href: '/templates' },
     { name: 'Community', href: '/community' },
     { name: 'Reviews', href: '#testimonials' },
     { name: 'Pricing', href: '#pricing' },
@@ -111,16 +113,16 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white relative overflow-x-hidden">
       {/* Subtle geometric background pattern */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02] dark:opacity-[0.05]">
         <div className="absolute inset-0" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
       </div>
 
       {/* Modern header */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-[#00171f]/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-0 font-bold group">
             <Image
@@ -130,7 +132,7 @@ export default function LandingPage() {
               height={60}
               className='ml-1 mr-1'
             />
-            <span className="font-headline text-xl text-[#00171f] tracking-tight">
+            <span className="font-headline text-xl text-[#00171f] dark:text-white tracking-tight">
               Prompt Genius AI
             </span>
           </Link>
@@ -139,13 +141,16 @@ export default function LandingPage() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-gray-600 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-[#00171f] after:transition-all transition-all duration-300 hover:text-[#00171f]"
+                className="text-gray-600 dark:text-gray-300 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-[#00171f] dark:after:bg-white after:transition-all transition-all duration-300 hover:text-[#00171f] dark:hover:text-white"
               >
                 {link.name}
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-6">
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
             {loading ? (
               <Skeleton className="h-10 w-24 rounded-full" />
             ) : user ? (
@@ -155,6 +160,9 @@ export default function LandingPage() {
                 <Link href="/login">Get Started</Link>
               </Button>
             )}
+            <div className="md:hidden">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
@@ -163,21 +171,21 @@ export default function LandingPage() {
         {/* HERO SECTION */}
         <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24 text-center relative">
           {/* Decorative elements */}
-          <div className="absolute top-20 left-10 w-20 h-20 border border-gray-200 rounded-full animate-float opacity-50" />
-          <div className="absolute bottom-20 right-10 w-32 h-32 border border-gray-200 rounded-full animate-float delay-300 opacity-50" />
-          <div className="absolute top-40 right-20 w-3 h-3 bg-[#00171f] rounded-full animate-subtle-pulse" />
-          <div className="absolute bottom-40 left-20 w-2 h-2 bg-[#00171f] rounded-full animate-subtle-pulse delay-200" />
+          <div className="absolute top-20 left-10 w-20 h-20 border border-gray-200 dark:border-gray-700 rounded-full animate-float opacity-50" />
+          <div className="absolute bottom-20 right-10 w-32 h-32 border border-gray-200 dark:border-gray-700 rounded-full animate-float delay-300 opacity-50" />
+          <div className="absolute top-40 right-20 w-3 h-3 bg-[#00171f] dark:bg-white rounded-full animate-subtle-pulse" />
+          <div className="absolute bottom-40 left-20 w-2 h-2 bg-[#00171f] dark:bg-white rounded-full animate-subtle-pulse delay-200" />
           
-          <h1 className="animate-fade-in-up font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-[#00171f] leading-tight">
+          <h1 className="animate-fade-in-up font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-[#00171f] dark:text-white leading-tight">
             Build Your First Project Now<br />
             <span className="relative">
               With Ready-to-Use AI Prompts
-              <svg className="absolute -bottom-2 left-0 w-full h-3 text-[#00171f]/20" viewBox="0 0 200 8" preserveAspectRatio="none">
+              <svg className="absolute -bottom-2 left-0 w-full h-3 text-[#00171f]/20 dark:text-white/20" viewBox="0 0 200 8" preserveAspectRatio="none">
                 <path d="M0 7 Q50 0 100 7 T200 7" stroke="currentColor" strokeWidth="2" fill="none"/>
               </svg>
             </span>
           </h1>
-          <p className="mt-6 mx-auto max-w-3xl text-lg sm:text-xl text-gray-600 leading-relaxed animate-fade-in-up delay-100">
+          <p className="mt-6 mx-auto max-w-3xl text-lg sm:text-xl text-gray-600 dark:text-gray-300 leading-relaxed animate-fade-in-up delay-100">
             Stop staring at blank pages. Turn your product idea into step-by-step AI prompts in seconds — copy, paste, and build faster than ever.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in-up delay-200">
@@ -187,14 +195,14 @@ export default function LandingPage() {
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-2 border-[#00171f] text-[#00171f] hover:bg-[#00171f] hover:text-white transition-all duration-200 font-medium px-8 py-4 rounded-full text-lg">
+            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white hover:bg-[#00171f] dark:hover:bg-white hover:text-white dark:hover:text-[#00171f] transition-all duration-200 font-medium px-8 py-4 rounded-full text-lg">
               <Link href="#features">See How It Works</Link>
             </Button>
           </div>
         </section>
 
         {/* Divider */}
-        <div className="h-px w-32 mx-auto bg-[#00171f]/20 mb-12" />
+        <div className="h-px w-32 mx-auto bg-[#00171f]/20 dark:bg-white/20 mb-12" />
 
         {/* FEATURES SECTION */}
         <section id="features" className="py-20 sm:py-24 lg:py-32 relative overflow-hidden">
@@ -206,10 +214,10 @@ export default function LandingPage() {
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="text-center mb-16">
-              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] mb-4">
+              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] dark:text-white mb-4">
                 How It Works
               </h2>
-              <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 font-medium">
+              <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 dark:text-gray-300 font-medium">
                 Describe your product idea. We break it down into step-by-step prompts with specific AI roles. Copy, paste, and build — no more staring at blank pages wondering what to ask your AI.
               </p>
             </div>
@@ -226,7 +234,7 @@ export default function LandingPage() {
                     <div className={`relative h-full rounded-3xl p-8 sm:p-10 overflow-hidden transition-all duration-500 ${
                       isMiddle 
                         ? 'bg-gradient-to-br from-[#00171f] to-[#00171f]/90 text-white shadow-2xl scale-105' 
-                        : 'bg-white border-2 border-gray-100 hover:border-[#00171f]/30 shadow-lg hover:shadow-2xl'
+                        : 'bg-white dark:bg-[#00171f] border-2 border-gray-100 dark:border-gray-800 hover:border-[#00171f]/30 dark:hover:border-white/30 shadow-lg hover:shadow-2xl'
                     }`}>
                       {/* Decorative gradient overlay */}
                       {!isMiddle && (
@@ -256,14 +264,14 @@ export default function LandingPage() {
                         
                         {/* Title */}
                         <h3 className={`text-2xl font-bold font-headline mb-4 ${
-                          isMiddle ? 'text-white' : 'text-[#00171f]'
+                          isMiddle ? 'text-white' : 'text-[#00171f] dark:text-white'
                         }`}>
                           {feature.title}
                         </h3>
                         
                         {/* Description */}
                         <p className={`leading-relaxed text-base ${
-                          isMiddle ? 'text-gray-100' : 'text-gray-600'
+                          isMiddle ? 'text-gray-100' : 'text-gray-600 dark:text-gray-300'
                         } font-medium`}>
                           {feature.description}
                         </p>
@@ -282,10 +290,10 @@ export default function LandingPage() {
         </section>
 
         {/* GOLDEN FEATURE - Execution Follow-Up Agent */}
-        <section className="py-20 sm:py-24 lg:py-32 relative bg-gradient-to-br from-amber-50 via-white to-amber-50/30">
+        <section className="py-20 sm:py-24 lg:py-32 relative bg-gradient-to-br from-amber-50 dark:from-amber-900/20 via-white dark:via-[#00171f] to-amber-50/30 dark:to-amber-900/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
-              <div className="relative bg-gradient-to-br from-amber-100/50 via-white to-amber-50/50 rounded-3xl border-2 border-amber-200/50 shadow-2xl shadow-amber-500/10 p-8 sm:p-12 overflow-hidden">
+              <div className="relative bg-gradient-to-br from-amber-100/50 dark:from-amber-900/30 via-white dark:via-[#00171f] to-amber-50/50 dark:to-amber-900/20 rounded-3xl border-2 border-amber-200/50 dark:border-amber-800/50 shadow-2xl shadow-amber-500/10 p-8 sm:p-12 overflow-hidden">
                 {/* PRO FEATURE Badge - Top Right */}
                 <div className="absolute top-6 right-6 z-20 bg-gradient-to-r from-amber-400 to-amber-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg border-2 border-white">
                   PRO FEATURE
@@ -333,10 +341,10 @@ export default function LandingPage() {
                   
                   {/* Content */}
                   <div className="flex-1 min-w-0 text-center sm:text-left">
-                    <h2 className="text-3xl sm:text-4xl font-bold font-headline text-[#00171f] mb-3">
+                    <h2 className="text-3xl sm:text-4xl font-bold font-headline text-[#00171f] dark:text-white mb-3">
                       Execution Follow-Up Agent
                     </h2>
-                    <p className="text-gray-700 leading-relaxed text-base sm:text-lg mb-6 font-medium">
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base sm:text-lg mb-6 font-medium">
                       When AI tools drift from your instructions, our agent analyzes the gap and generates corrective prompts to realign them with your intent. Repair broken prompts and get back on track instantly.
                     </p>
                     <div className="flex justify-center sm:justify-start">
@@ -361,16 +369,16 @@ export default function LandingPage() {
         <section id="testimonials" className="py-20 sm:py-24 lg:py-32 relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f]">
+              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] dark:text-white">
                 Loved by Developers and Builders
               </h2>
-              <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 font-medium">
+              <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 dark:text-gray-300 font-medium">
                 See how developers and builders are shipping products faster with ready-to-use AI prompts.
               </p>
               <div className="mt-10">
                 <Button
                   onClick={() => setIsFeedbackDialogOpen(true)}
-                  className="bg-white hover:bg-gray-50 border-2 border-[#00171f] text-[#00171f] font-medium px-6 py-3 rounded-full transition-all duration-200 hover:shadow-lg"
+                  className="bg-white dark:bg-[#00171f] hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-medium px-6 py-3 rounded-full transition-all duration-200 hover:shadow-lg"
                 >
                   <MessageSquare className="mr-2 h-5 w-5" />
                   Leave a Review
@@ -394,8 +402,8 @@ export default function LandingPage() {
               ) : testimonials.length > 0 ? (
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                   {testimonials.map((testimonial) => (
-                    <Card key={testimonial.id} className="relative bg-white border border-gray-200 hover:border-[#00171f]/30 transition-all duration-500 group hover:shadow-xl rounded-2xl overflow-hidden">
-                      <div className="absolute top-4 right-4 text-[#00171f]/10 text-6xl font-serif">"</div>
+                    <Card key={testimonial.id} className="relative bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group hover:shadow-xl rounded-2xl overflow-hidden">
+                      <div className="absolute top-4 right-4 text-[#00171f]/10 dark:text-white/10 text-6xl font-serif">"</div>
                       <CardHeader>
                         <div className="flex items-center gap-4">
                           <Avatar className="ring-2 ring-gray-100 group-hover:ring-[#00171f]/20 transition-all duration-300 h-12 w-12">
@@ -405,27 +413,27 @@ export default function LandingPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <CardTitle className="text-lg font-bold text-[#00171f]">{testimonial.author.name}</CardTitle>
-                            <CardDescription className="text-gray-500 font-medium">User</CardDescription>
+                            <CardTitle className="text-lg font-bold text-[#00171f] dark:text-white">{testimonial.author.name}</CardTitle>
+                            <CardDescription className="text-gray-500 dark:text-gray-400 font-medium">User</CardDescription>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent>
                         <div className="flex gap-1 mb-4">
                           {[...Array(testimonial.rating)].map((_, i) => (
-                            <Star key={i} className="h-5 w-5 fill-[#00171f] text-[#00171f]" />
+                            <Star key={i} className="h-5 w-5 fill-[#00171f] dark:fill-white text-[#00171f] dark:text-white" />
                           ))}
                         </div>
-                        <p className="text-gray-700 italic font-medium leading-relaxed">"{testimonial.comments}"</p>
+                        <p className="text-gray-700 dark:text-gray-300 italic font-medium leading-relaxed">"{testimonial.comments}"</p>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-20 border-2 border-dashed border-gray-300 rounded-3xl bg-gray-50">
-                  <MessageSquare className="mx-auto h-16 w-16 text-gray-400" />
-                  <h3 className="mt-6 text-2xl font-bold text-[#00171f]">Be the First to Share Your Story</h3>
-                  <p className="mt-3 text-gray-600 font-medium">Your feedback helps us improve and inspires other creators.</p>
+                <div className="text-center py-20 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-3xl bg-gray-50 dark:bg-gray-900">
+                  <MessageSquare className="mx-auto h-16 w-16 text-gray-400 dark:text-gray-500" />
+                  <h3 className="mt-6 text-2xl font-bold text-[#00171f] dark:text-white">Be the First to Share Your Story</h3>
+                  <p className="mt-3 text-gray-600 dark:text-gray-300 font-medium">Your feedback helps us improve and inspires other creators.</p>
                 </div>
               )}
             </div>
@@ -436,40 +444,40 @@ export default function LandingPage() {
         <div className="h-px w-32 mx-auto bg-[#00171f]/20 my-12" />
 
         {/* PRICING SECTION */}
-        <section id="pricing" className="py-20 sm:py-24 lg:py-32 bg-gray-50/50 overflow-visible">
+        <section id="pricing" className="py-20 sm:py-24 lg:py-32 bg-gray-50/50 dark:bg-[#00171f]/50 overflow-visible">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
             <div className="text-center">
-              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f]">
+              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] dark:text-white">
                 Simple, Transparent Pricing
               </h2>
-              <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 font-medium">
+              <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 dark:text-gray-300 font-medium">
                 Choose the plan that's right for you. Get started for free, and upgrade when you're ready to build more.
               </p>
             </div>
             <div className="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto overflow-visible">
               {/* Hobbyist */}
-              <Card className="flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 transition-all duration-500 group rounded-2xl overflow-hidden">
+              <Card className="flex flex-col bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group rounded-2xl overflow-hidden">
                 <CardHeader className="text-center">
-                  <CardTitle className="font-headline text-2xl text-[#00171f] font-bold">Hobbyist</CardTitle>
-                  <CardDescription className="text-gray-600 font-medium">Perfect for getting started and trying out ideas.</CardDescription>
-                  <p className="text-5xl font-bold pt-6 text-[#00171f]">Free</p>
+                  <CardTitle className="font-headline text-2xl text-[#00171f] dark:text-white font-bold">Hobbyist</CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">Perfect for getting started and trying out ideas.</CardDescription>
+                  <p className="text-5xl font-bold pt-6 text-[#00171f] dark:text-white">Free</p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
                   <div className="space-y-3">
-                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> <span className="font-semibold">1 project</span></p>
-                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Convert ideas into projects</p>
-                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Step-by-step prompts & AI roles</p>
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold">1 project</span></p>
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Convert ideas into projects</p>
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Step-by-step prompts & AI roles</p>
                   </div>
-                  <div className="pt-2 border-t border-gray-200 space-y-3">
-                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Share projects with team</p>
-                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Public projects</p>
-                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> AI Prompt Enhancement</p>
-                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> Execution Follow-Up Agent</p>
-                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300" /> No Support</p>
+                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> Share projects with team</p>
+                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> Public projects</p>
+                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> AI Prompt Enhancement</p>
+                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> Execution Follow-Up Agent</p>
+                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> No Support</p>
                   </div>
                 </CardContent>
                 <div className="p-6 pt-0">
-                  <Button asChild className="w-full bg-white hover:bg-gray-50 border-2 border-[#00171f] text-[#00171f] font-semibold py-3 rounded-full transition-all duration-200 hover:shadow-lg">
+                  <Button asChild className="w-full bg-white dark:bg-[#00171f] hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-semibold py-3 rounded-full transition-all duration-200 hover:shadow-lg">
                     <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
                       {user ? subscriptionPlan == 'free' ? 'Go to Dashboard' : `You are subscribed to ${subscriptionPlan} plan` : 'Get Started'}
                     </Link>
@@ -527,27 +535,27 @@ export default function LandingPage() {
               </Card>
               
               {/* Pro */}
-              <Card className="flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 transition-all duration-500 group rounded-2xl overflow-hidden">
+              <Card className="flex flex-col bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group rounded-2xl overflow-hidden">
                 <CardHeader className="text-center">
-                  <CardTitle className="font-headline text-2xl text-[#00171f] font-bold">Pro</CardTitle>
-                  <CardDescription className="text-gray-600 font-medium">For serious builders who want to ship faster.</CardDescription>
+                  <CardTitle className="font-headline text-2xl text-[#00171f] dark:text-white font-bold">Pro</CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">For serious builders who want to ship faster.</CardDescription>
                   <p className="pt-6">
-                    <span className="text-5xl font-bold text-[#00171f]">$15</span>
-                    <span className="text-gray-500 font-medium">/month</span>
+                    <span className="text-5xl font-bold text-[#00171f] dark:text-white">$15</span>
+                    <span className="text-gray-500 dark:text-gray-400 font-medium">/month</span>
                   </p>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
                   <div className="space-y-3">
-                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> <span className="font-semibold">30+ projects per month</span></p>
-                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Convert ideas into projects</p>
-                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Step-by-step prompts & AI roles</p>
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold">30+ projects per month</span></p>
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Convert ideas into projects</p>
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Step-by-step prompts & AI roles</p>
                   </div>
-                  <div className="pt-2 border-t border-gray-200 space-y-3">
-                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Share projects with team</p>
-                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> Public projects & sharing</p>
-                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> AI Prompt Enhancement</p>
-                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> <span className="font-semibold text-[#00171f]">Execution Follow-Up Agent</span></p>
-                    <p className="flex items-center text-gray-600 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f]" /> <span className="font-semibold text-[#00171f]">Priority Support</span></p>
+                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Share projects with team</p>
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Public projects & sharing</p>
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> AI Prompt Enhancement</p>
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold text-[#00171f] dark:text-white">Execution Follow-Up Agent</span></p>
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold text-[#00171f] dark:text-white">Priority Support</span></p>
                   </div>
                 </CardContent>
                 <div className="p-6 pt-0">
@@ -557,7 +565,7 @@ export default function LandingPage() {
                     } else {
                       handleCheckout('pro');
                     }
-                  }} className="w-full bg-white hover:bg-gray-50 border-2 border-[#00171f] text-[#00171f] font-semibold py-3 rounded-full transition-all duration-200 hover:shadow-lg" disabled={isCheckoutLoading === 'pro'}>
+                  }} className="w-full bg-white dark:bg-[#00171f] hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-semibold py-3 rounded-full transition-all duration-200 hover:shadow-lg" disabled={isCheckoutLoading === 'pro'}>
                     {isCheckoutLoading === 'pro' ? <Loader2 className="animate-spin" /> :
                       user && subscriptionPlan == 'pro' ? 'Go to Dashboard' : `Get Pro`}
                   </Button>
@@ -568,77 +576,77 @@ export default function LandingPage() {
             {/* Feature Comparison Table */}
             <div className="mt-20 max-w-5xl mx-auto">
               <div className="text-center mb-8">
-                <h3 className="font-headline text-2xl font-bold text-[#00171f] mb-2">
+                <h3 className="font-headline text-2xl font-bold text-[#00171f] dark:text-white mb-2">
                   Compare Plans Side-by-Side
                 </h3>
-                <p className="text-gray-600 font-medium">
+                <p className="text-gray-600 dark:text-gray-300 font-medium">
                   See exactly what each plan includes
                 </p>
               </div>
-              <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg overflow-hidden">
+              <div className="bg-white dark:bg-[#00171f] rounded-2xl border-2 border-gray-200 dark:border-gray-800 shadow-lg overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b-2 border-gray-200 bg-gray-50">
-                        <th className="text-left p-4 font-headline font-bold text-[#00171f]">Feature</th>
-                        <th className="text-center p-4 font-headline font-bold text-[#00171f]">Hobbyist</th>
-                        <th className="text-center p-4 font-headline font-bold text-[#00171f] relative">
+                      <tr className="border-b-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                        <th className="text-left p-4 font-headline font-bold text-[#00171f] dark:text-white">Feature</th>
+                        <th className="text-center p-4 font-headline font-bold text-[#00171f] dark:text-white">Hobbyist</th>
+                        <th className="text-center p-4 font-headline font-bold text-[#00171f] dark:text-white relative">
                           <div className="flex items-center justify-center gap-2">
                             Plus
-                            <span className="text-xs font-bold uppercase text-white bg-[#00171f] px-2 py-1 rounded-full">Most Popular</span>
+                            <span className="text-xs font-bold uppercase text-white bg-[#00171f] dark:bg-white dark:text-[#00171f] px-2 py-1 rounded-full">Most Popular</span>
                           </div>
                         </th>
-                        <th className="text-center p-4 font-headline font-bold text-[#00171f]">Pro</th>
+                        <th className="text-center p-4 font-headline font-bold text-[#00171f] dark:text-white">Pro</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      <tr className="hover:bg-gray-50 transition-colors">
-                        <td className="p-4 font-medium text-gray-700">Projects per month</td>
-                        <td className="p-4 text-center text-gray-600">1</td>
-                        <td className="p-4 text-center text-[#00171f] font-semibold">10+</td>
-                        <td className="p-4 text-center text-[#00171f] font-semibold">30+</td>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Projects per month</td>
+                        <td className="p-4 text-center text-gray-600 dark:text-gray-400">1</td>
+                        <td className="p-4 text-center text-[#00171f] dark:text-white font-semibold">10+</td>
+                        <td className="p-4 text-center text-[#00171f] dark:text-white font-semibold">30+</td>
                       </tr>
-                      <tr className="hover:bg-gray-50 transition-colors">
-                        <td className="p-4 font-medium text-gray-700">Convert ideas into projects</td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Convert ideas into projects</td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
                       </tr>
-                      <tr className="hover:bg-gray-50 transition-colors">
-                        <td className="p-4 font-medium text-gray-700">Step-by-step prompts & AI roles</td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Step-by-step prompts & AI roles</td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
                       </tr>
-                      <tr className="hover:bg-gray-50 transition-colors bg-amber-50/30">
-                        <td className="p-4 font-medium text-gray-700">Share projects with team</td>
-                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
+                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Share projects with team</td>
+                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
                       </tr>
-                      <tr className="hover:bg-gray-50 transition-colors bg-amber-50/30">
-                        <td className="p-4 font-medium text-gray-700">Public projects & sharing</td>
-                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
+                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Public projects & sharing</td>
+                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
                       </tr>
-                      <tr className="hover:bg-gray-50 transition-colors bg-amber-50/30">
-                        <td className="p-4 font-medium text-gray-700">AI Prompt Enhancement</td>
-                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
+                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">AI Prompt Enhancement</td>
+                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
                       </tr>
-                      <tr className="hover:bg-gray-50 transition-colors bg-blue-50/30">
-                        <td className="p-4 font-medium text-gray-700">Execution Follow-Up Agent</td>
-                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300" /></td>
-                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f]" /></td>
+                      <tr className="hover:bg-blue-50/50 dark:hover:bg-blue-900/30 transition-colors bg-blue-50/30 dark:bg-blue-900/20">
+                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Execution Follow-Up Agent</td>
+                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
+                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
                       </tr>
-                      <tr className="hover:bg-gray-50 transition-colors">
-                        <td className="p-4 font-medium text-gray-700">Support</td>
-                        <td className="p-4 text-center text-gray-400">None</td>
-                        <td className="p-4 text-center text-[#00171f] font-medium">Community</td>
-                        <td className="p-4 text-center text-[#00171f] font-semibold">Priority</td>
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Support</td>
+                        <td className="p-4 text-center text-gray-400 dark:text-gray-500">None</td>
+                        <td className="p-4 text-center text-[#00171f] dark:text-white font-medium">Community</td>
+                        <td className="p-4 text-center text-[#00171f] dark:text-white font-semibold">Priority</td>
                       </tr>
                     </tbody>
                   </table>
@@ -657,10 +665,10 @@ export default function LandingPage() {
           <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-white/20 rounded-full" />
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-            <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-white mb-8">
+            <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-white dark:text-white mb-8">
               Stop Staring at Blank Pages
             </h2>
-            <p className="text-xl sm:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto font-medium">
+            <p className="text-xl sm:text-2xl text-gray-300 dark:text-gray-200 mb-10 max-w-3xl mx-auto font-medium">
               Join developers and builders who are shipping products faster with ready-to-use AI prompts.
             </p>
             <Button asChild size="lg" className="bg-white hover:bg-gray-100 text-[#00171f] border-0 shadow-xl group active:scale-95 transition-all duration-200 font-bold px-10 py-4 rounded-full text-lg">
@@ -674,7 +682,7 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white">
+      <footer className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-0">
             <Image
@@ -684,28 +692,28 @@ export default function LandingPage() {
               height={60}
               className='ml-1 mr-1'
             />
-            <p className="text-sm text-gray-500 font-medium">
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
               &copy; {new Date().getFullYear()} Prompt Genius AI. All rights reserved.
             </p>
           </div>
           <div className="flex gap-8">
-            <Link href="/terms" className="text-sm text-gray-500 hover:text-[#00171f] transition-colors font-medium">
+            <Link href="/terms" className="text-sm text-gray-500 dark:text-gray-400 hover:text-[#00171f] dark:hover:text-white transition-colors font-medium">
               Terms of Service
             </Link>
-            <Link href="/privacy" className="text-sm text-gray-500 hover:text-[#00171f] transition-colors font-medium">
+            <Link href="/privacy" className="text-sm text-gray-500 dark:text-gray-400 hover:text-[#00171f] dark:hover:text-white transition-colors font-medium">
               Privacy Policy
             </Link>
             <div className="flex items-center gap-4">
-              <a href="https://x.com/PGAIAPP" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#00171f] transition-colors" aria-label="Follow us on X">
+              <a href="https://x.com/PGAIAPP" target="_blank" rel="noopener noreferrer" className="text-gray-400 dark:text-gray-500 hover:text-[#00171f] dark:hover:text-white transition-colors" aria-label="Follow us on X">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="https://www.instagram.com/pgeniusai/?hl=en" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#00171f] transition-colors" aria-label="Follow us on Instagram">
+              <a href="https://www.instagram.com/pgeniusai/?hl=en" target="_blank" rel="noopener noreferrer" className="text-gray-400 dark:text-gray-500 hover:text-[#00171f] dark:hover:text-white transition-colors" aria-label="Follow us on Instagram">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="https://www.reddit.com/user/ExaminationIll4180/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#00171f] transition-colors" aria-label="Follow us on Reddit">
+              <a href="https://www.reddit.com/user/ExaminationIll4180/" target="_blank" rel="noopener noreferrer" className="text-gray-400 dark:text-gray-500 hover:text-[#00171f] dark:hover:text-white transition-colors" aria-label="Follow us on Reddit">
                 <RedditIcon className="h-5 w-5" />
               </a>
-              <a href="mailto:support@prompt-genius-ai.com" className="text-gray-400 hover:text-[#00171f] transition-colors" aria-label="Contact us via email">
+              <a href="mailto:support@prompt-genius-ai.com" className="text-gray-400 dark:text-gray-500 hover:text-[#00171f] dark:hover:text-white transition-colors" aria-label="Contact us via email">
                 <Mail className="h-5 w-5" />
               </a>
             </div>

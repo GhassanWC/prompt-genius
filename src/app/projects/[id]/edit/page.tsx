@@ -9,6 +9,7 @@ import Image from 'next/image';
 import type { Project, Prompt, Role } from '@/lib/projects';
 import { Loader2, ArrowLeft, AlertTriangle, PlusCircle, Save, Edit, ShieldAlert } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -274,22 +275,22 @@ export default function EditProjectPage() {
 
   if (loading || authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-16 w-16 animate-spin text-[#00171f]" />
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#00171f]">
+        <Loader2 className="h-16 w-16 animate-spin text-[#00171f] dark:text-white" />
       </div>
     );
   }
 
   if (error) {
      return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
-            <Alert variant="destructive" className="max-w-2xl mx-auto bg-red-50 border-red-200 text-red-800 rounded-2xl">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#00171f] p-4">
+            <Alert variant="destructive" className="max-w-2xl mx-auto bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 rounded-2xl">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle className="font-semibold">Error</AlertTitle>
               <AlertDescription className="font-medium">{error}</AlertDescription>
             </Alert>
             <Link href="/" className="mt-4">
-              <Button variant="outline" className="border-gray-200 text-[#00171f] hover:bg-gray-50">
+              <Button variant="outline" className="border-gray-200 dark:border-gray-700 text-[#00171f] dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
                 Back to Projects
               </Button>
             </Link>
@@ -298,16 +299,16 @@ export default function EditProjectPage() {
   }
   
   return (
-    <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white relative overflow-x-hidden">
       {/* Subtle geometric background pattern */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02] dark:opacity-[0.05]">
         <div className="absolute inset-0" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-[#00171f]/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-0 font-bold group">
             <Image
@@ -317,18 +318,26 @@ export default function EditProjectPage() {
               height={60}
               className="ml-1 mr-1"
             />
-            <h1 className="font-headline text-xl text-[#00171f] tracking-tight hidden sm:block">
+            <h1 className="font-headline text-xl text-[#00171f] dark:text-white tracking-tight hidden sm:block">
               Prompt Genius AI
             </h1>
           </Link>
-          <UserNav />
+          <div className="flex items-center gap-6">
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
+            <UserNav />
+            <div className="md:hidden">
+              <ThemeToggle />
+            </div>
+          </div>
         </div>
       </header>
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-16">
         {/* Navigation section */}
         <div className="my-8">
-          <Link href={`/projects/${projectId}`} className="inline-flex items-center text-sm text-gray-600 hover:text-[#00171f] transition-all duration-200 font-medium group">
+          <Link href={`/projects/${projectId}`} className="inline-flex items-center text-sm text-gray-600 dark:text-gray-300 hover:text-[#00171f] dark:hover:text-white transition-all duration-200 font-medium group">
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back to Project
           </Link>
@@ -337,16 +346,16 @@ export default function EditProjectPage() {
         {/* Header section */}
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-6 mb-6">
           <div>
-            <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f]">
+            <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f] dark:text-white">
               Edit Project
             </h1>
-            <p className="mt-3 text-lg sm:text-xl text-gray-600 font-medium">{project?.name}</p>
+            <p className="mt-3 text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-medium">{project?.name}</p>
           </div>
           <Button 
             variant="outline" 
             onClick={() => setIsProjectDetailsDialogOpen(true)} 
             disabled={!canEdit}
-            className="bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-[#00171f] font-medium py-3 px-6 rounded-xl transition-all duration-200 hover:shadow-md"
+            className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-[#00171f] dark:text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 hover:shadow-md"
           >
             <Edit className="mr-2 h-4 w-4" />
             Edit Details
@@ -357,37 +366,37 @@ export default function EditProjectPage() {
         {project && (
           <section className="max-w-4xl mx-auto space-y-4 mb-8">
             {project.aiRole && (
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] p-5 sm:p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-3 mb-3">
-                  <h2 className="text-xs font-semibold tracking-[0.15em] text-gray-500 uppercase">
+                  <h2 className="text-xs font-semibold tracking-[0.15em] text-gray-500 dark:text-gray-400 uppercase">
                     AI Role
                   </h2>
-                  <span className="text-[11px] text-gray-400">
+                  <span className="text-[11px] text-gray-400 dark:text-gray-500">
                     Persona for your builder
                   </span>
                 </div>
-                <div className="rounded-xl bg-gray-50 px-4 py-3 max-h-64 overflow-y-auto border border-gray-100">
-                  <pre className="whitespace-pre-wrap text-xs sm:text-sm text-[#00171f] leading-relaxed font-mono">
+                <div className="rounded-xl bg-gray-50 dark:bg-gray-900 px-4 py-3 max-h-64 overflow-y-auto border border-gray-100 dark:border-gray-800">
+                  <pre className="whitespace-pre-wrap text-xs sm:text-sm text-[#00171f] dark:text-white leading-relaxed font-mono">
                     {project.aiRole}
                   </pre>
                 </div>
               </div>
             )}
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
-              <h2 className="mb-2 text-xs font-semibold tracking-[0.15em] text-gray-500 uppercase">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] p-5 sm:p-6 shadow-sm">
+              <h2 className="mb-2 text-xs font-semibold tracking-[0.15em] text-gray-500 dark:text-gray-400 uppercase">
                 Project Idea
               </h2>
-              <p className="text-sm sm:text-base text-[#00171f] leading-relaxed">
+              <p className="text-sm sm:text-base text-[#00171f] dark:text-white leading-relaxed">
                 {project.idea}
               </p>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
-              <h2 className="mb-2 text-xs font-semibold tracking-[0.15em] text-gray-500 uppercase">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] p-5 sm:p-6 shadow-sm">
+              <h2 className="mb-2 text-xs font-semibold tracking-[0.15em] text-gray-500 dark:text-gray-400 uppercase">
                 Project Summary
               </h2>
-              <p className="whitespace-pre-wrap text-sm sm:text-base text-[#00171f] leading-relaxed">
+              <p className="whitespace-pre-wrap text-sm sm:text-base text-[#00171f] dark:text-white leading-relaxed">
                 {project.summary && project.summary.trim().length > 0
                   ? project.summary
                   : 'You can add an editable summary in the Edit Details dialog. It will appear under the AI role and idea on the project page.'}
@@ -397,7 +406,7 @@ export default function EditProjectPage() {
         )}
         
         {!canEdit && (
-          <Alert variant="destructive" className="max-w-4xl mx-auto mb-8 bg-red-50 border-red-200 text-red-800 rounded-2xl">
+          <Alert variant="destructive" className="max-w-4xl mx-auto mb-8 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 rounded-2xl">
             <ShieldAlert className="h-5 w-5" />
             <AlertTitle className="font-semibold">View-Only Mode</AlertTitle>
             <AlertDescription className="font-medium">
@@ -410,14 +419,14 @@ export default function EditProjectPage() {
         <div className="max-w-4xl mx-auto mt-12 space-y-12">
           <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-              <h2 className="text-2xl sm:text-3xl font-bold font-headline text-[#00171f]">
+              <h2 className="text-2xl sm:text-3xl font-bold font-headline text-[#00171f] dark:text-white">
                 Development Plan
               </h2>
               {isPromptsOrderDirty && canEdit && (
                 <Button 
                   onClick={handleSaveOrder} 
                   disabled={isSavingPromptsOrder}
-                  className="bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 font-semibold px-6 py-3 rounded-full transition-all duration-200"
+                  className="bg-[#00171f] hover:bg-[#00171f]/90 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-[#00171f] border-0 shadow-lg shadow-[#00171f]/20 dark:shadow-white/20 font-semibold px-6 py-3 rounded-full transition-all duration-200"
                 >
                   <Save className="mr-2 h-4 w-4" />
                   {isSavingPromptsOrder ? 'Saving...' : 'Save Prompt Order'}
@@ -426,7 +435,7 @@ export default function EditProjectPage() {
             </div>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <div className="space-y-6">
-                <Card className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden p-6">
+                <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl overflow-hidden p-6">
                   <SortableContext items={prompts} strategy={verticalListSortingStrategy} disabled={!canEdit}>
                     {prompts.length > 0 ? (
                       <div className="space-y-4">
@@ -442,15 +451,15 @@ export default function EditProjectPage() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
-                        <p className="text-gray-600 font-medium">No prompts yet.</p>
+                      <div className="text-center py-12 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-900">
+                        <p className="text-gray-600 dark:text-gray-300 font-medium">No prompts yet.</p>
                       </div>
                     )}
                   </SortableContext>
                 </Card>
                 <Button 
                   variant="outline" 
-                  className="w-full bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-[#00171f] font-medium py-4 rounded-xl transition-all duration-200 hover:shadow-md" 
+                  className="w-full bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-[#00171f] dark:text-white font-medium py-4 rounded-xl transition-all duration-200 hover:shadow-md" 
                   onClick={() => handleOpenPromptDialog(null)} 
                   disabled={!canEdit}
                 >
@@ -475,15 +484,15 @@ export default function EditProjectPage() {
       <PromptEditDialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen} prompt={currentPrompt} userId={user.uid} onSave={handleSavePrompt} />
       
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white border border-gray-200 shadow-2xl rounded-2xl">
+        <AlertDialogContent className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-2xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-bold text-[#00171f]">Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600 font-medium leading-relaxed">
+            <AlertDialogTitle className="text-2xl font-bold text-[#00171f] dark:text-white">Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
               This will permanently delete this prompt. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all duration-200">
+            <AlertDialogCancel className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-xl transition-all duration-200">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 

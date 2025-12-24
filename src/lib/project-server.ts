@@ -449,7 +449,8 @@ export const getProjectRole = async (userId: string, projectId: string): Promise
 export const createProjectWithPrompts = async (
   userId: string,
   projectName: string,
-  plan: DecomposeIdeaOutput
+  plan: DecomposeIdeaOutput,
+  tags?: string[]
 ): Promise<string> => {
   const db = getDb();
   const projectRef = col('projects').doc();
@@ -464,6 +465,7 @@ export const createProjectWithPrompts = async (
     isPublic: false,
     clarificationSteps: plan.clarificationSteps || [],
     imageUrl: null,
+    tags: tags && tags.length > 0 ? tags : null,
     createdAt: AdminFieldValue.serverTimestamp(),
     roles: { [userId]: 'owner' as Role },
     members: { [userId]: true },

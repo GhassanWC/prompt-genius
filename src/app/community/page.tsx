@@ -10,6 +10,7 @@ import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Search, Lock, Rocket, GitFork, Check } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getTier, Tier } from '@/lib/tiers';
@@ -60,6 +61,7 @@ export default function CommunityPage() {
   const { toast } = useToast();
 
   const [tier, setTier] = useState<Tier | null>(null);
+  const [tierLoading, setTierLoading] = useState(true);
   const canAccessCommunity = useMemo(
     () => tier?.features.communityAccess === true,
     [tier]
@@ -79,15 +81,24 @@ export default function CommunityPage() {
 
   useEffect(() => {
     const fetchTierInfo = async () => {
-      if (subscriptionPlan) {
-        const tierData = await getTier(subscriptionPlan);
-        setTier(tierData);
-      } else {
-        setTier(null);
+      setTierLoading(true);
+      try {
+        if (subscriptionPlan) {
+          const tierData = await getTier(subscriptionPlan);
+          setTier(tierData);
+        } else {
+          setTier(null);
+        }
+      } finally {
+        setTierLoading(false);
       }
     };
-    fetchTierInfo();
-  }, [subscriptionPlan]);
+    if (!authLoading && subscriptionPlan !== undefined) {
+      fetchTierInfo();
+    } else if (!authLoading && subscriptionPlan === null) {
+      setTierLoading(false);
+    }
+  }, [subscriptionPlan, authLoading]);
 
   useEffect(() => {
     if (!canAccessCommunity) {
@@ -241,16 +252,16 @@ export default function CommunityPage() {
   );
 
   return (
-    <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white relative overflow-x-hidden">
       {/* Subtle geometric background pattern */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02] dark:opacity-[0.05]">
         <div className="absolute inset-0" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-[#00171f]/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-0 font-bold group">
             <Image
@@ -260,19 +271,27 @@ export default function CommunityPage() {
               height={60}
               className="ml-1 mr-1"
             />
-            <h1 className="font-headline text-xl text-[#00171f] tracking-tight hidden sm:block">
+            <h1 className="font-headline text-xl text-[#00171f] dark:text-white tracking-tight hidden sm:block">
               Prompt Genius AI
             </h1>
           </Link>
-          {user ? (
-            <UserNav />
-          ) : (
-            <Link href="/login">
-              <Button className="bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 active:scale-95 transition-all duration-200 font-medium px-6 py-2 rounded-full">
-                Sign In
-              </Button>
-            </Link>
-          )}
+          <div className="flex items-center gap-6">
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
+            {user ? (
+              <UserNav />
+            ) : (
+              <Link href="/login">
+                <Button className="bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 active:scale-95 transition-all duration-200 font-medium px-6 py-2 rounded-full">
+                  Sign In
+                </Button>
+              </Link>
+            )}
+            <div className="md:hidden">
+              <ThemeToggle />
+            </div>
+          </div>
         </div>
       </header>
 
@@ -280,7 +299,7 @@ export default function CommunityPage() {
         <div className="mb-8">
           <Link
             href={user ? '/dashboard' : '/'}
-            className="inline-flex items-center text-sm text-gray-600 hover:text-[#00171f] transition-all duration-200 font-medium group"
+            className="inline-flex items-center text-sm text-gray-600 dark:text-gray-300 hover:text-[#00171f] dark:hover:text-white transition-all duration-200 font-medium group"
           >
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             {user ? 'Back to Dashboard' : 'Back to Home'}
@@ -288,36 +307,35 @@ export default function CommunityPage() {
         </div>
 
         <div className="text-center mb-10 sm:mb-14">
-          <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f]">
+          <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f] dark:text-white">
             Community Spotlight
           </h1>
-          <p className="mt-3 text-base sm:text-lg text-gray-600 max-w-xl mx-auto font-medium leading-relaxed">
+          <p className="mt-3 text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-xl mx-auto font-medium leading-relaxed">
             Browse public projects you can clone and adapt to your own ideas.
           </p>
         </div>
 
-        {authLoading ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-6 w-40 rounded-full" />
-              <Skeleton className="h-6 w-24 rounded-full" />
+        {authLoading || tierLoading ? (
+          <div className="space-y-6">
+            {/* Search Skeleton */}
+            <div className="max-w-2xl mx-auto mb-12 sm:mb-16">
+              <Skeleton className="h-14 w-full rounded-2xl" />
             </div>
+            {/* Projects Grid Skeleton */}
             <div className="grid gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-5">
-              {Array.from({ length: 6 }).map((_, idx) => (
+              {Array.from({ length: 10 }).map((_, idx) => (
                 <Card
                   key={idx}
-                  className="border border-gray-200 bg-white shadow-sm rounded-2xl"
+                  className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm rounded-2xl"
                 >
                   <CardContent className="p-5 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-10 w-10 rounded-full" />
-                      <div className="space-y-2 w-full">
-                        <Skeleton className="h-4 w-3/4 rounded-md" />
-                        <Skeleton className="h-3 w-1/2 rounded-md" />
-                      </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-3/4 rounded-md" />
+                      <Skeleton className="h-3 w-1/2 rounded-md" />
                     </div>
                     <Skeleton className="h-3 w-full rounded-md" />
                     <Skeleton className="h-3 w-5/6 rounded-md" />
+                    <Skeleton className="h-3 w-4/6 rounded-md" />
                     <div className="flex items-center justify-between pt-2">
                       <Skeleton className="h-3 w-20 rounded-md" />
                       <Skeleton className="h-8 w-20 rounded-full" />
@@ -329,18 +347,48 @@ export default function CommunityPage() {
           </div>
         ) : !canAccessCommunity ? (
           <AccessDenied />
+        ) : loadingInitial ? (
+          <div className="space-y-6">
+            {/* Search Skeleton */}
+            <div className="max-w-2xl mx-auto mb-12 sm:mb-16">
+              <Skeleton className="h-14 w-full rounded-2xl" />
+            </div>
+            {/* Projects Grid Skeleton */}
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-5">
+              {Array.from({ length: 10 }).map((_, idx) => (
+                <Card
+                  key={idx}
+                  className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm rounded-2xl"
+                >
+                  <CardContent className="p-5 space-y-4">
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-3/4 rounded-md" />
+                      <Skeleton className="h-3 w-1/2 rounded-md" />
+                    </div>
+                    <Skeleton className="h-3 w-full rounded-md" />
+                    <Skeleton className="h-3 w-5/6 rounded-md" />
+                    <Skeleton className="h-3 w-4/6 rounded-md" />
+                    <div className="flex items-center justify-between pt-2">
+                      <Skeleton className="h-3 w-20 rounded-md" />
+                      <Skeleton className="h-8 w-20 rounded-full" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         ) : (
           <>
             {/* Search */}
             <div className="max-w-2xl mx-auto mb-12 sm:mb-16">
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
-                  <Search className="h-5 w-5 text-[#00171f]" />
+                  <Search className="h-5 w-5 text-[#00171f] dark:text-white" />
                 </div>
                 <Input
                   type="search"
                   placeholder="Search community projects..."
-                  className="w-full bg-white text-base font-medium rounded-2xl border border-gray-200 shadow-sm focus:border-[#00171f] focus:ring-2 focus:ring-[#00171f]/20 transition-all duration-200 pl-12 pr-4 py-4"
+                  className="w-full bg-white dark:bg-[#00171f] text-base font-medium rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm focus:border-[#00171f] dark:focus:border-white focus:ring-2 focus:ring-[#00171f]/20 dark:focus:ring-white/20 transition-all duration-200 pl-12 pr-4 py-4"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -375,20 +423,20 @@ export default function CommunityPage() {
                           href={`/projects/${project.id}`}
                           className="group block h-full"
                         >
-                          <Card className="h-full border border-gray-200 bg-white shadow-sm rounded-2xl transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:border-[#00171f]/30">
+                          <Card className="h-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm rounded-2xl transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:border-[#00171f]/30 dark:group-hover:border-white/30">
                             <CardContent className="p-5 flex flex-col h-full">
                               {/* Project Title */}
-                              <CardTitle className="text-sm sm:text-base font-semibold text-[#00171f] line-clamp-2">
+                              <CardTitle className="text-sm sm:text-base font-semibold text-[#00171f] dark:text-white line-clamp-2">
                                 {project.name}
                               </CardTitle>
                               
                               {/* Author Name */}
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 {authorName}
                               </p>
 
                               {/* Description */}
-                              <p className="mt-4 text-sm text-gray-600 leading-relaxed line-clamp-4 flex-grow">
+                              <p className="mt-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-4 flex-grow">
                                 {project.idea || 'No description provided.'}
                               </p>
 

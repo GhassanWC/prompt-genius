@@ -1,0 +1,348 @@
+// Prompt template library
+
+export interface PromptTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: 'web-app' | 'mobile-app' | 'saas' | 'ecommerce' | 'api' | 'extension' | 'other';
+  tags: string[];
+  idea: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+}
+
+export const TEMPLATES: PromptTemplate[] = [
+  {
+    id: 'todo-web-app',
+    name: 'Todo List Web App',
+    description: 'A simple todo list application with add, edit, delete, and mark complete functionality.',
+    category: 'web-app',
+    tags: ['todo', 'web-app', 'crud', 'beginner'],
+    idea: 'A todo list web application where users can add tasks, mark them as complete, edit task names, and delete tasks. The app should persist data in local storage and have a clean, modern UI.',
+    difficulty: 'beginner',
+  },
+  {
+    id: 'weather-dashboard',
+    name: 'Weather Dashboard',
+    description: 'A weather dashboard that displays current weather and forecasts for multiple cities.',
+    category: 'web-app',
+    tags: ['weather', 'dashboard', 'api', 'intermediate'],
+    idea: 'A weather dashboard web application that shows current weather conditions and 7-day forecasts for multiple cities. Users can search for cities, save favorites, and view detailed weather information including temperature, humidity, wind speed, and conditions.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'ecommerce-storefront',
+    name: 'E-commerce Storefront',
+    description: 'A complete e-commerce storefront with product listings, cart, and checkout.',
+    category: 'ecommerce',
+    tags: ['ecommerce', 'shopping', 'cart', 'intermediate'],
+    idea: 'An e-commerce storefront web application with product listings, search and filter functionality, shopping cart, and checkout process. Include product detail pages, user authentication, and order management.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'note-taking-app',
+    name: 'Note Taking App',
+    description: 'A note-taking application with rich text editing and organization features.',
+    category: 'web-app',
+    tags: ['notes', 'text-editor', 'organization', 'intermediate'],
+    idea: 'A note-taking web application with rich text editing capabilities, folder organization, search functionality, and markdown support. Users can create, edit, delete, and organize notes with tags and categories.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'expense-tracker',
+    name: 'Expense Tracker',
+    description: 'Track and categorize expenses with budgeting features and visualizations.',
+    category: 'web-app',
+    tags: ['finance', 'tracking', 'budget', 'charts', 'intermediate'],
+    idea: 'An expense tracking application where users can add expenses with categories, amounts, and dates. Include budget setting, expense categorization, monthly/yearly summaries, and charts showing spending patterns.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'mobile-chat-app',
+    name: 'Mobile Chat App',
+    description: 'A real-time chat application for mobile devices with user profiles and group chats.',
+    category: 'mobile-app',
+    tags: ['chat', 'mobile', 'realtime', 'messaging', 'advanced'],
+    idea: 'A mobile chat application with real-time messaging, user profiles, group chats, file sharing, and push notifications. Include user authentication, friend lists, and message history.',
+    difficulty: 'advanced',
+  },
+  {
+    id: 'api-dashboard',
+    name: 'API Dashboard',
+    description: 'A dashboard for monitoring and managing API endpoints with analytics.',
+    category: 'api',
+    tags: ['api', 'dashboard', 'analytics', 'monitoring', 'advanced'],
+    idea: 'An API dashboard application that monitors API endpoints, displays request/response metrics, shows error rates, response times, and provides analytics. Include API key management and rate limiting visualization.',
+    difficulty: 'advanced',
+  },
+  {
+    id: 'chrome-password-manager',
+    name: 'Chrome Password Manager Extension',
+    description: 'A browser extension for securely storing and managing passwords.',
+    category: 'extension',
+    tags: ['extension', 'security', 'passwords', 'browser', 'intermediate'],
+    idea: 'A Chrome extension password manager that securely stores passwords, generates strong passwords, auto-fills login forms, and syncs across devices. Include encryption, master password, and password strength checker.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'blog-platform',
+    name: 'Blog Platform',
+    description: 'A full-featured blogging platform with rich text editor, comments, and categories.',
+    category: 'web-app',
+    tags: ['blog', 'cms', 'content', 'publishing', 'intermediate'],
+    idea: 'A blogging platform where users can create, edit, and publish blog posts with rich text editing, image uploads, categories, tags, and comment system. Include user authentication, draft saving, and SEO optimization features.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'portfolio-website',
+    name: 'Portfolio Website',
+    description: 'A personal portfolio website to showcase projects, skills, and experience.',
+    category: 'web-app',
+    tags: ['portfolio', 'personal', 'showcase', 'resume', 'beginner'],
+    idea: 'A personal portfolio website that displays projects, skills, work experience, and contact information. Include smooth animations, responsive design, project filtering, and a contact form.',
+    difficulty: 'beginner',
+  },
+  {
+    id: 'social-media-dashboard',
+    name: 'Social Media Dashboard',
+    description: 'A dashboard to manage and schedule posts across multiple social media platforms.',
+    category: 'saas',
+    tags: ['social-media', 'scheduling', 'dashboard', 'analytics', 'advanced'],
+    idea: 'A social media management dashboard that allows users to schedule posts, manage multiple accounts, view analytics, and engage with followers across platforms like Twitter, Instagram, and LinkedIn.',
+    difficulty: 'advanced',
+  },
+  {
+    id: 'fitness-tracker-mobile',
+    name: 'Fitness Tracker Mobile App',
+    description: 'A mobile app to track workouts, nutrition, and fitness goals.',
+    category: 'mobile-app',
+    tags: ['fitness', 'health', 'mobile', 'tracking', 'intermediate'],
+    idea: 'A mobile fitness tracking application where users can log workouts, track nutrition, set fitness goals, view progress charts, and get personalized recommendations. Include exercise library and workout plans.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'recipe-finder',
+    name: 'Recipe Finder App',
+    description: 'A mobile app to discover recipes based on ingredients and dietary preferences.',
+    category: 'mobile-app',
+    tags: ['recipes', 'cooking', 'mobile', 'food', 'beginner'],
+    idea: 'A recipe finder mobile app that allows users to search recipes by ingredients, filter by dietary restrictions, save favorite recipes, create shopping lists, and view step-by-step cooking instructions with images.',
+    difficulty: 'beginner',
+  },
+  {
+    id: 'crm-system',
+    name: 'CRM System',
+    description: 'A customer relationship management system for tracking leads and customer interactions.',
+    category: 'saas',
+    tags: ['crm', 'business', 'sales', 'management', 'advanced'],
+    idea: 'A CRM system for managing customer relationships, tracking leads, sales pipeline, customer interactions, and generating reports. Include contact management, email integration, task scheduling, and analytics dashboard.',
+    difficulty: 'advanced',
+  },
+  {
+    id: 'project-management-tool',
+    name: 'Project Management Tool',
+    description: 'A Kanban-style project management tool with tasks, teams, and deadlines.',
+    category: 'saas',
+    tags: ['project-management', 'kanban', 'collaboration', 'tasks', 'intermediate'],
+    idea: 'A project management tool with Kanban boards, task assignment, team collaboration, file sharing, deadline tracking, and progress visualization. Include user roles, notifications, and time tracking.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'marketplace-platform',
+    name: 'Marketplace Platform',
+    description: 'A multi-vendor marketplace where sellers can list products and buyers can purchase.',
+    category: 'ecommerce',
+    tags: ['marketplace', 'multi-vendor', 'ecommerce', 'platform', 'advanced'],
+    idea: 'A marketplace platform where multiple sellers can create stores, list products, manage inventory, and process orders. Buyers can browse, search, compare products, and make purchases. Include payment processing, reviews, and seller analytics.',
+    difficulty: 'advanced',
+  },
+  {
+    id: 'subscription-service',
+    name: 'Subscription Service Platform',
+    description: 'A platform for managing subscription-based services with billing and user management.',
+    category: 'ecommerce',
+    tags: ['subscription', 'billing', 'recurring', 'payments', 'intermediate'],
+    idea: 'A subscription service platform where businesses can offer subscription plans, manage billing cycles, handle upgrades/downgrades, send invoices, and track subscriber analytics. Include payment gateway integration and email notifications.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'rest-api-backend',
+    name: 'REST API Backend',
+    description: 'A RESTful API backend with authentication, CRUD operations, and documentation.',
+    category: 'api',
+    tags: ['api', 'backend', 'rest', 'authentication', 'intermediate'],
+    idea: 'A RESTful API backend with user authentication, CRUD operations for resources, rate limiting, error handling, request validation, and API documentation. Include JWT tokens, role-based access control, and logging.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'graphql-api',
+    name: 'GraphQL API Server',
+    description: 'A GraphQL API server with queries, mutations, and subscriptions.',
+    category: 'api',
+    tags: ['api', 'graphql', 'backend', 'realtime', 'advanced'],
+    idea: 'A GraphQL API server with type definitions, queries, mutations, and subscriptions for real-time updates. Include authentication, authorization, data loaders for optimization, and GraphQL playground for testing.',
+    difficulty: 'advanced',
+  },
+  {
+    id: 'chrome-ad-blocker',
+    name: 'Chrome Ad Blocker Extension',
+    description: 'A browser extension to block ads and trackers for a cleaner browsing experience.',
+    category: 'extension',
+    tags: ['extension', 'ad-blocker', 'privacy', 'browser', 'intermediate'],
+    idea: 'A Chrome extension that blocks ads, pop-ups, and trackers while browsing. Include customizable filter lists, whitelist functionality, blocking statistics, and privacy protection features.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'chrome-dark-mode',
+    name: 'Dark Mode Extension',
+    description: 'A browser extension to enable dark mode on any website.',
+    category: 'extension',
+    tags: ['extension', 'dark-mode', 'accessibility', 'browser', 'beginner'],
+    idea: 'A Chrome extension that automatically applies dark mode styling to websites. Include toggle functionality, per-site preferences, custom color schemes, and scheduled dark mode activation.',
+    difficulty: 'beginner',
+  },
+  {
+    id: 'habit-tracker',
+    name: 'Habit Tracker App',
+    description: 'A web app to build and track daily habits with streaks and statistics.',
+    category: 'web-app',
+    tags: ['habits', 'tracking', 'productivity', 'goals', 'beginner'],
+    idea: 'A habit tracking web application where users can create habits, mark them as complete daily, view streaks, track statistics, and set reminders. Include calendar view, progress charts, and habit categories.',
+    difficulty: 'beginner',
+  },
+  {
+    id: 'pomodoro-timer',
+    name: 'Pomodoro Timer',
+    description: 'A productivity timer app using the Pomodoro Technique for focused work sessions.',
+    category: 'web-app',
+    tags: ['productivity', 'timer', 'pomodoro', 'focus', 'beginner'],
+    idea: 'A Pomodoro timer web application with 25-minute work sessions, 5-minute short breaks, and 15-minute long breaks. Include customizable durations, session statistics, task tracking, and sound notifications.',
+    difficulty: 'beginner',
+  },
+  {
+    id: 'code-snippet-manager',
+    name: 'Code Snippet Manager',
+    description: 'A web app to save, organize, and share code snippets with syntax highlighting.',
+    category: 'web-app',
+    tags: ['code', 'snippets', 'developer', 'organization', 'intermediate'],
+    idea: 'A code snippet manager where developers can save code snippets, organize by languages and tags, search functionality, syntax highlighting, share snippets, and export collections. Include version history and favorites.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'url-shortener',
+    name: 'URL Shortener Service',
+    description: 'A service to shorten long URLs with custom aliases and analytics.',
+    category: 'web-app',
+    tags: ['url', 'shortener', 'links', 'analytics', 'intermediate'],
+    idea: 'A URL shortener service where users can create short links from long URLs, customize aliases, track click analytics, set expiration dates, and manage link collections. Include QR code generation and API access.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'file-sharing-platform',
+    name: 'File Sharing Platform',
+    description: 'A platform to upload, share, and manage files with access controls.',
+    category: 'web-app',
+    tags: ['files', 'sharing', 'storage', 'cloud', 'intermediate'],
+    idea: 'A file sharing platform where users can upload files, create shareable links with expiration dates and password protection, organize files in folders, view file previews, and manage access permissions.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'event-management-system',
+    name: 'Event Management System',
+    description: 'A system to create, manage, and track events with RSVP functionality.',
+    category: 'web-app',
+    tags: ['events', 'management', 'rsvp', 'calendar', 'intermediate'],
+    idea: 'An event management system where users can create events, send invitations, track RSVPs, manage attendee lists, send reminders, and generate event reports. Include calendar integration and email notifications.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'learning-management-system',
+    name: 'Learning Management System',
+    description: 'An LMS platform for creating courses, managing students, and tracking progress.',
+    category: 'saas',
+    tags: ['education', 'lms', 'courses', 'learning', 'advanced'],
+    idea: 'A learning management system where instructors can create courses with lessons, quizzes, and assignments. Students can enroll, track progress, submit assignments, and receive grades. Include video hosting, certificates, and analytics.',
+    difficulty: 'advanced',
+  },
+  {
+    id: 'time-tracking-app',
+    name: 'Time Tracking App',
+    description: 'A web app to track time spent on projects and tasks with detailed reports.',
+    category: 'web-app',
+    tags: ['time-tracking', 'productivity', 'reports', 'projects', 'intermediate'],
+    idea: 'A time tracking application where users can log time for different projects and tasks, create timesheets, generate reports, set hourly rates, and export data. Include timer functionality, project categorization, and team collaboration.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'music-player',
+    name: 'Music Player Web App',
+    description: 'A web-based music player with playlists, search, and audio controls.',
+    category: 'web-app',
+    tags: ['music', 'player', 'audio', 'playlists', 'intermediate'],
+    idea: 'A music player web application with audio playback controls, playlist creation and management, search functionality, shuffle and repeat modes, equalizer settings, and recently played tracks. Include audio visualization and keyboard shortcuts.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'video-streaming-platform',
+    name: 'Video Streaming Platform',
+    description: 'A platform to upload, stream, and manage video content with user channels.',
+    category: 'web-app',
+    tags: ['video', 'streaming', 'content', 'channels', 'advanced'],
+    idea: 'A video streaming platform where users can upload videos, create channels, live stream, manage playlists, and interact with viewers through comments and likes. Include video recommendations, subscriptions, and analytics.',
+    difficulty: 'advanced',
+  },
+  {
+    id: 'real-estate-listings',
+    name: 'Real Estate Listings Platform',
+    description: 'A platform to browse and manage real estate property listings with filters.',
+    category: 'web-app',
+    tags: ['real-estate', 'listings', 'property', 'search', 'intermediate'],
+    idea: 'A real estate listings platform where users can browse properties, filter by location, price, size, and features, save favorites, view property details with images and virtual tours, and contact agents. Include map integration and property comparisons.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'job-board',
+    name: 'Job Board Platform',
+    description: 'A platform connecting job seekers with employers and recruiters.',
+    category: 'web-app',
+    tags: ['jobs', 'recruitment', 'careers', 'matching', 'intermediate'],
+    idea: 'A job board platform where employers can post jobs, job seekers can search and apply, and both can create profiles. Include resume upload, application tracking, job alerts, company profiles, and matching algorithms.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'booking-system',
+    name: 'Booking System',
+    description: 'A system for booking appointments, reservations, or services with calendar integration.',
+    category: 'web-app',
+    tags: ['booking', 'appointments', 'calendar', 'reservations', 'intermediate'],
+    idea: 'A booking system where service providers can set availability, customers can book appointments, and both receive confirmations. Include calendar view, time slot management, email notifications, cancellation handling, and payment integration.',
+    difficulty: 'intermediate',
+  },
+  {
+    id: 'collaborative-whiteboard',
+    name: 'Collaborative Whiteboard',
+    description: 'A real-time collaborative whiteboard for teams to draw and brainstorm together.',
+    category: 'web-app',
+    tags: ['collaboration', 'whiteboard', 'realtime', 'drawing', 'advanced'],
+    idea: 'A collaborative whiteboard application where multiple users can draw, add shapes, text, and images in real-time. Include user cursors, undo/redo, export functionality, templates, and session recording.',
+    difficulty: 'advanced',
+  },
+];
+
+export function getTemplateById(id: string): PromptTemplate | undefined {
+  return TEMPLATES.find(template => template.id === id);
+}
+
+export function getTemplatesByCategory(category: PromptTemplate['category']): PromptTemplate[] {
+  return TEMPLATES.filter(template => template.category === category);
+}
+
+export function searchTemplates(query: string): PromptTemplate[] {
+  const lowerQuery = query.toLowerCase();
+  return TEMPLATES.filter(template => 
+    template.name.toLowerCase().includes(lowerQuery) ||
+    template.description.toLowerCase().includes(lowerQuery) ||
+    template.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+  );
+}
+
+

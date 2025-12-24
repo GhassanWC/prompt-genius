@@ -23,6 +23,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { UserNav } from "@/components/user-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 import Link from "next/link";
 import Image from "next/image";
@@ -538,7 +539,10 @@ export default function ExecutionFollowUpPage() {
                 Prompt Genius AI
               </h1>
             </Link>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-6">
+              <div className="hidden md:block">
+                <ThemeToggle />
+              </div>
               {messages.length > 1 && (
                 <Button
                   variant="outline"
@@ -551,9 +555,12 @@ export default function ExecutionFollowUpPage() {
                 </Button>
               )}
               <UserNav />
+              <div className="md:hidden">
+                <ThemeToggle />
+              </div>
             </div>
-          </div>
-        </header>
+        </div>
+      </header>
 
         {/* Chat Container */}
         <main className="relative z-10 flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
