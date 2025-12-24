@@ -346,10 +346,18 @@ export default function ProjectPage() {
             .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
             .replace(/`(.+?)`/g, '<code>$1</code>')
             .replace(/^- (.+)$/gm, '<li>$1</li>')
-            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+            .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
             .replace(/\n\n/g, '</p><p>')
             .replace(/^(?!<[hul])/gm, '<p>')
-            .replace(/(?<!>)$/gm, '</p>')
+            .split('\n')
+            .map((line) => {
+              const trimmed = line.trim();
+              if (!trimmed || trimmed.endsWith('>')) {
+                return line;
+              }
+              return line + '</p>';
+            })
+            .join('\n')
             .replace(/<p><\/p>/g, '')
             .replace(/---/g, '<hr>')}
         </body>
