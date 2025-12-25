@@ -454,8 +454,8 @@ export default function ExecutionFollowUpPage() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-16 w-16 animate-spin text-[#00171f]" />
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#00171f]">
+        <Loader2 className="h-16 w-16 animate-spin text-[#00171f] dark:text-white" />
       </div>
     );
   }
@@ -516,16 +516,16 @@ export default function ExecutionFollowUpPage() {
 
   return (
     <PageAccessGuard>
-      <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden flex flex-col">
+      <div className="min-h-screen bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white relative overflow-x-hidden flex flex-col">
         {/* Subtle geometric background pattern */}
-        <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+        <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02] dark:opacity-[0.05]">
           <div className="absolute inset-0" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }} />
         </div>
 
         {/* Header */}
-        <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+        <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-[#00171f]/95 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
             <Link href="/" className="flex items-center gap-0 font-bold group">
               <Image
@@ -535,7 +535,7 @@ export default function ExecutionFollowUpPage() {
                 height={60}
                 className="ml-1 mr-1"
               />
-              <h1 className="font-headline text-xl text-[#00171f] tracking-tight hidden sm:block">
+              <h1 className="font-headline text-xl text-[#00171f] dark:text-white tracking-tight hidden sm:block">
                 Prompt Genius AI
               </h1>
             </Link>
@@ -548,7 +548,7 @@ export default function ExecutionFollowUpPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleReset}
-                  className="border-gray-200 text-gray-600 hover:bg-gray-50"
+                  className="border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <RefreshCw className="mr-2 h-4 w-4" />
                   New Chat
@@ -576,16 +576,16 @@ export default function ExecutionFollowUpPage() {
                 )}
               >
                 {message.role === "agent" && (
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#00171f]/10 flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-[#00171f]" />
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#00171f]/10 dark:bg-white/10 flex items-center justify-center">
+                    <Bot className="h-4 w-4 text-[#00171f] dark:text-white" />
                   </div>
                 )}
                 <div
                   className={cn(
                     "max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3",
                     message.role === "user"
-                      ? "bg-gray-100 text-[#00171f] border border-gray-200"
-                      : "bg-transparent text-[#00171f]"
+                      ? "bg-gray-100 dark:bg-gray-800 text-[#00171f] dark:text-white border border-gray-200 dark:border-gray-700"
+                      : "bg-transparent text-[#00171f] dark:text-white"
                   )}
                 >
                   <div className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -594,7 +594,7 @@ export default function ExecutionFollowUpPage() {
                         <>
                           {typingMessages[message.id]}
                           {typingMessages[message.id]?.length < message.content.length && (
-                            <span className="inline-block w-2 h-4 bg-[#00171f] ml-1 animate-pulse" />
+                            <span className="inline-block w-2 h-4 bg-[#00171f] dark:bg-white ml-1 animate-pulse" />
                           )}
                         </>
                       )
@@ -606,15 +606,15 @@ export default function ExecutionFollowUpPage() {
                     <div className="mt-4 space-y-4">
                       {/* Key Issues */}
                       {message.data.keyIssues && message.data.keyIssues.length > 0 && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
                           <div className="flex items-center gap-2 mb-2">
-                            <AlertTriangle className="h-4 w-4 text-amber-700" />
-                            <h3 className="font-semibold text-amber-900 text-sm">Key Issues Identified</h3>
+                            <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400" />
+                            <h3 className="font-semibold text-amber-900 dark:text-amber-200 text-sm">Key Issues Identified</h3>
                           </div>
                           <ul className="space-y-1.5">
                             {message.data.keyIssues.map((issue, index) => (
-                              <li key={index} className="flex items-start gap-2 text-amber-800 text-sm">
-                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-amber-600 flex-shrink-0" />
+                              <li key={index} className="flex items-start gap-2 text-amber-800 dark:text-amber-300 text-sm">
+                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-amber-600 dark:bg-amber-400 flex-shrink-0" />
                                 <span>{issue}</span>
                               </li>
                             ))}
@@ -623,41 +623,41 @@ export default function ExecutionFollowUpPage() {
                       )}
 
                       {/* Corrective Prompt */}
-                      <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                      <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl p-4">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-green-700" />
-                            <h3 className="font-semibold text-green-900 text-sm">Corrective Prompt</h3>
+                            <CheckCircle2 className="h-4 w-4 text-green-700 dark:text-green-400" />
+                            <h3 className="font-semibold text-green-900 dark:text-green-200 text-sm">Corrective Prompt</h3>
                           </div>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleCopy(message.data!.correctivePrompt, "Corrective prompt")}
-                            className="h-7 px-2 text-green-900 hover:bg-green-100"
+                            className="h-7 px-2 text-green-900 dark:text-green-200 hover:bg-green-100 dark:hover:bg-green-900/50"
                           >
                             <Copy className="h-3.5 w-3.5" />
                           </Button>
                         </div>
-                        <div className="bg-white rounded-lg border border-green-200 p-3 mt-2">
-                          <pre className="whitespace-pre-wrap text-xs text-[#00171f] font-mono leading-relaxed">
+                        <div className="bg-white dark:bg-[#00171f] rounded-lg border border-green-200 dark:border-green-700 p-3 mt-2">
+                          <pre className="whitespace-pre-wrap text-xs text-[#00171f] dark:text-white font-mono leading-relaxed">
                             {message.data.correctivePrompt}
                           </pre>
                         </div>
                       </div>
 
                       {/* Gap Analysis */}
-                      <div className="bg-white border border-gray-200 rounded-xl p-4">
-                        <h3 className="font-semibold text-[#00171f] text-sm mb-2">Gap Analysis</h3>
-                        <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      <div className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 rounded-xl p-4">
+                        <h3 className="font-semibold text-[#00171f] dark:text-white text-sm mb-2">Gap Analysis</h3>
+                        <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                           {message.data.gapAnalysis}
                         </div>
                       </div>
 
                       {/* Recommendations */}
                       {message.data.recommendations && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                          <h3 className="font-semibold text-blue-900 text-sm mb-2">Recommendations</h3>
-                          <div className="text-sm text-blue-800 leading-relaxed whitespace-pre-wrap">
+                        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+                          <h3 className="font-semibold text-blue-900 dark:text-blue-200 text-sm mb-2">Recommendations</h3>
+                          <div className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed whitespace-pre-wrap">
                             {message.data.recommendations}
                           </div>
                         </div>
@@ -666,9 +666,9 @@ export default function ExecutionFollowUpPage() {
                   )}
                 </div>
                 {message.role === "user" && (
-                  <Avatar className="flex-shrink-0 w-8 h-8 rounded-full border-2 border-[#00171f]">
+                  <Avatar className="flex-shrink-0 w-8 h-8 rounded-full border-2 border-[#00171f] dark:border-white">
                     <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
-                    <AvatarFallback className="bg-[#00171f] text-white">
+                    <AvatarFallback className="bg-[#00171f] dark:bg-white text-white dark:text-[#00171f]">
                       <User className="h-4 w-4" />
                     </AvatarFallback>
                   </Avatar>
@@ -677,11 +677,11 @@ export default function ExecutionFollowUpPage() {
             ))}
             {isLoading && (
               <div className="flex gap-3 justify-start">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#00171f]/10 flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-[#00171f]" />
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#00171f]/10 dark:bg-white/10 flex items-center justify-center">
+                  <Bot className="h-4 w-4 text-[#00171f] dark:text-white" />
                 </div>
-                <div className="bg-gray-100 rounded-2xl px-4 py-3">
-                  <Loader2 className="h-4 w-4 animate-spin text-[#00171f]" />
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3">
+                  <Loader2 className="h-4 w-4 animate-spin text-[#00171f] dark:text-white" />
                 </div>
               </div>
             )}
@@ -689,13 +689,13 @@ export default function ExecutionFollowUpPage() {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-gray-200 pt-4">
+          <div className="border-t border-gray-200 dark:border-gray-800 pt-4">
             <form onSubmit={handleInputSubmit} className="relative">
               <div className="relative flex items-end">
                 <Textarea
                   ref={textareaRef}
                   placeholder={getInputPlaceholder()}
-                  className="flex-1 min-h-[60px] max-h-[200px] border-0 bg-gray-50 focus:bg-white focus:ring-0 rounded-xl resize-none overflow-hidden transition-all pr-12"
+                  className="flex-1 min-h-[60px] max-h-[200px] border-0 bg-gray-50 dark:bg-gray-900 focus:bg-white dark:focus:bg-[#00171f] focus:ring-0 rounded-xl resize-none overflow-hidden transition-all pr-12 text-[#00171f] dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
