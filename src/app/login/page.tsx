@@ -198,7 +198,7 @@ export default function LoginPage() {
               <Tabs defaultValue="signin" className="w-full max-w-md relative z-10">
                 {/* Header section */}
                 <div className="flex flex-col items-center mb-8 text-center">
-                  <h1 className="font-headline text-3xl sm:text-4xl font-bold tracking-tight text-[#00171f] dark:text-white">
+                  <h1 className="font-headline text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[#00171f] dark:text-white">
                     Welcome Back
                   </h1>
                   <p className="mt-3 text-lg text-gray-600 dark:text-gray-300 font-medium">
@@ -239,7 +239,7 @@ export default function LoginPage() {
               <TabsContent value="signin">
                 <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-500 rounded-2xl overflow-hidden">
                   <CardHeader className="bg-white dark:bg-[#00171f] border-b border-gray-200 dark:border-gray-800">
-                    <CardTitle className="font-headline text-2xl font-bold text-[#00171f] dark:text-white">Sign In</CardTitle>
+                    <CardTitle className="font-headline text-xl sm:text-2xl font-bold text-[#00171f] dark:text-white">Sign In</CardTitle>
                     <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">Enter your credentials to access your account.</CardDescription>
                   </CardHeader>
                   <CardContent className="bg-white dark:bg-[#00171f] p-8 space-y-6">

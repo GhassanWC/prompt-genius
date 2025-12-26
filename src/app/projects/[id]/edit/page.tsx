@@ -346,10 +346,10 @@ export default function EditProjectPage() {
         {/* Header section */}
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-6 mb-6">
           <div>
-            <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f] dark:text-white">
+            <h1 className="font-headline text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-[#00171f] dark:text-white">
               Edit Project
             </h1>
-            <p className="mt-3 text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-medium">{project?.name}</p>
+            <p className="mt-3 text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 font-medium">{project?.name}</p>
           </div>
           <Button 
             variant="outline" 
@@ -419,7 +419,7 @@ export default function EditProjectPage() {
         <div className="max-w-4xl mx-auto mt-12 space-y-12">
           <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-              <h2 className="text-2xl sm:text-3xl font-bold font-headline text-[#00171f] dark:text-white">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold font-headline text-[#00171f] dark:text-white">
                 Development Plan
               </h2>
               {isPromptsOrderDirty && canEdit && (
@@ -486,7 +486,7 @@ export default function EditProjectPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-2xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-bold text-[#00171f] dark:text-white">Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#00171f] dark:text-white">Are you sure?</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
               This will permanently delete this prompt. This action cannot be undone.
             </AlertDialogDescription>

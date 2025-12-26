@@ -176,7 +176,7 @@ export default function LandingPage() {
           <div className="absolute top-40 right-20 w-3 h-3 bg-[#00171f] dark:bg-white rounded-full animate-subtle-pulse" />
           <div className="absolute bottom-40 left-20 w-2 h-2 bg-[#00171f] dark:bg-white rounded-full animate-subtle-pulse delay-200" />
           
-          <h1 className="animate-fade-in-up font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-[#00171f] dark:text-white leading-tight">
+          <h1 className="animate-fade-in-up font-headline text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-[#00171f] dark:text-white leading-tight">
             Build Your First Project Now<br />
             <span className="relative">
               With Ready-to-Use AI Prompts
@@ -185,17 +185,17 @@ export default function LandingPage() {
               </svg>
             </span>
           </h1>
-          <p className="mt-6 mx-auto max-w-3xl text-lg sm:text-xl text-gray-600 dark:text-gray-300 leading-relaxed animate-fade-in-up delay-100">
+          <p className="mt-6 mx-auto max-w-3xl text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 leading-relaxed animate-fade-in-up delay-100">
             Stop staring at blank pages. Turn your product idea into step-by-step AI prompts in seconds — copy, paste, and build faster than ever.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in-up delay-200">
-            <Button asChild size="lg" className="w-full sm:w-auto bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-xl shadow-[#00171f]/20 group active:scale-95 transition-all duration-200 font-semibold px-10 py-4 rounded-full text-lg">
+            <Button asChild size="lg" className="w-full sm:w-auto bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-xl shadow-[#00171f]/20 group active:scale-95 transition-all duration-200 font-semibold px-6 py-2.5 sm:px-8 sm:py-3 md:px-10 md:py-4 rounded-full text-sm sm:text-base md:text-lg">
               <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
                 Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white hover:bg-[#00171f] dark:hover:bg-white hover:text-white dark:hover:text-[#00171f] transition-all duration-200 font-medium px-8 py-4 rounded-full text-lg">
+            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white hover:bg-[#00171f] dark:hover:bg-white hover:text-white dark:hover:text-[#00171f] transition-all duration-200 font-medium px-6 py-2.5 sm:px-8 sm:py-3 md:px-8 md:py-4 rounded-full text-sm sm:text-base md:text-lg">
               <Link href="#features">See How It Works</Link>
             </Button>
           </div>
@@ -214,10 +214,10 @@ export default function LandingPage() {
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="text-center mb-16">
-              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] dark:text-white mb-4">
+              <h2 className="font-headline text-2xl font-bold sm:text-3xl md:text-4xl lg:text-5xl text-[#00171f] dark:text-white mb-4">
                 How It Works
               </h2>
-              <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 dark:text-gray-300 font-medium">
+              <p className="mt-6 max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 font-medium">
                 Describe your product idea. We break it down into step-by-step prompts with specific AI roles. Copy, paste, and build — no more staring at blank pages wondering what to ask your AI.
               </p>
             </div>
@@ -372,7 +372,7 @@ export default function LandingPage() {
               <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] dark:text-white">
                 Loved by Developers and Builders
               </h2>
-              <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 dark:text-gray-300 font-medium">
+              <p className="mt-6 max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 font-medium">
                 See how developers and builders are shipping products faster with ready-to-use AI prompts.
               </p>
               <div className="mt-10">
@@ -450,7 +450,7 @@ export default function LandingPage() {
               <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] dark:text-white">
                 Simple, Transparent Pricing
               </h2>
-              <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 dark:text-gray-300 font-medium">
+              <p className="mt-6 max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 font-medium">
                 Choose the plan that's right for you. Get started for free, and upgrade when you're ready to build more.
               </p>
             </div>

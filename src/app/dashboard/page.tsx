@@ -490,7 +490,7 @@ export default function DashboardPage() {
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-32 space-y-10">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <p className="text-3xl sm:text-4xl font-bold font-headline text-[#00171f] dark:text-white">
+          <p className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-[#00171f] dark:text-white">
             Your workspace
           </p>
           <Link href={atLimit ? "/dashboard" : "/projects/new"}>
@@ -518,7 +518,7 @@ export default function DashboardPage() {
         {tier && (
           <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl overflow-hidden">
             <CardHeader className="bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
-              <CardTitle className="text-2xl font-bold text-[#00171f] dark:text-white capitalize">{tier.name}</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl font-bold text-[#00171f] dark:text-white capitalize">{tier.name}</CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">
                 You have created {projectsUsed} of {projectLimit} available projects.
               </CardDescription>
@@ -1038,7 +1038,7 @@ export default function DashboardPage() {
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <AlertDialogContent className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-2xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-bold text-[#00171f] dark:text-white">
+            <AlertDialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-[#00171f] dark:text-white">
               Are you absolutely sure?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
@@ -1079,7 +1079,7 @@ export default function DashboardPage() {
             <TooltipTrigger asChild>
               <Link href="/execution-follow-up">
                 <Button
-                  className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-[#00171f] hover:bg-[#00171f]/90 text-white shadow-2xl shadow-[#00171f]/30 hover:shadow-[#00171f]/40 border-0 transition-all duration-300 hover:scale-110 group"
+                  className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-[#00171f] hover:bg-[#00171f]/90 text-white shadow-2xl shadow-[#00171f]/30 hover:shadow-[#00171f]/40 border-0 transition-all duration-300 hover:scale-110 group"
                   size="icon"
                 >
                   <Sparkles className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />

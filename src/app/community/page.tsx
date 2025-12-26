@@ -8,7 +8,10 @@ import type { Project } from '@/lib/projects';
 import { Card, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Search, Lock, Rocket, GitFork, Check } from 'lucide-react';
+import { ArrowLeft, Search, Lock, Rocket, GitFork, Check, TrendingUp, Heart, Star, Clock } from 'lucide-react';
+import { LikeButton } from '@/components/community/like-button';
+import { formatDistanceToNow } from 'date-fns';
+import { TrendingBadge } from '@/components/community/trending-badge';
 import { UserNav } from '@/components/user-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
@@ -39,7 +42,7 @@ function AccessDenied() {
             Access to the community showcase is available for Plus and Pro members.
           </p>
           <Link href="/#pricing">
-            <Button className="mt-6 bg-[#00171f] hover:bg-[#00171f]/90 text-white rounded-full px-6 py-3 font-semibold">
+            <Button className="mt-6 bg-[#00171f] hover:bg-[#00171f]/90 text-white rounded-full text-xs sm:text-sm px-4 py-2 sm:px-6 sm:py-3 font-semibold">
               <Rocket className="mr-2 h-4 w-4" />
               Upgrade Your Plan
             </Button>
@@ -76,6 +79,8 @@ export default function CommunityPage() {
   const [cloningProjectId, setCloningProjectId] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'recent' | 'trending' | 'most-liked' | 'most-cloned'>('recent');
+  const [trendingProjects, setTrendingProjects] = useState<string[]>([]);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -131,7 +136,20 @@ export default function CommunityPage() {
     };
 
     loadFirstPage();
+    loadTrending();
   }, [canAccessCommunity]);
+
+  const loadTrending = async () => {
+    try {
+      const res = await fetch('/api/community/trending?period=weekly&limit=10');
+      if (res.ok) {
+        const data = await res.json();
+        setTrendingProjects(data.trending?.map((t: any) => t.projectId) || []);
+      }
+    } catch (e) {
+      console.error('Failed to load trending:', e);
+    }
+  };
 
   const loadMore = useCallback(async () => {
     if (!hasMore || loadingMore || !canAccessCommunity) return;
@@ -177,12 +195,49 @@ export default function CommunityPage() {
   }, [loadMore]);
 
   const filteredProjects = useMemo(() => {
-    if (!searchTerm) return publicProjects;
-    const lower = searchTerm.toLowerCase();
-    return publicProjects.filter(
-      (p) => p.name.toLowerCase().includes(lower) || p.idea.toLowerCase().includes(lower)
-    );
-  }, [searchTerm, publicProjects]);
+    let filtered = publicProjects;
+    
+    // Apply search filter
+    if (searchTerm) {
+      const lower = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (p) => p.name.toLowerCase().includes(lower) || p.idea.toLowerCase().includes(lower)
+      );
+    }
+
+    // Apply sorting
+    if (sortBy === 'trending') {
+      filtered = filtered.sort((a, b) => {
+        const aTrending = trendingProjects.indexOf(a.id);
+        const bTrending = trendingProjects.indexOf(b.id);
+        if (aTrending === -1 && bTrending === -1) return 0;
+        if (aTrending === -1) return 1;
+        if (bTrending === -1) return -1;
+        return aTrending - bTrending;
+      });
+    } else if (sortBy === 'most-liked') {
+      filtered = filtered.sort((a, b) => {
+        const aLikes = (a as any).likeCount || 0;
+        const bLikes = (b as any).likeCount || 0;
+        return bLikes - aLikes;
+      });
+    } else if (sortBy === 'most-cloned') {
+      filtered = filtered.sort((a, b) => {
+        const aClones = a.cloneCount || 0;
+        const bClones = b.cloneCount || 0;
+        return bClones - aClones;
+      });
+    } else {
+      // Recent (default)
+      filtered = filtered.sort((a, b) => {
+        const aDate = new Date(a.createdAt as any).getTime();
+        const bDate = new Date(b.createdAt as any).getTime();
+        return bDate - aDate;
+      });
+    }
+
+    return filtered;
+  }, [searchTerm, publicProjects, sortBy, trendingProjects]);
 
   const fetchUserClones = useCallback(async () => {
     if (!user) return;
@@ -283,7 +338,7 @@ export default function CommunityPage() {
               <UserNav />
             ) : (
               <Link href="/login">
-                <Button className="bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 active:scale-95 transition-all duration-200 font-medium px-6 py-2 rounded-full">
+                <Button className="bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 active:scale-95 transition-all duration-200 font-medium text-xs sm:text-sm px-4 py-1.5 sm:px-6 sm:py-2 rounded-full">
                   Sign In
                 </Button>
               </Link>
@@ -295,53 +350,53 @@ export default function CommunityPage() {
         </div>
       </header>
 
-      <main className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="mb-8">
-          <Link
-            href={user ? '/dashboard' : '/'}
-            className="inline-flex items-center text-sm text-gray-600 dark:text-gray-300 hover:text-[#00171f] dark:hover:text-white transition-all duration-200 font-medium group"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-            {user ? 'Back to Dashboard' : 'Back to Home'}
-          </Link>
-        </div>
-
-        <div className="text-center mb-10 sm:mb-14">
-          <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f] dark:text-white">
-            Community Spotlight
-          </h1>
-          <p className="mt-3 text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-xl mx-auto font-medium leading-relaxed">
-            Browse public projects you can clone and adapt to your own ideas.
-          </p>
+      <main className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Search Bar */}
+        <div className="max-w-2xl mx-auto mb-8">
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+            <Input
+              type="search"
+              placeholder="Search projects..."
+              className="w-full bg-white dark:bg-[#00171f] text-sm rounded-lg border border-gray-300 dark:border-gray-700 shadow-sm focus:border-[#00171f] dark:focus:border-white focus:ring-2 focus:ring-[#00171f]/10 dark:focus:ring-white/10 transition-all duration-200 pl-11 pr-4 py-2.5 h-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
 
         {authLoading || tierLoading ? (
           <div className="space-y-6">
-            {/* Search Skeleton */}
-            <div className="max-w-2xl mx-auto mb-12 sm:mb-16">
-              <Skeleton className="h-14 w-full rounded-2xl" />
+            {/* Category Skeleton */}
+            <div className="mb-6">
+              <div className="flex gap-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-8 w-20 rounded-full" />
+                ))}
+              </div>
             </div>
             {/* Projects Grid Skeleton */}
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-5">
-              {Array.from({ length: 10 }).map((_, idx) => (
-                <Card
-                  key={idx}
-                  className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm rounded-2xl"
-                >
-                  <CardContent className="p-5 space-y-4">
-                    <div className="space-y-2">
-                      <Skeleton className="h-5 w-3/4 rounded-md" />
-                      <Skeleton className="h-3 w-1/2 rounded-md" />
+            <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 12 }).map((_, idx) => (
+                <div key={idx} className="bg-white dark:bg-[#00171f] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                  <Skeleton className="w-full min-h-[140px] bg-gray-50 dark:bg-gray-900" />
+                  <div className="p-5 space-y-3">
+                    <Skeleton className="h-5 w-full rounded-md" />
+                    <div className="flex gap-2.5">
+                      <Skeleton className="w-7 h-7 rounded-full flex-shrink-0" />
+                      <Skeleton className="h-4 w-24 rounded-md" />
                     </div>
-                    <Skeleton className="h-3 w-full rounded-md" />
-                    <Skeleton className="h-3 w-5/6 rounded-md" />
-                    <Skeleton className="h-3 w-4/6 rounded-md" />
-                    <div className="flex items-center justify-between pt-2">
-                      <Skeleton className="h-3 w-20 rounded-md" />
-                      <Skeleton className="h-8 w-20 rounded-full" />
+                    <Skeleton className="h-3 w-32 rounded-md" />
+                  </div>
+                  <div className="px-5 pb-5 border-t border-gray-100 dark:border-gray-800 pt-4">
+                    <div className="flex gap-2.5">
+                      <Skeleton className="h-8 w-16 rounded-full" />
+                      <Skeleton className="h-8 w-16 rounded-full" />
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -349,143 +404,198 @@ export default function CommunityPage() {
           <AccessDenied />
         ) : loadingInitial ? (
           <div className="space-y-6">
-            {/* Search Skeleton */}
-            <div className="max-w-2xl mx-auto mb-12 sm:mb-16">
-              <Skeleton className="h-14 w-full rounded-2xl" />
+            {/* Category Skeleton */}
+            <div className="mb-6">
+              <div className="flex gap-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-8 w-20 rounded-full" />
+                ))}
+              </div>
             </div>
             {/* Projects Grid Skeleton */}
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-5">
-              {Array.from({ length: 10 }).map((_, idx) => (
-                <Card
-                  key={idx}
-                  className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm rounded-2xl"
-                >
-                  <CardContent className="p-5 space-y-4">
-                    <div className="space-y-2">
-                      <Skeleton className="h-5 w-3/4 rounded-md" />
-                      <Skeleton className="h-3 w-1/2 rounded-md" />
+            <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 12 }).map((_, idx) => (
+                <div key={idx} className="bg-white dark:bg-[#00171f] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                  <Skeleton className="w-full min-h-[140px] bg-gray-50 dark:bg-gray-900" />
+                  <div className="p-5 space-y-3">
+                    <Skeleton className="h-5 w-full rounded-md" />
+                    <div className="flex gap-2.5">
+                      <Skeleton className="w-7 h-7 rounded-full flex-shrink-0" />
+                      <Skeleton className="h-4 w-24 rounded-md" />
                     </div>
-                    <Skeleton className="h-3 w-full rounded-md" />
-                    <Skeleton className="h-3 w-5/6 rounded-md" />
-                    <Skeleton className="h-3 w-4/6 rounded-md" />
-                    <div className="flex items-center justify-between pt-2">
-                      <Skeleton className="h-3 w-20 rounded-md" />
-                      <Skeleton className="h-8 w-20 rounded-full" />
+                    <Skeleton className="h-3 w-32 rounded-md" />
+                  </div>
+                  <div className="px-5 pb-5 border-t border-gray-100 dark:border-gray-800 pt-4">
+                    <div className="flex gap-2.5">
+                      <Skeleton className="h-8 w-16 rounded-full" />
+                      <Skeleton className="h-8 w-16 rounded-full" />
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
         ) : (
           <>
-            {/* Search */}
-            <div className="max-w-2xl mx-auto mb-12 sm:mb-16">
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
-                  <Search className="h-5 w-5 text-[#00171f] dark:text-white" />
-                </div>
-                <Input
-                  type="search"
-                  placeholder="Search community projects..."
-                  className="w-full bg-white dark:bg-[#00171f] text-base font-medium rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm focus:border-[#00171f] dark:focus:border-white focus:ring-2 focus:ring-[#00171f]/20 dark:focus:ring-white/20 transition-all duration-200 pl-12 pr-4 py-4"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            {/* Category Filters */}
+            <div className="mb-8 overflow-x-auto scrollbar-hide">
+              <div className="flex items-center gap-2.5 pb-2">
+                <Button
+                  variant={sortBy === 'recent' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSortBy('recent')}
+                  className={`rounded-full whitespace-nowrap text-xs font-medium transition-all ${
+                    sortBy === 'recent' 
+                      ? 'bg-[#00171f] dark:bg-white text-white dark:text-[#00171f] shadow-sm' 
+                      : 'bg-white dark:bg-[#00171f] border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  All
+                </Button>
+                <Button
+                  variant={sortBy === 'trending' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSortBy('trending')}
+                  className={`rounded-full whitespace-nowrap text-xs font-medium transition-all ${
+                    sortBy === 'trending' 
+                      ? 'bg-[#00171f] dark:bg-white text-white dark:text-[#00171f] shadow-sm' 
+                      : 'bg-white dark:bg-[#00171f] border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <TrendingUp className="mr-1.5 h-3.5 w-3.5" />
+                  Trending
+                </Button>
+                <Button
+                  variant={sortBy === 'most-liked' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSortBy('most-liked')}
+                  className={`rounded-full whitespace-nowrap text-xs font-medium transition-all ${
+                    sortBy === 'most-liked' 
+                      ? 'bg-[#00171f] dark:bg-white text-white dark:text-[#00171f] shadow-sm' 
+                      : 'bg-white dark:bg-[#00171f] border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <Heart className="mr-1.5 h-3.5 w-3.5" />
+                  Most Liked
+                </Button>
+                <Button
+                  variant={sortBy === 'most-cloned' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSortBy('most-cloned')}
+                  className={`rounded-full whitespace-nowrap text-xs font-medium transition-all ${
+                    sortBy === 'most-cloned' 
+                      ? 'bg-[#00171f] dark:bg-white text-white dark:text-[#00171f] shadow-sm' 
+                      : 'bg-white dark:bg-[#00171f] border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <GitFork className="mr-1.5 h-3.5 w-3.5" />
+                  Most Cloned
+                </Button>
               </div>
             </div>
 
             {filteredProjects.length > 0 ? (
-              <section className="space-y-6">
-                <div className="w-full space-y-6">
-                  <div className="flex items-center justify-between px-1 sm:px-0">
-                    <p className="text-sm text-gray-500">
-                      Filtered results are paginated for easier browsing.
-                    </p>
-                    <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
-                      Clones:{' '}
-                      {filteredProjects
-                        .reduce((sum, project) => sum + (project.cloneCount ?? 0), 0)
-                        .toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div className="grid w-full gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-5">
+              <section>
+                <div className="grid w-full gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredProjects.map((project) => {
                       const createdDate = formatCommunityDate(project.createdAt as any);
                       const cloneCount = project.cloneCount ?? 0;
                       const authorName =
                         (project as any).author?.displayName || 'Community project';
+                      const relativeDate = formatDistanceToNow(new Date(project.createdAt as any), { addSuffix: true });
 
                       return (
-                        <Link
-                          key={project.id}
-                          href={`/projects/${project.id}`}
-                          className="group block h-full"
-                        >
-                          <Card className="h-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] shadow-sm rounded-2xl transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:border-[#00171f]/30 dark:group-hover:border-white/30">
-                            <CardContent className="p-5 flex flex-col h-full">
-                              {/* Project Title */}
-                              <CardTitle className="text-sm sm:text-base font-semibold text-[#00171f] dark:text-white line-clamp-2">
-                                {project.name}
-                              </CardTitle>
-                              
-                              {/* Author Name */}
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                {authorName}
-                              </p>
+                        <div key={project.id} className="group">
+                          <div className="bg-white dark:bg-[#00171f] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 overflow-hidden">
+                            <Link href={`/projects/${project.id}`} className="block">
+                              {/* Project Idea Preview - Modern Card Style */}
+                              <div className="relative w-full bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+                                <div className="p-5 pb-4">
+                                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3 font-normal">
+                                    {project.idea || 'No description provided.'}
+                                  </p>
+                                </div>
+                                {trendingProjects.includes(project.id) && (
+                                  <div className="absolute top-3 right-3 z-10">
+                                    <TrendingBadge 
+                                      rank={trendingProjects.indexOf(project.id) + 1} 
+                                      period="weekly"
+                                    />
+                                  </div>
+                                )}
+                              </div>
 
-                              {/* Description */}
-                              <p className="mt-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-4 flex-grow">
-                                {project.idea || 'No description provided.'}
-                              </p>
+                              {/* Card Content */}
+                              <div className="p-5 pt-4">
+                                {/* Title */}
+                                <h3 className="text-sm sm:text-base font-semibold text-[#00171f] dark:text-white line-clamp-2 mb-3 group-hover:text-[#00171f]/80 dark:group-hover:text-white/80 transition-colors">
+                                  {project.name}
+                                </h3>
 
-                              {/* Clone Button with Counter */}
-                              <CardFooter className="mt-4 p-0 flex items-center justify-between">
-                                <span className="text-xs text-gray-500">
-                                  {createdDate}
-                                </span>
-                                {clonedSourceIds.has(project.id) ? (
-                                  <div 
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 border border-gray-200 cursor-default"
-                                    title="Cloned"
-                                  >
-                                    <Check className="h-3.5 w-3.5 text-[#00171f]" />
-                                    <span className="text-xs font-medium text-[#00171f]">
-                                      {cloneCount}
+                                {/* Creator Info */}
+                                <div className="flex items-center gap-2.5 mb-3">
+                                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00171f] to-gray-700 dark:from-gray-600 dark:to-gray-800 flex items-center justify-center flex-shrink-0 shadow-sm">
+                                    <span className="text-xs font-semibold text-white">
+                                      {authorName?.[0]?.toUpperCase() || 'U'}
                                     </span>
                                   </div>
-                                ) : (
-                                  <Button
-                                    variant="default"
-                                    size="sm"
-                                    title="Clone"
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 h-auto rounded-full transition-all duration-200 shadow-md bg-[#00171f] text-white hover:bg-[#00171f]/90 ${
-                                      cloningProjectId === project.id ? 'cursor-wait opacity-80' : ''
-                                    }`}
-                                    onClick={(event) => handleCloneProject(project.id, event)}
-                                    disabled={!user || Boolean(cloningProjectId)}
-                                  >
-                                    {cloningProjectId === project.id ? (
-                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    ) : (
-                                      <GitFork className="h-3.5 w-3.5" />
-                                    )}
-                                    <span className="text-xs font-medium">
-                                      {cloneCount}
-                                    </span>
-                                  </Button>
-                                )}
-                              </CardFooter>
-                            </CardContent>
-                          </Card>
-                        </Link>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400 truncate">
+                                      {authorName}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Stats Row */}
+                                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
+                                  <span className="font-medium">{cloneCount} clone{cloneCount !== 1 ? 's' : ''}</span>
+                                  <span className="text-gray-300 dark:text-gray-600">•</span>
+                                  <span>{relativeDate}</span>
+                                </div>
+                              </div>
+                            </Link>
+
+                            {/* Action Buttons */}
+                            <div className="px-5 pb-5 flex items-center gap-2.5 border-t border-gray-100 dark:border-gray-800 pt-4" onClick={(e) => e.preventDefault()}>
+                              <LikeButton projectId={project.id} />
+                              {clonedSourceIds.has(project.id) ? (
+                                <div 
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 cursor-default"
+                                  title="Cloned"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Check className="h-3.5 w-3.5 text-[#00171f] dark:text-white" />
+                                  <span className="text-xs font-medium text-[#00171f] dark:text-white">
+                                    {cloneCount}
+                                  </span>
+                                </div>
+                              ) : (
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  title="Clone"
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 h-auto rounded-full transition-all duration-200 shadow-sm bg-[#00171f] text-white hover:bg-[#00171f]/90 ${
+                                    cloningProjectId === project.id ? 'cursor-wait opacity-80' : ''
+                                  }`}
+                                  onClick={(event) => handleCloneProject(project.id, event)}
+                                  disabled={!user || Boolean(cloningProjectId)}
+                                >
+                                  {cloningProjectId === project.id ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <GitFork className="h-3.5 w-3.5" />
+                                  )}
+                                  <span className="text-xs font-medium">
+                                    {cloneCount}
+                                  </span>
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100" />
-                </div>
 
                 <div ref={sentinelRef} className="flex h-16 items-center justify-center">
                   {loadingMore && (
@@ -503,13 +613,13 @@ export default function CommunityPage() {
             ) : (
               <div className="text-center py-20 border-2 border-dashed border-gray-300 rounded-3xl bg-gray-50">
                 <Search className="mx-auto h-16 w-16 text-gray-400" />
-                <h3 className="mt-6 text-2xl font-bold text-[#00171f]">No Projects Found</h3>
+                <h3 className="mt-6 text-lg sm:text-xl md:text-2xl font-bold text-[#00171f]">No Projects Found</h3>
                 <p className="mt-3 text-gray-600 font-medium">
                   Your search for "{searchTerm}" did not match any projects.
                 </p>
                 <Button
                   variant="outline"
-                  className="mt-8 bg-white hover:bg-gray-50 border-2 border-[#00171f] text-[#00171f] font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:shadow-lg"
+                  className="mt-8 bg-white hover:bg-gray-50 border-2 border-[#00171f] text-[#00171f] font-semibold text-xs sm:text-sm px-4 py-2 sm:px-6 sm:py-3 rounded-full transition-all duration-200 hover:shadow-lg"
                   onClick={() => setSearchTerm('')}
                 >
                   Clear Search

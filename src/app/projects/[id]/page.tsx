@@ -7,7 +7,10 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { type Project, type Prompt as PromptType, type Role } from '@/lib/projects';
-import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Copy, Lock, Globe, Sparkles, Download, FileText } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, Pencil, Users, Copy, Lock, Globe, Sparkles, Download, FileText, GitFork, Check, Heart } from 'lucide-react';
+import { LikeButton } from '@/components/community/like-button';
+import { FavoriteButton } from '@/components/community/favorite-button';
+import { CommentsSection } from '@/components/community/comments-section';
 import { UserNav } from '@/components/user-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Logo } from '@/components/logo';
@@ -36,6 +39,13 @@ export default function ProjectPage() {
   const [isShareDialogOpen, setShareDialogOpen] = useState(false);
   const [hasExecutionFollowUpAccess, setHasExecutionFollowUpAccess] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
+  const [likeCount, setLikeCount] = useState(0);
+  const [commentCount, setCommentCount] = useState(0);
+  const [isCloned, setIsCloned] = useState(false);
+  const [isCloning, setIsCloning] = useState(false);
+  const [cloneCount, setCloneCount] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
 
   const projectId = params.id as string;
 
@@ -84,6 +94,28 @@ export default function ProjectPage() {
       if (!result.ok) throw new Error(`HTTP ${result.status}`);
       const promptsData  = await result.json();
       setPrompts(promptsData.prompts);
+
+      // Load community stats
+      if (project.isPublic) {
+        try {
+          const [likesRes, commentsRes] = await Promise.all([
+            fetch(`/api/community/likes?projectId=${projectId}`),
+            fetch(`/api/community/comments?projectId=${projectId}`),
+          ]);
+          if (likesRes.ok) {
+            const likesData = await likesRes.json();
+            setLikeCount(likesData.count || 0);
+          }
+          if (commentsRes.ok) {
+            const commentsData = await commentsRes.json();
+            setCommentCount(commentsData.comments?.length || 0);
+          }
+          // Set clone count
+          setCloneCount(project.cloneCount || 0);
+        } catch (e) {
+          console.error('Error loading community stats:', e);
+        }
+      }
 
     } catch (e: any) {
       console.error("Error fetching project data:", e);
@@ -196,6 +228,127 @@ export default function ProjectPage() {
       });
     }
   };
+
+  // Check if project is cloned by current user
+  useEffect(() => {
+    const checkIfCloned = async () => {
+      if (!user || !project?.isPublic) {
+        setIsCloned(false);
+        return;
+      }
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch('/api/project-clones', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (res.ok) {
+          const { clones } = await res.json();
+          const cloned = (clones ?? []).some((clone: any) => clone.sourceProjectId === projectId);
+          setIsCloned(cloned);
+        }
+      } catch (error) {
+        console.error('Error checking clone status:', error);
+      }
+    };
+    checkIfCloned();
+  }, [user, project, projectId]);
+
+  // Check if project is liked by current user
+  useEffect(() => {
+    const checkIfLiked = async () => {
+      if (!user || !project?.isPublic) {
+        setIsLiked(false);
+        return;
+      }
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch(`/api/community/likes?projectId=${projectId}&userId=${user.uid}`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setIsLiked(data.liked || false);
+        }
+      } catch (error) {
+        console.error('Error checking like status:', error);
+      }
+    };
+    checkIfLiked();
+  }, [user, project, projectId]);
+
+  const handleLikeToggle = useCallback(async () => {
+    if (!user || !project?.isPublic || isLiking) return;
+    setIsLiking(true);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const action = isLiked ? 'unlike' : 'like';
+      
+      const res = await fetch('/api/community/likes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ projectId, action }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update like');
+      }
+
+      setIsLiked(!isLiked);
+      setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update like. Please try again.',
+      });
+    } finally {
+      setIsLiking(false);
+    }
+  }, [user, project, projectId, isLiked, isLiking, toast]);
+
+  const handleCloneProject = useCallback(async () => {
+    if (!user || !project || isCloning || isCloned) return;
+    setIsCloning(true);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: 'cloneProject', sourceProjectId: projectId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to clone project.');
+      }
+      toast({
+        title: 'Project cloned',
+        description: 'It is now available on your dashboard.',
+      });
+      setIsCloned(true);
+      setCloneCount((prev) => prev + 1);
+      router.push(`/projects/${data.cloneProjectId}`);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Clone failed',
+        description: error?.message || 'Unable to clone the project.',
+      });
+    } finally {
+      setIsCloning(false);
+    }
+  }, [user, project, projectId, isCloning, isCloned, router, toast]);
 
   const handleCopyAll = () => {
     if (!project || prompts.length === 0) {
@@ -464,53 +617,19 @@ export default function ProjectPage() {
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             {user ? 'Back to Dashboard' : 'Back to Home'}
           </Link>
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="outline"
-              onClick={handleCopyAll}
-              className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-[#00171f] dark:text-white font-medium py-2 px-4 rounded-xl transition-all duration-200 hover:shadow-md"
-            >
-              <Copy className="mr-2 h-4 w-4" />
-              Copy All
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleExportMarkdown}
-              className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-[#00171f] dark:text-white font-medium py-2 px-4 rounded-xl transition-all duration-200 hover:shadow-md"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Export Markdown
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleExportPDF}
-              className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-[#00171f] dark:text-white font-medium py-2 px-4 rounded-xl transition-all duration-200 hover:shadow-md"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Export PDF
-            </Button>
-            {userRole === 'owner' && (
-              <Button 
-                variant="outline" 
-                onClick={() => setShareDialogOpen(true)}
-                className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-[#00171f] dark:text-white font-medium py-2 px-4 rounded-xl transition-all duration-200 hover:shadow-md"
-              >
-                <Users className="mr-2 h-4 w-4" />
-                Share
-              </Button>
-            )}
-            {canEdit && (
+          {canEdit && (
+            <div className="flex items-center gap-3">
               <Link href={`/projects/${projectId}/edit`}>
                 <Button 
                   variant="outline"
-                  className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-[#00171f] dark:text-white font-medium py-2 px-4 rounded-xl transition-all duration-200 hover:shadow-md"
+                  className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-[#00171f] dark:text-white font-medium text-xs sm:text-sm py-1.5 px-3 sm:py-2 sm:px-4 rounded-xl transition-all duration-200 hover:shadow-md"
                 >
-                  <Pencil className="mr-2 h-4 w-4" />
+                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   Edit Project
                 </Button>
               </Link>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Project hero + summary */}
@@ -522,10 +641,10 @@ export default function ProjectPage() {
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 Active project
               </div>
-              <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f] dark:text-white">
+              <h1 className="font-headline text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-[#00171f] dark:text-white">
                 {project.name}
               </h1>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-xl">
+              <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-300 max-w-xl">
                 This page contains the AI role, original idea, and step‑by‑step prompts you can paste into any builder.
               </p>
             </div>
@@ -556,23 +675,38 @@ export default function ProjectPage() {
 
           {/* Tabs for Project Info & Development Plan */}
           <Tabs defaultValue="project-info" className="w-full">
-            <TabsList className="bg-transparent border-b border-gray-200 dark:border-gray-800 rounded-none p-0 h-auto w-full justify-start gap-0 mb-6">
-              <TabsTrigger 
-                value="project-info" 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors"
-              >
-                Project Info & AI role
-              </TabsTrigger>
-              <TabsTrigger 
-                value="development-plan" 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors"
-              >
-                Development plan
-                {prompts.length > 0 && (
-                  <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">({prompts.length})</span>
-                )}
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto -mx-4 sm:mx-0 mb-6">
+              <div className="min-w-max sm:min-w-0 px-4 sm:px-0">
+                <TabsList className="bg-transparent border-b border-gray-200 dark:border-gray-800 rounded-none p-0 h-auto w-full sm:w-full justify-start gap-0 inline-flex">
+                  <TabsTrigger 
+                    value="project-info" 
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors whitespace-nowrap"
+                  >
+                    Project Info & AI role
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="development-plan" 
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors whitespace-nowrap"
+                  >
+                    Development plan
+                    {prompts.length > 0 && (
+                      <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">({prompts.length})</span>
+                    )}
+                  </TabsTrigger>
+                  {project.isPublic && (
+                    <TabsTrigger 
+                      value="community" 
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors whitespace-nowrap"
+                    >
+                      Community
+                      {commentCount > 0 && (
+                        <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">({commentCount})</span>
+                      )}
+                    </TabsTrigger>
+                  )}
+                </TabsList>
+              </div>
+            </div>
 
             <TabsContent value="project-info" className="mt-0">
               {/* Overview: AI role + idea stacked */}
@@ -676,7 +810,7 @@ export default function ProjectPage() {
                   <div className="space-y-8">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                       <div>
-                        <h3 className="text-2xl sm:text-3xl font-bold font-headline text-[#00171f] dark:text-white">
+                        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold font-headline text-[#00171f] dark:text-white">
                           Development plan
                         </h3>
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -715,9 +849,142 @@ export default function ProjectPage() {
                 )}
               </div>
             </TabsContent>
+
+            {project.isPublic && (
+              <TabsContent value="community" className="mt-0">
+                <div className="space-y-6">
+                  {/* Like and Favorite Actions */}
+                  <div className="flex items-center gap-4 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f]">
+                    <LikeButton projectId={projectId} initialCount={likeCount} />
+                    <FavoriteButton projectId={projectId} />
+                    <div className="flex-1" />
+                  </div>
+
+                  {/* Comments Section */}
+                  <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] p-5 sm:p-6 shadow-sm">
+                    <CommentsSection projectId={projectId} />
+                  </div>
+                </div>
+              </TabsContent>
+            )}
           </Tabs>
         </section>
       </main>
+
+      {/* Floating Action Buttons */}
+      {project && (
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col gap-2 sm:gap-3">
+          {/* Copy All Button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleCopyAll}
+                  className="w-10 h-10 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center bg-purple-500 hover:bg-purple-600 transition-all duration-200 hover:scale-110"
+                  title="Copy All"
+                >
+                  <Copy className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs font-medium">Copy All</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Export Markdown Button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleExportMarkdown}
+                  className="w-10 h-10 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 transition-all duration-200 hover:scale-110"
+                  title="Export Markdown"
+                >
+                  <FileText className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs font-medium">Export Markdown</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Export PDF Button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleExportPDF}
+                  className="w-10 h-10 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center bg-teal-500 hover:bg-teal-600 transition-all duration-200 hover:scale-110"
+                  title="Export PDF"
+                >
+                  <Download className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs font-medium">Export PDF</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Share Button - Only for owners */}
+          {userRole === 'owner' && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setShareDialogOpen(true)}
+                    className="w-10 h-10 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center bg-orange-500 hover:bg-orange-600 transition-all duration-200 hover:scale-110"
+                    title="Share"
+                  >
+                    <Users className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs font-medium">Share</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
+          {/* Clone Button - Only for public projects */}
+          {project.isPublic && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {isCloned ? (
+                    <button
+                      className="w-10 h-10 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center bg-green-500 hover:bg-green-600 transition-all duration-200 hover:scale-110 cursor-default"
+                      title="Cloned"
+                    >
+                      <Check className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleCloneProject}
+                      disabled={!user || isCloning}
+                      className={`w-10 h-10 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center bg-blue-500 hover:bg-blue-600 transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed ${
+                        isCloning ? 'cursor-wait' : ''
+                      }`}
+                      title="Clone"
+                    >
+                      {isCloning ? (
+                        <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 text-white animate-spin" />
+                      ) : (
+                        <GitFork className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                      )}
+                    </button>
+                  )}
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs font-medium">{isCloned ? 'Cloned' : 'Clone'} ({cloneCount})</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+      )}
 
     </div>
     {project && user && userRole === 'owner' && (
