@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
         projectsCloned: 0,
         totalLikes: 0,
         totalComments: 0,
-        badges: [],
+        badges: [] as string[],
       };
 
       await db.collection('userProfiles').doc(userId).set(defaultProfile);
