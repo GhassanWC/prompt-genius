@@ -3,7 +3,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUserId } from '@/lib/auth';
 import { getDb, getAdminAuth } from '@/lib/firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 const db = getDb();
 
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
         .limit(50)
         .get();
 
-      const collections = collectionsSnapshot.docs.map(doc => {
+      const collections = collectionsSnapshot.docs.map((doc: QueryDocumentSnapshot) => {
         const data = doc.data();
         return {
           id: doc.id,
@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
         .orderBy('createdAt', 'desc')
         .get();
 
-      const collections = collectionsSnapshot.docs.map(doc => {
+      const collections = collectionsSnapshot.docs.map((doc: QueryDocumentSnapshot) => {
         const data = doc.data();
         return {
           id: doc.id,
