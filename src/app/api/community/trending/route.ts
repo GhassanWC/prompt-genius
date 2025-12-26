@@ -67,15 +67,15 @@ export async function GET(req: NextRequest) {
         ]);
 
         // Filter by time period
-        const likesInPeriod = likes.docs.filter(doc => {
+        const likesInPeriod = likes.docs.filter((doc: QueryDocumentSnapshot) => {
           const createdAt = doc.data().createdAt?.toDate();
           return createdAt && createdAt >= timeThreshold;
         });
-        const clonesInPeriod = clones.docs.filter(doc => {
+        const clonesInPeriod = clones.docs.filter((doc: QueryDocumentSnapshot) => {
           const createdAt = doc.data().createdAt?.toDate();
           return createdAt && createdAt >= timeThreshold;
         });
-        const commentsInPeriod = comments.docs.filter(doc => {
+        const commentsInPeriod = comments.docs.filter((doc: QueryDocumentSnapshot) => {
           const createdAt = doc.data().createdAt?.toDate();
           return createdAt && createdAt >= timeThreshold;
         });
