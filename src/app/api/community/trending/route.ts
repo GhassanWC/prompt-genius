@@ -2,6 +2,7 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/firebase-admin';
+import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 const db = getDb();
 
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
       .get();
 
     const projectsWithScores = await Promise.all(
-      projectsSnapshot.docs.map(async (doc) => {
+      projectsSnapshot.docs.map(async (doc: QueryDocumentSnapshot) => {
         const project = doc.data();
         const projectId = doc.id;
         const createdAt = project.createdAt?.toDate() || new Date();

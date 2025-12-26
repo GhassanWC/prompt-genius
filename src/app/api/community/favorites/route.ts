@@ -3,7 +3,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUserId } from '@/lib/auth';
 import { getDb } from '@/lib/firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 const db = getDb();
 
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
       .orderBy('createdAt', 'desc')
       .get();
 
-    const favorites = favoritesSnapshot.docs.map(doc => ({
+    const favorites = favoritesSnapshot.docs.map((doc: QueryDocumentSnapshot) => ({
       id: doc.id,
       projectId: doc.data().projectId,
       createdAt: doc.data().createdAt?.toDate(),

@@ -3,7 +3,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUserId } from '@/lib/auth';
 import { getDb, getAdminAuth } from '@/lib/firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 const db = getDb();
 
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       .get();
 
     const comments = await Promise.all(
-      commentsSnapshot.docs.map(async (doc) => {
+      commentsSnapshot.docs.map(async (doc: QueryDocumentSnapshot) => {
         const data = doc.data();
         // Get user info
         let userDisplayName = 'Anonymous';
