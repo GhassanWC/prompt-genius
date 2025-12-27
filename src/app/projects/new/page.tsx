@@ -119,23 +119,23 @@ function NewProjectPageContent() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-16 w-16 animate-spin text-[#00171f]" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-16 w-16 animate-spin text-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#00171f] relative overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
       {/* Subtle geometric background pattern */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02] dark:opacity-[0.03]">
         <div className="absolute inset-0" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-0 font-bold group">
             <Image
@@ -145,7 +145,7 @@ function NewProjectPageContent() {
               height={60}
               className="ml-1 mr-1"
             />
-            <h1 className="font-headline text-xl text-[#00171f] tracking-tight hidden sm:block">
+            <h1 className="font-headline text-xl text-foreground tracking-tight hidden sm:block">
               Prompt Genius AI
             </h1>
           </Link>
@@ -158,7 +158,7 @@ function NewProjectPageContent() {
       <main className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Back link */}
         <div className="mb-8">
-          <Link href="/dashboard" className="inline-flex items-center text-sm text-gray-600 hover:text-[#00171f] transition-all duration-200 font-medium group">
+          <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-all duration-200 font-medium group">
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back to Dashboard
           </Link>
@@ -166,10 +166,10 @@ function NewProjectPageContent() {
 
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#00171f]">
+          <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
             Create a New Project
           </h1>
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-4 text-lg text-muted-foreground">
             Start by giving your project a name and describing your idea.
           </p>
         </div>
@@ -177,7 +177,7 @@ function NewProjectPageContent() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-2">
-            <Label htmlFor="project-name" className="text-base font-semibold text-[#00171f]">
+            <Label htmlFor="project-name" className="text-base font-semibold text-foreground">
               Project Name
             </Label>
             <Input
@@ -185,14 +185,14 @@ function NewProjectPageContent() {
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
               placeholder="e.g., 'Coffee Finder App'"
-              className="p-4 text-base border-gray-200 focus:border-[#00171f] focus:ring-[#00171f] rounded-xl"
+              className="p-4 text-base rounded-xl text-foreground"
               disabled={isLoading}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="idea" className="text-base font-semibold text-[#00171f]">
+            <Label htmlFor="idea" className="text-base font-semibold text-foreground">
               Your Big Idea
             </Label>
             <Textarea
@@ -200,14 +200,14 @@ function NewProjectPageContent() {
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
               placeholder={`e.g., "${exampleIdea}"`}
-              className="min-h-[150px] text-base resize-none p-4 border-gray-200 focus:border-[#00171f] focus:ring-[#00171f] rounded-xl"
+              className="min-h-[150px] text-base resize-none p-4 rounded-xl text-foreground"
               disabled={isLoading}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tags" className="text-base font-semibold text-[#00171f]">
+            <Label htmlFor="tags" className="text-base font-semibold text-foreground">
               Tags (Optional)
             </Label>
             <TagInput
@@ -216,14 +216,14 @@ function NewProjectPageContent() {
               placeholder="e.g., web-app, saas, mobile..."
               maxTags={10}
             />
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Add tags to organize and filter your projects. Press Enter to add a tag.
             </p>
           </div>
           
           <Button 
             type="submit" 
-            className="w-full bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 font-semibold text-lg py-6 rounded-full transition-all duration-200"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-lg shadow-primary/20 font-semibold text-lg py-6 rounded-full transition-all duration-200"
             size="lg"
             disabled={isLoading || !idea.trim() || !projectName.trim()}
           >
@@ -242,14 +242,14 @@ function NewProjectPageContent() {
         </form>
 
         {error && (
-          <Alert variant="destructive" className="mt-6 bg-red-50 border-red-200 text-red-800 rounded-2xl">
+          <Alert variant="destructive" className="mt-6 rounded-2xl">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle className="font-semibold">Error Creating Project</AlertTitle>
             <AlertDescription className="font-medium">
               {error}
               {error.includes('limit') && (
                 <Link href="/#pricing" className="block mt-3">
-                  <Button variant="outline" className="border-red-300 text-red-700 hover:bg-red-100 rounded-xl">
+                  <Button variant="outline" className="rounded-xl">
                     <Lock className="mr-2 h-4 w-4"/> Upgrade Plan
                   </Button>
                 </Link>
@@ -265,8 +265,8 @@ function NewProjectPageContent() {
 export default function NewProjectPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-16 w-16 animate-spin text-[#00171f]" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-16 w-16 animate-spin text-foreground" />
       </div>
     }>
       <NewProjectPageContent />
