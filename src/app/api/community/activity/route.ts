@@ -66,9 +66,9 @@ export async function GET(req: NextRequest) {
     // Get project details for liked and favorited projects
     const allProjectIds = [
       ...new Set([
-        ...likedProjectIds.map((item) => item.projectId),
-        ...favoritedProjectIds.map((item) => item.projectId),
-        ...userComments.map((comment) => comment.projectId),
+        ...likedProjectIds.map((item: { projectId: string }) => item.projectId),
+        ...favoritedProjectIds.map((item: { projectId: string }) => item.projectId),
+        ...userComments.map((comment: { projectId: string }) => comment.projectId),
       ]),
     ];
 
@@ -125,15 +125,15 @@ export async function GET(req: NextRequest) {
 
     // Combine all interactions and sort by interactedAt (sort in memory)
     const allInteractions = [
-      ...likedProjectIds.map((item) => ({
+      ...likedProjectIds.map((item: { projectId: string }) => ({
         ...item,
         project: projectsData[item.projectId],
       })),
-      ...favoritedProjectIds.map((item) => ({
+      ...favoritedProjectIds.map((item: { projectId: string }) => ({
         ...item,
         project: projectsData[item.projectId],
       })),
-      ...userComments.map((comment) => ({
+      ...userComments.map((comment:any) => ({
         ...comment,
         project: projectsData[comment.projectId],
       })),
