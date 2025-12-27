@@ -10,6 +10,7 @@ import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Search, Lock, Rocket, GitFork, Check, TrendingUp, Heart, Star, Clock } from 'lucide-react';
 import { LikeButton } from '@/components/community/like-button';
+import { FavoriteButton } from '@/components/community/favorite-button';
 import { formatDistanceToNow } from 'date-fns';
 import { TrendingBadge } from '@/components/community/trending-badge';
 import { UserNav } from '@/components/user-nav';
@@ -77,10 +78,12 @@ export default function CommunityPage() {
   const [hasMore, setHasMore] = useState(true);
   const [clonedSourceIds, setClonedSourceIds] = useState<Set<string>>(() => new Set());
   const [cloningProjectId, setCloningProjectId] = useState<string | null>(null);
+  const [userClonesLoaded, setUserClonesLoaded] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'trending' | 'most-liked' | 'most-cloned'>('recent');
   const [trendingProjects, setTrendingProjects] = useState<string[]>([]);
+  const [trendingLoaded, setTrendingLoaded] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -116,9 +119,17 @@ export default function CommunityPage() {
     const loadFirstPage = async () => {
       setLoadingInitial(true);
       try {
+        // Get auth token if user is logged in
+        const token = user ? await auth.currentUser?.getIdToken() : null;
         const res = await fetch(
           `/api/projects?public=true&count=${PAGE_SIZE}`,
-          { cache: 'no-store' }
+          {
+            cache: 'no-store',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }
         );
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         const { projects, nextCursor: cursor } = await res.json();
@@ -137,7 +148,7 @@ export default function CommunityPage() {
 
     loadFirstPage();
     loadTrending();
-  }, [canAccessCommunity]);
+  }, [canAccessCommunity, user]);
 
   const loadTrending = async () => {
     try {
@@ -148,51 +159,75 @@ export default function CommunityPage() {
       }
     } catch (e) {
       console.error('Failed to load trending:', e);
+    } finally {
+      setTrendingLoaded(true);
     }
   };
 
   const loadMore = useCallback(async () => {
+    // Prevent multiple simultaneous loads
     if (!hasMore || loadingMore || !canAccessCommunity) return;
-    if (!nextCursor) return;
+    if (!nextCursor) {
+      setHasMore(false);
+      return;
+    }
 
     setLoadingMore(true);
     try {
+      // Get auth token if user is logged in
+      const token = user ? await auth.currentUser?.getIdToken() : null;
       const res = await fetch(
         `/api/projects?public=true&count=${PAGE_SIZE}&cursor=${encodeURIComponent(
           nextCursor
         )}`,
-        { cache: 'no-store' }
+        {
+          cache: 'no-store',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
       );
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       const { projects: more, nextCursor: cursor } = await res.json();
-      setPublicProjects((prev) => [...prev, ...(more || [])]);
-      setNextCursor(cursor || null);
-      setHasMore(Boolean(cursor));
+      
+      if (more && more.length > 0) {
+        setPublicProjects((prev) => [...prev, ...more]);
+        setNextCursor(cursor || null);
+        setHasMore(Boolean(cursor));
+      } else {
+        // No more projects available
+        setHasMore(false);
+        setNextCursor(null);
+      }
     } catch (e) {
       console.error('Failed to fetch more projects:', e);
+      // On error, stop trying to load more to prevent infinite retry loops
+      setHasMore(false);
     } finally {
       setLoadingMore(false);
     }
-  }, [hasMore, loadingMore, nextCursor, canAccessCommunity]);
+  }, [hasMore, loadingMore, nextCursor, canAccessCommunity, user]);
 
+  // Set up intersection observer for lazy loading
   useEffect(() => {
-    if (!sentinelRef.current) return;
+    if (!sentinelRef.current || !hasMore || loadingMore) return;
 
     observerRef.current?.disconnect();
     observerRef.current = new IntersectionObserver(
       (entries) => {
         const first = entries[0];
-        if (first.isIntersecting) {
+        if (first.isIntersecting && hasMore && !loadingMore) {
           loadMore();
         }
       },
-      { rootMargin: '300px 0px' }
+      { rootMargin: '400px 0px' } // Start loading 400px before reaching the bottom
     );
 
     observerRef.current.observe(sentinelRef.current);
 
     return () => observerRef.current?.disconnect();
-  }, [loadMore]);
+  }, [loadMore, hasMore, loadingMore]);
 
   const filteredProjects = useMemo(() => {
     let filtered = publicProjects;
@@ -217,14 +252,26 @@ export default function CommunityPage() {
       });
     } else if (sortBy === 'most-liked') {
       filtered = filtered.sort((a, b) => {
-        const aLikes = (a as any).likeCount || 0;
-        const bLikes = (b as any).likeCount || 0;
+        const aLikes = (a as any).likeCount ?? 0;
+        const bLikes = (b as any).likeCount ?? 0;
+        // If likes are equal, sort by most recent
+        if (aLikes === bLikes) {
+          const aDate = new Date(a.createdAt as any).getTime();
+          const bDate = new Date(b.createdAt as any).getTime();
+          return bDate - aDate;
+        }
         return bLikes - aLikes;
       });
     } else if (sortBy === 'most-cloned') {
       filtered = filtered.sort((a, b) => {
-        const aClones = a.cloneCount || 0;
-        const bClones = b.cloneCount || 0;
+        const aClones = a.cloneCount ?? 0;
+        const bClones = b.cloneCount ?? 0;
+        // If clones are equal, sort by most recent
+        if (aClones === bClones) {
+          const aDate = new Date(a.createdAt as any).getTime();
+          const bDate = new Date(b.createdAt as any).getTime();
+          return bDate - aDate;
+        }
         return bClones - aClones;
       });
     } else {
@@ -240,7 +287,10 @@ export default function CommunityPage() {
   }, [searchTerm, publicProjects, sortBy, trendingProjects]);
 
   const fetchUserClones = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setUserClonesLoaded(true); // Mark as loaded even if no user
+      return;
+    }
     try {
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch('/api/project-clones', {
@@ -256,12 +306,14 @@ export default function CommunityPage() {
       setClonedSourceIds(new Set((clones ?? []).map((clone: any) => clone.sourceProjectId)));
     } catch (error) {
       console.error('Failed to fetch clones metadata', error);
+    } finally {
+      setUserClonesLoaded(true);
     }
   }, [user]);
 
   useEffect(() => {
-    if (user) fetchUserClones();
-  }, [user, fetchUserClones]);
+    fetchUserClones();
+  }, [fetchUserClones]);
 
   const handleCloneProject = useCallback(
     async (projectId: string, event?: MouseEvent<HTMLButtonElement>) => {
@@ -283,16 +335,20 @@ export default function CommunityPage() {
         if (!res.ok) {
           throw new Error(data?.error || 'Failed to clone project.');
         }
-        toast({
-          title: 'Project cloned',
-          description: 'It is now available on your dashboard.',
-        });
+        // Update cloned state immediately for visual feedback
         setClonedSourceIds((prev) => {
           const next = new Set(prev);
           next.add(projectId);
           return next;
         });
-        router.push(`/projects/${data.cloneProjectId}`);
+        toast({
+          title: 'Project cloned',
+          description: 'It is now available on your dashboard.',
+        });
+        // Small delay to show the green state before redirecting
+        setTimeout(() => {
+          router.push(`/projects/${data.cloneProjectId}`);
+        }, 300);
       } catch (error: any) {
         toast({
           variant: 'destructive',
@@ -318,7 +374,7 @@ export default function CommunityPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-[#00171f]/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-0 font-bold group">
+          <Link href="/" className="flex items-center gap-0 font-bold group">
             <Image
               src="/logo.png"
               alt="Prompt Genius Logo"
@@ -402,7 +458,7 @@ export default function CommunityPage() {
           </div>
         ) : !canAccessCommunity ? (
           <AccessDenied />
-        ) : loadingInitial ? (
+        ) : loadingInitial || !userClonesLoaded || !trendingLoaded ? (
           <div className="space-y-6">
             {/* Category Skeleton */}
             <div className="mb-6">
@@ -450,7 +506,7 @@ export default function CommunityPage() {
                       : 'bg-white dark:bg-[#00171f] border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                 >
-                  All
+                  Recent
                 </Button>
                 <Button
                   variant={sortBy === 'trending' ? 'default' : 'outline'}
@@ -496,7 +552,7 @@ export default function CommunityPage() {
 
             {filteredProjects.length > 0 ? (
               <section>
-                <div className="grid w-full gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid w-full gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredProjects.map((project) => {
                       const createdDate = formatCommunityDate(project.createdAt as any);
                       const cloneCount = project.cloneCount ?? 0;
@@ -504,68 +560,86 @@ export default function CommunityPage() {
                         (project as any).author?.displayName || 'Community project';
                       const relativeDate = formatDistanceToNow(new Date(project.createdAt as any), { addSuffix: true });
 
+                      const likeCount = (project as any).likeCount ?? 0;
+                      const favoriteCount = (project as any).favoriteCount ?? 0;
+                      // Extract boolean values - server sets these explicitly as true/false
+                      // Use strict check to ensure we get the actual value
+                      const isLiked = (project as any).isLiked === true;
+                      const isFavorited = (project as any).isFavorited === true;
+                      const isTrending = trendingProjects.includes(project.id);
+
                       return (
-                        <div key={project.id} className="group">
-                          <div className="bg-white dark:bg-[#00171f] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 overflow-hidden">
-                            <Link href={`/projects/${project.id}`} className="block">
-                              {/* Project Idea Preview - Modern Card Style */}
-                              <div className="relative w-full bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
-                                <div className="p-5 pb-4">
-                                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3 font-normal">
-                                    {project.idea || 'No description provided.'}
-                                  </p>
-                                </div>
-                                {trendingProjects.includes(project.id) && (
-                                  <div className="absolute top-3 right-3 z-10">
+                        <div key={`project-${project.id}`} className="group">
+                          <div className="relative bg-white dark:bg-[#00171f] rounded-3xl border border-gray-100 dark:border-gray-800/50 shadow-sm hover:shadow-2xl hover:shadow-[#00171f]/5 dark:hover:shadow-white/5 hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-500 overflow-hidden backdrop-blur-sm">
+                            {/* Subtle gradient overlay on hover */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-gray-50/50 dark:to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                            
+                            <Link href={`/projects/${project.id}`} className="block relative z-10">
+                              {/* Card Header with Title */}
+                              <div className="relative p-6 pb-4">
+                                {isTrending && (
+                                  <div className="absolute top-4 right-4 z-20">
                                     <TrendingBadge 
                                       rank={trendingProjects.indexOf(project.id) + 1} 
                                       period="weekly"
                                     />
                                   </div>
                                 )}
-                              </div>
-
-                              {/* Card Content */}
-                              <div className="p-5 pt-4">
-                                {/* Title */}
-                                <h3 className="text-sm sm:text-base font-semibold text-[#00171f] dark:text-white line-clamp-2 mb-3 group-hover:text-[#00171f]/80 dark:group-hover:text-white/80 transition-colors">
+                                
+                                {/* Title - Prominent */}
+                                <h3 className="text-lg font-bold text-[#00171f] dark:text-white line-clamp-2 mb-3 group-hover:text-[#00171f]/90 dark:group-hover:text-white/90 transition-colors pr-12">
                                   {project.name}
                                 </h3>
 
-                                {/* Creator Info */}
-                                <div className="flex items-center gap-2.5 mb-3">
-                                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00171f] to-gray-700 dark:from-gray-600 dark:to-gray-800 flex items-center justify-center flex-shrink-0 shadow-sm">
-                                    <span className="text-xs font-semibold text-white">
-                                      {authorName?.[0]?.toUpperCase() || 'U'}
-                                    </span>
+                                {/* Description */}
+                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3 font-normal">
+                                  {project.idea || 'No description provided.'}
+                                </p>
+                              </div>
+
+                              {/* Card Footer with Author and Stats */}
+                              <div className="px-6 pb-4 space-y-3">
+                                {/* Author Info */}
+                                <div className="flex items-center gap-3">
+                                  <div className="relative">
+                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00171f] via-[#00171f] to-gray-800 dark:from-gray-700 dark:via-gray-600 dark:to-gray-800 flex items-center justify-center flex-shrink-0 shadow-md ring-2 ring-white dark:ring-[#00171f]">
+                                      <span className="text-xs font-bold text-white">
+                                        {authorName?.[0]?.toUpperCase() || 'U'}
+                                      </span>
+                                    </div>
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400 truncate">
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                                       {authorName}
                                     </p>
+                                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                      <span className="flex items-center gap-1">
+                                        <GitFork className="h-3 w-3" />
+                                        {cloneCount}
+                                      </span>
+                                      <span className="text-gray-300 dark:text-gray-600">•</span>
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {relativeDate}
+                                      </span>
+                                    </div>
                                   </div>
-                                </div>
-
-                                {/* Stats Row */}
-                                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
-                                  <span className="font-medium">{cloneCount} clone{cloneCount !== 1 ? 's' : ''}</span>
-                                  <span className="text-gray-300 dark:text-gray-600">•</span>
-                                  <span>{relativeDate}</span>
                                 </div>
                               </div>
                             </Link>
 
-                            {/* Action Buttons */}
-                            <div className="px-5 pb-5 flex items-center gap-2.5 border-t border-gray-100 dark:border-gray-800 pt-4" onClick={(e) => e.preventDefault()}>
-                              <LikeButton projectId={project.id} />
+                            {/* Action Buttons - Modern Design */}
+                            <div className="px-6 pb-6 flex items-center gap-3 border-t border-gray-100/50 dark:border-gray-800/50 bg-gray-50/30 dark:bg-gray-900/20 pt-4" onClick={(e) => e.preventDefault()}>
+                              <LikeButton key={`like-${project.id}`} projectId={project.id} initialCount={likeCount} initialLiked={isLiked} />
+                              <FavoriteButton key={`fav-${project.id}`} projectId={project.id} initialCount={favoriteCount} initialFavorited={isFavorited} />
                               {clonedSourceIds.has(project.id) ? (
                                 <div 
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 cursor-default"
+                                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 cursor-default shadow-sm"
                                   title="Cloned"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <Check className="h-3.5 w-3.5 text-[#00171f] dark:text-white" />
-                                  <span className="text-xs font-medium text-[#00171f] dark:text-white">
+                                  <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                  <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
                                     {cloneCount}
                                   </span>
                                 </div>
@@ -574,18 +648,18 @@ export default function CommunityPage() {
                                   variant="default"
                                   size="sm"
                                   title="Clone"
-                                  className={`flex items-center gap-1.5 px-3 py-1.5 h-auto rounded-full transition-all duration-200 shadow-sm bg-[#00171f] text-white hover:bg-[#00171f]/90 ${
+                                  className={`flex items-center gap-2 px-4 py-2 h-auto rounded-xl transition-all duration-200 shadow-md bg-gradient-to-r from-[#00171f] to-gray-800 dark:from-gray-700 dark:to-gray-900 text-white hover:from-[#00171f]/90 hover:to-gray-700 dark:hover:from-gray-600 dark:hover:to-gray-800 active:scale-95 ${
                                     cloningProjectId === project.id ? 'cursor-wait opacity-80' : ''
                                   }`}
                                   onClick={(event) => handleCloneProject(project.id, event)}
                                   disabled={!user || Boolean(cloningProjectId)}
                                 >
                                   {cloningProjectId === project.id ? (
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    <Loader2 className="h-4 w-4 animate-spin" />
                                   ) : (
-                                    <GitFork className="h-3.5 w-3.5" />
+                                    <GitFork className="h-4 w-4" />
                                   )}
-                                  <span className="text-xs font-medium">
+                                  <span className="text-sm font-semibold">
                                     {cloneCount}
                                   </span>
                                 </Button>
@@ -597,16 +671,20 @@ export default function CommunityPage() {
                     })}
                   </div>
 
-                <div ref={sentinelRef} className="flex h-16 items-center justify-center">
+                {/* Lazy Loading Sentinel - triggers loadMore when scrolled into view */}
+                <div ref={sentinelRef} className="flex h-20 items-center justify-center py-8">
                   {loadingMore && (
-                    <div className="flex gap-2">
-                      <div className="h-3 w-3 rounded-full bg-[#00171f]/30 animate-pulse" />
-                      <div className="h-3 w-3 rounded-full bg-[#00171f]/30 animate-pulse delay-100" />
-                      <div className="h-3 w-3 rounded-full bg-[#00171f]/30 animate-pulse delay-200" />
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="flex gap-2">
+                        <div className="h-3 w-3 rounded-full bg-[#00171f] dark:bg-white/40 animate-pulse" />
+                        <div className="h-3 w-3 rounded-full bg-[#00171f] dark:bg-white/40 animate-pulse" style={{ animationDelay: '150ms' }} />
+                        <div className="h-3 w-3 rounded-full bg-[#00171f] dark:bg-white/40 animate-pulse" style={{ animationDelay: '300ms' }} />
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Loading more projects...</p>
                     </div>
                   )}
-                  {!hasMore && !loadingMore && (
-                    <p className="text-sm text-gray-500">You've reached the end.</p>
+                  {!hasMore && !loadingMore && publicProjects.length > 0 && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">You've reached the end.</p>
                   )}
                 </div>
               </section>

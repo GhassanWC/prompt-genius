@@ -73,7 +73,14 @@ export async function GET(req: NextRequest) {
     if (publicFeed) {
       const count = Number(searchParams.get('count') ?? 12);
       const cursor = searchParams.get('cursor'); // optional
-      const page = await getPublicProjectsPage(count, cursor);
+      // Try to get userId if available (optional, won't fail if not authenticated)
+      let userId: string | null = null;
+      try {
+        userId = await getCurrentUserId();
+      } catch {
+        // User not authenticated, that's fine for public feed
+      }
+      const page = await getPublicProjectsPage(count, cursor, userId);
       return NextResponse.json(page); // -> { projects, nextCursor }
     }
 

@@ -126,6 +126,8 @@ const chunkArray = <T,>(arr: T[], size: number): T[][] =>
   }, []);
 
 const CLONE_COUNT_CHUNK_SIZE = 10;
+const FAVORITE_COUNT_CHUNK_SIZE = 10;
+const LIKE_COUNT_CHUNK_SIZE = 10;
 
 export const getCloneCountsForProjectIds = async (
   projectIds: string[]
@@ -147,6 +149,74 @@ export const getCloneCountsForProjectIds = async (
   }
 
   return counts;
+};
+
+export const getFavoriteCountsForProjectIds = async (
+  projectIds: string[]
+): Promise<Record<string, number>> => {
+  const counts: Record<string, number> = {};
+  const uniqueIds = Array.from(new Set(projectIds));
+  if (uniqueIds.length === 0) return counts;
+
+  const chunks = chunkArray(uniqueIds, FAVORITE_COUNT_CHUNK_SIZE);
+  for (const chunk of chunks) {
+    const snap = await col('projectFavorites')
+      .where('projectId', 'in', chunk)
+      .get();
+    snap.docs.forEach((doc: any) => {
+      const projectId = doc.get('projectId');
+      if (!projectId) return;
+      counts[projectId] = (counts[projectId] ?? 0) + 1;
+    });
+  }
+
+  return counts;
+};
+
+export const getUserLikesForProjectIds = async (
+  userId: string,
+  projectIds: string[]
+): Promise<Set<string>> => {
+  const likedIds = new Set<string>();
+  if (!userId || projectIds.length === 0) return likedIds;
+
+  // Fetch all likes for the user and filter in memory (more efficient than multiple queries)
+  const projectIdsSet = new Set(projectIds);
+  const snap = await col('projectLikes')
+    .where('userId', '==', userId)
+    .get();
+  
+  snap.docs.forEach((doc: any) => {
+    const projectId = doc.get('projectId');
+    if (projectId && projectIdsSet.has(projectId)) {
+      likedIds.add(projectId);
+    }
+  });
+
+  return likedIds;
+};
+
+export const getUserFavoritesForProjectIds = async (
+  userId: string,
+  projectIds: string[]
+): Promise<Set<string>> => {
+  const favoritedIds = new Set<string>();
+  if (!userId || projectIds.length === 0) return favoritedIds;
+
+  // Fetch all favorites for the user and filter in memory (more efficient than multiple queries)
+  const projectIdsSet = new Set(projectIds);
+  const snap = await col('projectFavorites')
+    .where('userId', '==', userId)
+    .get();
+  
+  snap.docs.forEach((doc: any) => {
+    const projectId = doc.get('projectId');
+    if (projectId && projectIdsSet.has(projectId)) {
+      favoritedIds.add(projectId);
+    }
+  });
+
+  return favoritedIds;
 };
 
 function tsToDate(ts: any): Date {
@@ -790,7 +860,7 @@ function tsFromCursor(raw?: string | null): Timestamp | null {
   return Timestamp.fromMillis(ms);
 }
 
-export async function getPublicProjectsPage(count = 12, cursor?: string | null): Promise<Page> {
+export async function getPublicProjectsPage(count = 12, cursor?: string | null, userId?: string | null): Promise<Page> {
   const db = getDb();
 
   let q: FirebaseFirestore.Query = db
@@ -815,15 +885,37 @@ export async function getPublicProjectsPage(count = 12, cursor?: string | null):
       createdAt: tsToDate(data.createdAt),
       roles: data.roles || {},
       members: data.members || {},
+      likeCount: data.likeCount || 0,
     };
   });
 
   if (projects.length === 0) return { projects, nextCursor: null };
 
-  const ownerUids = projects
-    .map((p) => Object.keys(p.roles || {}).find((uid) => (p.roles as any)[uid] === 'owner'))
-    .filter(Boolean) as string[];
+  const projectIds = projects.map((p) => p.id);
 
+  // Fetch all counts and user status in parallel
+  const [ownerUids, cloneCounts, favoriteCounts, userLikes, userFavorites] = await Promise.all([
+    Promise.resolve(
+      projects
+        .map((p) => Object.keys(p.roles || {}).find((uid) => (p.roles as any)[uid] === 'owner'))
+        .filter(Boolean) as string[]
+    ),
+    getCloneCountsForProjectIds(projectIds),
+    getFavoriteCountsForProjectIds(projectIds),
+    userId ? getUserLikesForProjectIds(userId, projectIds) : Promise.resolve(new Set<string>()),
+    userId ? getUserFavoritesForProjectIds(userId, projectIds) : Promise.resolve(new Set<string>()),
+  ]);
+
+  // Add clone and favorite counts
+  projects.forEach((project) => {
+    project.cloneCount = cloneCounts[project.id] ?? 0;
+    (project as any).favoriteCount = favoriteCounts[project.id] ?? 0;
+    // Ensure boolean values are explicitly set (not undefined)
+    (project as any).isLiked = userLikes.has(project.id) ? true : false;
+    (project as any).isFavorited = userFavorites.has(project.id) ? true : false;
+  });
+
+  // Fetch owner information
   if (ownerUids.length > 0) {
     const unique = Array.from(new Set(ownerUids));
     const chunk = <T>(arr: T[], size: number) =>
@@ -845,13 +937,6 @@ export async function getPublicProjectsPage(count = 12, cursor?: string | null):
           photoURL: od?.photoURL || null,
         };
       }
-    });
-  }
-
-  if (projects.length > 0) {
-    const cloneCounts = await getCloneCountsForProjectIds(projects.map((project) => project.id));
-    projects.forEach((project) => {
-      project.cloneCount = cloneCounts[project.id] ?? 0;
     });
   }
 

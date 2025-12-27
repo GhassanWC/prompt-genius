@@ -37,6 +37,7 @@ export interface Project {
     photoURL: string | null;
   }
   cloneCount?: number;
+  likeCount?: number;
 }
 
 // Type for a prompt

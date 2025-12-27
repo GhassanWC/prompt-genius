@@ -78,7 +78,7 @@ export default function TemplatesPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-[#00171f]/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-0 font-bold group">
+          <Link href="/" className="flex items-center gap-0 font-bold group">
             <Image
               src="/logo.png"
               alt="Prompt Genius Logo"
