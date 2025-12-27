@@ -6,6 +6,7 @@ import { AuthProvider } from '@/context/auth-context';
 import { ThemeProvider } from '@/context/theme-context';
 import { AlertTriangle } from 'lucide-react';
 import { AnalyticsListener } from '@/components/analytics-listener';
+import { ThemeToggle } from '@/components/theme-toggle';
 export const metadata: Metadata = {
   title: 'Prompt Genius AI',
   description: 'Decompose your big ideas into actionable prompts.',
@@ -137,6 +138,7 @@ export default function RootLayout({
             <AuthProvider>
                 <AnalyticsListener />
                 {children}
+                <ThemeToggle />
                 <Toaster />
             </AuthProvider>
           </ThemeProvider>

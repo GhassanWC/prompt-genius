@@ -12,7 +12,6 @@ import { LikeButton } from '@/components/community/like-button';
 import { FavoriteButton } from '@/components/community/favorite-button';
 import { CommentsSection } from '@/components/community/comments-section';
 import { UserNav } from '@/components/user-nav';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Logo } from '@/components/logo';
 import { PromptCard } from '@/components/prompt-card';
 import { useToast } from '@/hooks/use-toast';
@@ -592,9 +591,6 @@ export default function ProjectPage() {
             </h1>
           </Link>
           <div className="flex items-center gap-6">
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
             {user && <UserNav />}
             {!user && (
               <Link href="/login">
@@ -603,9 +599,6 @@ export default function ProjectPage() {
                 </Button>
               </Link>
             )}
-            <div className="md:hidden">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
       </header>

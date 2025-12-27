@@ -14,7 +14,6 @@ import { FavoriteButton } from '@/components/community/favorite-button';
 import { formatDistanceToNow } from 'date-fns';
 import { TrendingBadge } from '@/components/community/trending-badge';
 import { UserNav } from '@/components/user-nav';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getTier, Tier } from '@/lib/tiers';
@@ -387,9 +386,6 @@ export default function CommunityPage() {
             </h1>
           </Link>
           <div className="flex items-center gap-6">
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
             {user ? (
               <UserNav />
             ) : (
@@ -399,9 +395,6 @@ export default function CommunityPage() {
                 </Button>
               </Link>
             )}
-            <div className="md:hidden">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
       </header>

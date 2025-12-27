@@ -9,7 +9,6 @@ import Image from 'next/image';
 import type { Project, Prompt, Role } from '@/lib/projects';
 import { Loader2, ArrowLeft, AlertTriangle, PlusCircle, Save, Edit, ShieldAlert } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -323,13 +322,7 @@ export default function EditProjectPage() {
             </h1>
           </Link>
           <div className="flex items-center gap-6">
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
             <UserNav />
-            <div className="md:hidden">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
       </header>

@@ -8,7 +8,6 @@ import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageS
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserNav } from '@/components/user-nav';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { FeedbackDialog } from '@/components/feedback-dialog';
@@ -148,9 +147,6 @@ export default function LandingPage() {
             ))}
           </nav>
           <div className="flex items-center gap-6">
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
             {loading ? (
               <Skeleton className="h-10 w-24 rounded-full" />
             ) : user ? (
@@ -160,9 +156,6 @@ export default function LandingPage() {
                 <Link href="/login">Get Started</Link>
               </Button>
             )}
-            <div className="md:hidden">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
       </header>

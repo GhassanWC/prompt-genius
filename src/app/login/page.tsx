@@ -2,7 +2,6 @@
 
 import { Github, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -170,18 +169,12 @@ export default function LoginPage() {
                 </span>
               </Link>
               <div className="flex items-center gap-6">
-                <div className="hidden md:block">
-                  <ThemeToggle />
-                </div>
                 <Button asChild variant="ghost" className="text-gray-600 dark:text-gray-300 hover:text-[#00171f] dark:hover:text-white">
                   <Link href="/" className="flex items-center gap-2">
                     <ArrowLeft className="h-4 w-4" />
                     Back to Home
                   </Link>
                 </Button>
-                <div className="md:hidden">
-                  <ThemeToggle />
-                </div>
               </div>
             </div>
           </header>

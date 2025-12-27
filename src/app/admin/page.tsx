@@ -34,7 +34,6 @@ import {
   ToggleRight,
 } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -611,17 +610,11 @@ export default function AdminDashboardPage() {
             </h1>
           </Link>
           <div className="flex items-center gap-6">
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
             <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
               <Shield className="h-3 w-3 mr-1" />
               Admin
             </Badge>
             <UserNav />
-            <div className="md:hidden">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
       </header>

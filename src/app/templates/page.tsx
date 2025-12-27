@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { UserNav } from '@/components/user-nav';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { TEMPLATES, type PromptTemplate } from '@/lib/templates';
 import { ArrowLeft, Search, Sparkles, Clock, TrendingUp, Code, ShoppingCart, Globe, Smartphone, Zap, Loader2 } from 'lucide-react';
 
@@ -91,9 +90,6 @@ export default function TemplatesPage() {
             </h1>
           </Link>
           <div className="flex items-center gap-6">
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
             {user ? <UserNav /> : (
               <Link href="/login">
                 <Button className="bg-[#00171f] dark:bg-white dark:text-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 font-medium px-6 py-2 rounded-full transition-all duration-200">
@@ -101,9 +97,6 @@ export default function TemplatesPage() {
                 </Button>
               </Link>
             )}
-            <div className="md:hidden">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
       </header>

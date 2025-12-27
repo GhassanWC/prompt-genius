@@ -37,7 +37,6 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { UserNav } from "@/components/user-nav";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Badge } from "@/components/ui/badge";
@@ -215,13 +214,7 @@ export default function ProfilePage() {
             </span>
           </Link>
           <div className="flex items-center gap-6">
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
             <UserNav />
-            <div className="md:hidden">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
       </header>

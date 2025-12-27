@@ -16,7 +16,6 @@ import Image from 'next/image';
 import { getTier } from "@/lib/tiers";
 import { auth } from "@/lib/firebase";
 import { UserNav } from "@/components/user-nav";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { useSearchParams } from 'next/navigation';
 import { getTemplateById } from '@/lib/templates';
 
@@ -151,13 +150,7 @@ function NewProjectPageContent() {
             </h1>
           </Link>
           <div className="flex items-center gap-6">
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
             <UserNav />
-            <div className="md:hidden">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
       </header>
