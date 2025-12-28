@@ -4,12 +4,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
-import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageSquare, Rocket, XCircle, Loader2, Mail, Bot, Wrench, Users, Lightbulb, ListChecks, Share2, Twitter, Instagram } from 'lucide-react';
+import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageSquare, Rocket, XCircle, Loader2, Mail, Bot, Wrench, Users, Lightbulb, ListChecks, Share2, Twitter, Instagram, Play, Zap, FileText, GitFork, BookOpen, TrendingUp, Shield, Sparkles as SparklesIcon, Layers, Globe } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserNav } from '@/components/user-nav';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { FeedbackDialog } from '@/components/feedback-dialog';
 import { getPublicFeedback, type Testimonial } from '@/lib/feedback';
 import { createCheckout } from '@/lib/lemon';
@@ -33,6 +33,7 @@ export default function LandingPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loadingTestimonials, setLoadingTestimonials] = useState(true);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState<string | null>(null);
+  const [featureFilter, setFeatureFilter] = useState<'all' | 'free' | 'plus' | 'pro' | 'plus-pro'>('all');
 
   const navLinks = [
     { name: 'Features', href: '#features' },
@@ -42,22 +43,232 @@ export default function LandingPage() {
     { name: 'Pricing', href: '#pricing' },
   ];
 
-  const features = [
+  // Comprehensive features list with tier information
+  const allFeatures = [
     {
       icon: Lightbulb,
-      title: 'Turn Ideas into Actionable Prompts',
-      description: 'Stuck on what to ask your AI? Describe your product idea and get a complete breakdown with copy-paste ready prompts. Each prompt includes the right AI role and clear instructions — no guesswork.',
+      title: 'AI-Powered Idea Decomposition',
+      tier: 'Free',
+      description: 'Transform your product idea into a structured development plan with AI-generated prompts.',
+      example: 'Input: "Build a todo app with user authentication" → Output: Step-by-step prompts for login, database setup, CRUD operations, and UI components.',
+      advantages: [
+        'No more blank page syndrome',
+        'Get complete project breakdowns in seconds',
+        'Each prompt includes specific AI roles and context',
+        'Copy-paste ready for any AI builder'
+      ],
+      badge: 'FREE'
+    },
+    {
+      icon: Play,
+      title: 'Prompt Playground & Live Testing',
+      tier: 'Plus & Pro',
+      description: 'Test your prompts in real-time and see AI responses before using them in production.',
+      example: 'Click "Test Prompt" on any prompt card → See instant AI response → Verify it works correctly → Use with confidence.',
+      advantages: [
+        'Instant feedback loop',
+        'No context switching between tools',
+        'Build trust in prompt quality',
+        'Iterate and refine quickly'
+      ],
+      badge: 'PLUS & PRO'
+    },
+    {
+      icon: SparklesIcon,
+      title: 'AI Prompt Enhancement',
+      tier: 'Plus & Pro',
+      description: 'Refine rough prompts into clear, specific, and unambiguous instructions for AI models.',
+      example: 'Input: "make a button" → Enhanced: "Create a primary action button component with hover states, loading indicators, and accessibility attributes."',
+      advantages: [
+        'Improve prompt clarity automatically',
+        'Better AI understanding and execution',
+        'Professional-grade prompt engineering',
+        'Save time on prompt refinement'
+      ],
+      badge: 'PLUS & PRO'
     },
     {
       icon: ListChecks,
-      title: 'Step-by-Step Development Plan',
-      description: 'Get a sequential roadmap with prompts for every task. From setup to deployment, each step has a ready-to-use prompt with specific AI roles. Just copy, paste, and build.',
+      title: 'Step-by-Step Development Plans',
+      tier: 'Free',
+      description: 'Get sequential roadmaps with atomic, actionable prompts for every development task.',
+      example: 'Each step includes: Title, User Prompt, Logic Map (how it fits), and Acceptance Criteria (what "done" looks like).',
+      advantages: [
+        'Clear project structure',
+        'No missing steps or dependencies',
+        'Track progress with checkboxes',
+        'Export entire plans as Markdown/PDF'
+      ],
+      badge: 'FREE'
+    },
+    {
+      icon: BookOpen,
+      title: 'Project Templates Library',
+      tier: 'All Tiers',
+      description: 'Start faster with pre-built project templates for common app types and use cases.',
+      example: 'Choose from templates like "E-commerce Store", "SaaS Dashboard", "Mobile App", or "Chrome Extension" and customize.',
+      advantages: [
+        'Jumpstart your projects',
+        'Learn from proven structures',
+        'Save hours of planning',
+        'Best practices built-in'
+      ],
+      badge: 'ALL TIERS'
+    },
+    {
+      icon: Globe,
+      title: 'Public Projects & Showcase',
+      tier: 'Plus & Pro',
+      description: 'Make your projects public to showcase your work, get feedback, and inspire others.',
+      example: 'Share your project → Others can view, like, comment, and clone → Build your portfolio → Get discovered.',
+      advantages: [
+        'Build your developer portfolio',
+        'Get community feedback',
+        'Inspire other builders',
+        'Increase project visibility'
+      ],
+      badge: 'PLUS & PRO'
+    },
+    {
+      icon: Users,
+      title: 'Community Access',
+      tier: 'Plus & Pro',
+      description: 'Access the community feed to discover trending projects, get inspired, and learn from others.',
+      example: 'Browse trending projects → See what others are building → Learn new prompt patterns → Clone successful projects.',
+      advantages: [
+        'Discover trending projects',
+        'Learn from community examples',
+        'Find inspiration for your next build',
+        'Connect with other builders'
+      ],
+      badge: 'PLUS & PRO'
+    },
+    {
+      icon: GitFork,
+      title: 'Project Cloning',
+      tier: 'All Tiers',
+      description: 'Clone any public project to use as a starting point or learn from successful implementations.',
+      example: 'Find a project you like → Click "Clone" → Get your own copy → Customize and build upon it.',
+      advantages: [
+        'Learn from proven projects',
+        'Start with working foundations',
+        'Save time on setup',
+        'Build upon community knowledge'
+      ],
+      badge: 'ALL TIERS'
     },
     {
       icon: Share2,
-      title: 'Share & Collaborate',
-      description: 'Share your project prompts with your team. Make projects public to showcase your work or keep them private. Collaborate seamlessly with built-in sharing features.',
+      title: 'Team Collaboration & Sharing',
+      tier: 'All Tiers',
+      description: 'Share projects with team members, assign roles (owner, editor, viewer), and collaborate seamlessly.',
+      example: 'Invite team members via email → Set permissions → Work together on prompts → Keep everyone in sync.',
+      advantages: [
+        'Collaborate with your team',
+        'Control access levels',
+        'Share knowledge internally',
+        'Streamline team workflows'
+      ],
+      badge: 'ALL TIERS'
     },
+    {
+      icon: Layers,
+      title: 'Project Collections',
+      tier: 'Plus & Pro',
+      description: 'Organize projects into collections (like playlists) for better organization and sharing.',
+      example: 'Create "Mobile Apps" collection → Add related projects → Share entire collections → Organize by theme.',
+      advantages: [
+        'Better project organization',
+        'Group related projects',
+        'Share curated collections',
+        'Build themed portfolios'
+      ],
+      badge: 'PLUS & PRO'
+    },
+    {
+      icon: TrendingUp,
+      title: 'Trending & Discovery',
+      tier: 'Plus & Pro',
+      description: 'Discover trending projects based on likes, clones, comments, and recency.',
+      example: 'See what\'s hot in the community → Sort by trending, most liked, or most cloned → Find inspiration.',
+      advantages: [
+        'Stay updated with trends',
+        'Find popular project patterns',
+        'Discover what works',
+        'Get inspired by top projects'
+      ],
+      badge: 'PLUS & PRO'
+    },
+    {
+      icon: FileText,
+      title: 'Export & Documentation',
+      tier: 'All Tiers',
+      description: 'Export your entire project as Markdown or PDF for documentation, sharing, or offline use.',
+      example: 'Click export → Get formatted Markdown with all prompts → Download as PDF → Share with stakeholders.',
+      advantages: [
+        'Create project documentation',
+        'Share offline',
+        'Archive projects',
+        'Present to stakeholders'
+      ],
+      badge: 'ALL TIERS'
+    },
+    {
+      icon: Bot,
+      title: 'Execution Follow-Up Agent',
+      tier: 'Pro',
+      description: 'When AI tools drift from your instructions, this agent analyzes the gap and generates corrective prompts.',
+      example: 'AI built something wrong → Paste the output → Agent identifies the gap → Generates fix prompts → Get back on track.',
+      advantages: [
+        'Fix broken implementations',
+        'Realign AI with your intent',
+        'Save time on corrections',
+        'Maintain project quality'
+      ],
+      badge: 'PRO ONLY'
+    },
+    {
+      icon: Shield,
+      title: 'AI Role & Persona Management',
+      tier: 'Free',
+      description: 'Define custom AI roles with coding style, architecture, security, and best practices for consistent outputs.',
+      example: 'Set AI role: "Expert React developer using TypeScript, following Material Design" → All prompts use this context.',
+      advantages: [
+        'Consistent AI behavior',
+        'Enforce coding standards',
+        'Maintain project style',
+        'Better AI understanding'
+      ],
+      badge: 'FREE'
+    },
+    {
+      icon: MessageSquare,
+      title: 'Comments & Discussions',
+      tier: 'Plus & Pro',
+      description: 'Engage with the community through comments, threaded discussions, and feedback on public projects.',
+      example: 'Ask questions on projects → Get help from creators → Share improvements → Build relationships.',
+      advantages: [
+        'Get community feedback',
+        'Learn from discussions',
+        'Help other builders',
+        'Build your reputation'
+      ],
+      badge: 'PLUS & PRO'
+    },
+    {
+      icon: Star,
+      title: 'Likes & Favorites',
+      tier: 'Plus & Pro',
+      description: 'Like projects you find useful and save favorites to your personal collection for quick access.',
+      example: 'Like projects you find helpful → Save favorites → Build your curated library → Quick access later.',
+      advantages: [
+        'Bookmark useful projects',
+        'Show appreciation',
+        'Build personal library',
+        'Track what you love'
+      ],
+      badge: 'PLUS & PRO'
+    }
   ];
 
   useEffect(() => {
@@ -197,7 +408,7 @@ export default function LandingPage() {
         {/* Divider */}
         <div className="h-px w-32 mx-auto bg-[#00171f]/20 dark:bg-white/20 mb-12" />
 
-        {/* FEATURES SECTION */}
+        {/* COMPREHENSIVE FEATURES SECTION */}
         <section id="features" className="py-20 sm:py-24 lg:py-32 relative overflow-hidden">
           {/* Animated background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -208,150 +419,196 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="text-center mb-16">
               <h2 className="font-headline text-2xl font-bold sm:text-3xl md:text-4xl lg:text-5xl text-[#00171f] dark:text-white mb-4">
-                How It Works
+                Powerful Features for Every Builder
               </h2>
               <p className="mt-6 max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 font-medium">
-                Describe your product idea. We break it down into step-by-step prompts with specific AI roles. Copy, paste, and build — no more staring at blank pages wondering what to ask your AI.
+                Everything you need to turn ideas into reality. From AI-powered decomposition to community collaboration, we've got you covered.
               </p>
             </div>
             
-            <div className="grid gap-6 md:gap-8 lg:grid-cols-3">
-              {features.map((feature, i) => {
-                const isMiddle = i === 1;
+            {/* Filter Buttons */}
+            <div className="mb-12">
+              <div className="flex flex-wrap items-center justify-center gap-3 mb-4">
+                <Button
+                  variant={featureFilter === 'all' ? 'default' : 'outline'}
+                  onClick={() => setFeatureFilter('all')}
+                  className={`rounded-full transition-all duration-200 font-medium ${
+                    featureFilter === 'all'
+                      ? 'bg-[#00171f] dark:bg-white dark:text-[#00171f] text-white shadow-lg'
+                      : 'bg-white dark:bg-[#00171f] border-gray-200 dark:border-gray-700 hover:border-[#00171f] dark:hover:border-white'
+                  }`}
+                >
+                  All Features
+                </Button>
+                <Button
+                  variant={featureFilter === 'free' ? 'default' : 'outline'}
+                  onClick={() => setFeatureFilter('free')}
+                  className={`rounded-full transition-all duration-200 font-medium ${
+                    featureFilter === 'free'
+                      ? 'bg-emerald-500 text-white shadow-lg'
+                      : 'bg-white dark:bg-[#00171f] border-gray-200 dark:border-gray-700 hover:border-emerald-500'
+                  }`}
+                >
+                  Free
+                </Button>
+                <Button
+                  variant={featureFilter === 'plus' ? 'default' : 'outline'}
+                  onClick={() => setFeatureFilter('plus')}
+                  className={`rounded-full transition-all duration-200 font-medium ${
+                    featureFilter === 'plus'
+                      ? 'bg-purple-500 text-white shadow-lg'
+                      : 'bg-white dark:bg-[#00171f] border-gray-200 dark:border-gray-700 hover:border-purple-500'
+                  }`}
+                >
+                  Plus
+                </Button>
+                <Button
+                  variant={featureFilter === 'plus-pro' ? 'default' : 'outline'}
+                  onClick={() => setFeatureFilter('plus-pro')}
+                  className={`rounded-full transition-all duration-200 font-medium ${
+                    featureFilter === 'plus-pro'
+                      ? 'bg-purple-500 text-white shadow-lg'
+                      : 'bg-white dark:bg-[#00171f] border-gray-200 dark:border-gray-700 hover:border-purple-500'
+                  }`}
+                >
+                  Plus & Pro
+                </Button>
+                <Button
+                  variant={featureFilter === 'pro' ? 'default' : 'outline'}
+                  onClick={() => setFeatureFilter('pro')}
+                  className={`rounded-full transition-all duration-200 font-medium ${
+                    featureFilter === 'pro'
+                      ? 'bg-amber-500 text-white shadow-lg'
+                      : 'bg-white dark:bg-[#00171f] border-gray-200 dark:border-gray-700 hover:border-amber-500'
+                  }`}
+                >
+                  Pro Only
+                </Button>
+              </div>
+              {useMemo(() => {
+                const filteredFeatures = allFeatures.filter((feature) => {
+                  if (featureFilter === 'all') return true;
+                  if (featureFilter === 'free') return feature.badge === 'FREE';
+                  if (featureFilter === 'plus') return feature.badge === 'PLUS & PRO' || feature.badge === 'ALL TIERS';
+                  if (featureFilter === 'plus-pro') return feature.badge === 'PLUS & PRO';
+                  if (featureFilter === 'pro') return feature.badge === 'PRO ONLY';
+                  return true;
+                });
                 return (
-                  <div
+                  <p className="text-center text-sm text-gray-500 dark:text-gray-400 font-medium">
+                    Showing {filteredFeatures.length} feature{filteredFeatures.length !== 1 ? 's' : ''}
+                  </p>
+                );
+              }, [featureFilter])}
+            </div>
+            
+            {useMemo(() => {
+              const filteredFeatures = allFeatures.filter((feature) => {
+                if (featureFilter === 'all') return true;
+                if (featureFilter === 'free') return feature.badge === 'FREE';
+                if (featureFilter === 'plus') return feature.badge === 'PLUS & PRO' || feature.badge === 'ALL TIERS';
+                if (featureFilter === 'plus-pro') return feature.badge === 'PLUS & PRO';
+                if (featureFilter === 'pro') return feature.badge === 'PRO ONLY';
+                return true;
+              });
+              
+              if (filteredFeatures.length === 0) {
+                return (
+                  <div className="col-span-full text-center py-20 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-3xl bg-gray-50 dark:bg-gray-900">
+                    <p className="text-lg font-bold text-[#00171f] dark:text-white mb-2">No features found</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Try selecting a different filter option.
+                    </p>
+                  </div>
+                );
+              }
+              
+              return (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredFeatures.map((feature, i) => {
+                const Icon = feature.icon;
+                const isPro = feature.badge === 'PRO ONLY';
+                const isPlusPro = feature.badge === 'PLUS & PRO';
+                const isFree = feature.badge === 'FREE';
+                
+                return (
+                  <Card
                     key={i}
-                    className={`relative group ${isMiddle ? 'lg:-mt-8' : ''}`}
+                    className="group relative bg-white dark:bg-[#00171f] border-2 border-gray-100 dark:border-gray-800 hover:border-[#00171f]/30 dark:hover:border-white/30 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden"
                   >
-                    {/* Gradient background card */}
-                    <div className={`relative h-full rounded-3xl p-8 sm:p-10 overflow-hidden transition-all duration-500 ${
-                      isMiddle 
-                        ? 'bg-gradient-to-br from-[#00171f] to-[#00171f]/90 text-white shadow-2xl scale-105' 
-                        : 'bg-white dark:bg-[#00171f] border-2 border-gray-100 dark:border-gray-800 hover:border-[#00171f]/30 dark:hover:border-white/30 shadow-lg hover:shadow-2xl'
-                    }`}>
-                      {/* Decorative gradient overlay */}
-                      {!isMiddle && (
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#00171f]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      )}
-                      
-                      {/* Animated background pattern */}
-                      <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500">
-                        <div className="absolute inset-0" style={{
-                          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                        }} />
-                      </div>
-                      
-                      <div className="relative z-10 flex flex-col items-center text-center">
-                        {/* Icon with animated background - Centered */}
-                        <div className={`relative flex items-center justify-center mb-8 ${
-                          isMiddle 
-                            ? 'bg-white/20 backdrop-blur-sm' 
-                            : 'bg-gradient-to-br from-[#00171f] to-[#00171f]/80'
-                        } rounded-2xl p-6 w-24 h-24 shadow-xl group-hover:scale-110 transition-transform duration-300`}>
-                          <feature.icon className={`h-14 w-14 ${isMiddle ? 'text-white' : 'text-white'}`} />
-                          {/* Glow effect */}
-                          <div className={`absolute inset-0 rounded-2xl ${
-                            isMiddle ? 'bg-white/30' : 'bg-[#00171f]/20'
-                          } blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                    {/* Badge */}
+                    <div className="absolute top-4 right-4 z-10">
+                      <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                        isPro 
+                          ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-white' 
+                          : isPlusPro
+                          ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white'
+                          : isFree
+                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white'
+                          : 'bg-gray-500 text-white'
+                      } shadow-lg`}>
+                        {feature.badge}
+                      </span>
+                    </div>
+
+                    {/* Decorative gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#00171f]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    <CardHeader className="pb-4 pr-28">
+                      <div className="flex items-start gap-4">
+                        {/* Icon */}
+                        <div className="relative flex-shrink-0">
+                          <div className="bg-gradient-to-br from-[#00171f] to-[#00171f]/80 dark:from-white dark:to-white/80 rounded-xl p-3 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <Icon className="h-6 w-6 text-white dark:text-[#00171f]" />
+                          </div>
                         </div>
                         
                         {/* Title */}
-                        <h3 className={`text-2xl font-bold font-headline mb-4 ${
-                          isMiddle ? 'text-white' : 'text-[#00171f] dark:text-white'
-                        }`}>
-                          {feature.title}
-                        </h3>
-                        
-                        {/* Description */}
-                        <p className={`leading-relaxed text-base ${
-                          isMiddle ? 'text-gray-100' : 'text-gray-600 dark:text-gray-300'
-                        } font-medium`}>
-                          {feature.description}
+                        <div className="flex-1 min-w-0 pr-4">
+                          <CardTitle className="text-xl font-bold font-headline text-[#00171f] dark:text-white mb-1 leading-tight break-words">
+                            {feature.title}
+                          </CardTitle>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-4">
+                      {/* Description */}
+                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
+                        {feature.description}
+                      </p>
+                      
+                      {/* Example */}
+                      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-800">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                          Example
+                        </p>
+                        <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {feature.example}
                         </p>
                       </div>
                       
-                      {/* Corner accent */}
-                      <div className={`absolute top-0 right-0 w-32 h-32 ${
-                        isMiddle ? 'bg-white/10' : 'bg-[#00171f]/5'
-                      } rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                    </div>
-                  </div>
+                      {/* Advantages */}
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                          Advantages
+                        </p>
+                        <ul className="space-y-1.5">
+                          {feature.advantages.map((advantage, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300">
+                              <CheckCircle className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                              <span>{advantage}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
                 );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* GOLDEN FEATURE - Execution Follow-Up Agent */}
-        <section className="py-20 sm:py-24 lg:py-32 relative bg-gradient-to-br from-amber-50 dark:from-amber-900/20 via-white dark:via-[#00171f] to-amber-50/30 dark:to-amber-900/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-5xl mx-auto">
-              <div className="relative bg-gradient-to-br from-amber-100/50 dark:from-amber-900/30 via-white dark:via-[#00171f] to-amber-50/50 dark:to-amber-900/20 rounded-3xl border-2 border-amber-200/50 dark:border-amber-800/50 shadow-2xl shadow-amber-500/10 p-8 sm:p-12 overflow-hidden">
-                {/* PRO FEATURE Badge - Top Right */}
-                <div className="absolute top-6 right-6 z-20 bg-gradient-to-r from-amber-400 to-amber-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg border-2 border-white">
-                  PRO FEATURE
+                  })}
                 </div>
-                
-                {/* Decorative elements */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-200/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-300/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-                
-                <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-8 sm:gap-10">
-                  {/* Full Robot Illustration */}
-                  <div className="relative flex-shrink-0">
-                    <div className="relative w-32 h-40 sm:w-40 sm:h-48 flex flex-col items-center justify-center">
-                      {/* Robot Head */}
-                      <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 rounded-2xl flex items-center justify-center shadow-xl shadow-amber-500/30 mb-2">
-                        <Bot className="h-10 w-10 sm:h-12 sm:w-12 text-white" />
-                      </div>
-                      {/* Robot Body */}
-                      <div className="relative w-24 h-16 sm:w-28 sm:h-20 bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 rounded-xl shadow-lg flex items-center justify-center">
-                        {/* Body details */}
-                        <div className="flex gap-2">
-                          <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-                          <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-                          <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-                        </div>
-                      </div>
-                      {/* Robot Arms */}
-                      <div className="absolute left-0 top-8 sm:top-10 flex flex-col gap-2">
-                        <div className="w-3 h-8 sm:w-4 sm:h-10 bg-gradient-to-b from-amber-600 to-amber-700 rounded-full"></div>
-                      </div>
-                      <div className="absolute right-0 top-8 sm:top-10 flex flex-col gap-2">
-                        <div className="w-3 h-8 sm:w-4 sm:h-10 bg-gradient-to-b from-amber-600 to-amber-700 rounded-full"></div>
-                      </div>
-                      {/* Wrench in hand */}
-                      <div className="absolute -right-2 top-12 sm:top-14 w-6 h-6 sm:w-8 sm:h-8 bg-[#00171f] rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                        <Wrench className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                      </div>
-                      {/* Robot Legs */}
-                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-3">
-                        <div className="w-4 h-6 sm:w-5 sm:h-8 bg-gradient-to-b from-amber-700 to-amber-800 rounded-b-lg"></div>
-                        <div className="w-4 h-6 sm:w-5 sm:h-8 bg-gradient-to-b from-amber-700 to-amber-800 rounded-b-lg"></div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="flex-1 min-w-0 text-center sm:text-left">
-                    <h2 className="text-3xl sm:text-4xl font-bold font-headline text-[#00171f] dark:text-white mb-3">
-                      Execution Follow-Up Agent
-                    </h2>
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base sm:text-lg mb-6 font-medium">
-                      When AI tools drift from your instructions, our agent analyzes the gap and generates corrective prompts to realign them with your intent. Repair broken prompts and get back on track instantly.
-                    </p>
-                    <div className="flex justify-center sm:justify-start">
-                      <Button asChild className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white border-0 shadow-lg shadow-amber-500/30 font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:shadow-xl hover:scale-105">
-                        <Link href={loading ? "/login" : user ? "/execution-follow-up" : "/login"}>
-                          Try Execution Follow-Up Agent
-                          <ArrowRight className="ml-2 h-5 w-5" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+              );
+            }, [featureFilter])}
           </div>
         </section>
 
@@ -464,6 +721,7 @@ export default function LandingPage() {
                   <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-3">
                     <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> Share projects with team</p>
                     <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> Public projects</p>
+                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> Prompt Playground & Live Testing</p>
                     <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> AI Prompt Enhancement</p>
                     <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> Execution Follow-Up Agent</p>
                     <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> No Support</p>
@@ -504,6 +762,7 @@ export default function LandingPage() {
                   <div className="pt-2 border-t border-white/20 space-y-3">
                     <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">Share projects with team</span></p>
                     <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">Public projects & sharing</span></p>
+                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">Prompt Playground & Live Testing</span></p>
                     <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">AI Prompt Enhancement</span></p>
                     <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-500" /> Execution Follow-Up Agent</p>
                     <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Community Support</p>
@@ -546,6 +805,7 @@ export default function LandingPage() {
                   <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-3">
                     <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Share projects with team</p>
                     <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Public projects & sharing</p>
+                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold text-[#00171f] dark:text-white">Prompt Playground & Live Testing</span></p>
                     <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> AI Prompt Enhancement</p>
                     <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold text-[#00171f] dark:text-white">Execution Follow-Up Agent</span></p>
                     <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold text-[#00171f] dark:text-white">Priority Support</span></p>
@@ -619,6 +879,12 @@ export default function LandingPage() {
                       </tr>
                       <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
                         <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Public projects & sharing</td>
+                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
+                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
+                      </tr>
+                      <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
+                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Prompt Playground & Live Testing</td>
                         <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
                         <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
                         <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>

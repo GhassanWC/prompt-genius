@@ -15,6 +15,7 @@ type FeatureKey =
   | "communityAccess"
   | "aiPromptEnhancement"
   | "executionFollowUpAgent"
+  | "promptPlayground"
   | "support";
 
 interface Payload {
@@ -119,6 +120,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
       case "executionFollowUpAgent":
         if (features.executionFollowUpAgent !== true) {
+          return NextResponse.json({ enabled: false });
+        }
+        break;
+
+      case "promptPlayground":
+        if (features.promptPlayground !== true) {
           return NextResponse.json({ enabled: false });
         }
         break;

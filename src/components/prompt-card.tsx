@@ -5,15 +5,19 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, Check, CheckCircle2, MapPin, MessageSquare, ListChecks } from "lucide-react";
+import { Copy, Check, CheckCircle2, MapPin, MessageSquare, ListChecks, Play, Lock } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { Prompt } from "@/lib/projects";
 import { cn } from "@/lib/utils";
+import { PromptPlayground } from "@/components/prompt-playground";
+import { useAuth } from "@/context/auth-context";
+import { useRouter } from "next/navigation";
 
 type PromptCardProps = Prompt & {
   stepNumber: number;
   onStatusChange: (promptId: string, isDone: boolean) => void;
   isReadOnly?: boolean;
+  aiRole?: string;
 };
 
 export function PromptCard({ 
@@ -26,9 +30,15 @@ export function PromptCard({
   stepNumber,
   onStatusChange,
   isReadOnly = false,
+  aiRole,
 }: PromptCardProps) {
   const { toast } = useToast();
+  const { user, subscriptionPlan } = useAuth();
+  const router = useRouter();
   const [hasCopied, setHasCopied] = useState(false);
+  const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false);
+  
+  const hasAccess = subscriptionPlan === 'plus' || subscriptionPlan === 'pro';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(userPrompt);
@@ -45,6 +55,34 @@ export function PromptCard({
       return () => clearTimeout(timer);
     }
   }, [hasCopied]);
+
+  const handleTestClick = () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    
+    if (!hasAccess) {
+      toast({
+        variant: 'destructive',
+        title: 'Upgrade Required',
+        description: 'The Prompt Playground feature is only available for Plus and Pro users. Upgrade your plan to test prompts and see AI responses in real-time.',
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/#pricing')}
+            className="ml-2"
+          >
+            View Pricing
+          </Button>
+        ),
+      });
+      return;
+    }
+    
+    setIsPlaygroundOpen(true);
+  };
 
   return (
     <Card className={cn(
@@ -90,20 +128,49 @@ export function PromptCard({
           
           {/* User Prompt */}
           <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] p-4 relative group">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCopy}
-              aria-label="Copy prompt"
-              className="h-8 w-8 absolute top-3 right-3 text-gray-400 dark:text-gray-500 hover:text-[#00171f] dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 print:hidden opacity-0 group-hover:opacity-100"
-            >
-              {hasCopied ? <Check className="h-4 w-4 text-emerald-500 dark:text-emerald-400" /> : <Copy className="h-4 w-4" />}
-            </Button>
-            <div className="font-semibold text-[#00171f] dark:text-white mb-2 flex items-center gap-2 text-sm">
-              <MessageSquare className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-              User Prompt
+            <div className="font-semibold text-[#00171f] dark:text-white mb-2 flex items-center justify-between gap-3 text-sm">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                User Prompt
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTestClick}
+                  disabled={!hasAccess}
+                  className={cn(
+                    "h-7 text-xs print:hidden border-0 flex-shrink-0",
+                    hasAccess 
+                      ? "bg-[#00171f] dark:bg-white dark:text-[#00171f] text-white hover:bg-[#00171f]/90 dark:hover:bg-gray-100"
+                      : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                  )}
+                  title={hasAccess ? "Test Prompt" : "Upgrade to Plus or Pro to test prompts"}
+                >
+                  {hasAccess ? (
+                    <>
+                      <Play className="mr-1.5 h-3 w-3" />
+                      Test Prompt
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="mr-1.5 h-3 w-3" />
+                      Test Prompt
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCopy}
+                  aria-label="Copy prompt"
+                  className="h-7 w-7 print:hidden text-gray-400 dark:text-gray-500 hover:text-[#00171f] dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+                >
+                  {hasCopied ? <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                </Button>
+              </div>
             </div>
-            <p className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 leading-relaxed pr-10">
+            <p className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
               {userPrompt}
             </p>
           </div>
@@ -127,6 +194,15 @@ export function PromptCard({
           )}
         </div>
       </CardContent>
+      
+      {/* Prompt Playground Dialog */}
+      <PromptPlayground
+        open={isPlaygroundOpen}
+        onOpenChange={setIsPlaygroundOpen}
+        prompt={userPrompt}
+        promptTitle={title}
+        aiRole={aiRole}
+      />
     </Card>
   );
 }

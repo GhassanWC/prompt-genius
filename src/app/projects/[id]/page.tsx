@@ -823,6 +823,7 @@ export default function ProjectPage() {
                             stepNumber={index + 1}
                             isReadOnly={!canEdit}
                             onStatusChange={handleTogglePromptStatus}
+                            aiRole={project.aiRole}
                           />
                         </div>
                       ))}
