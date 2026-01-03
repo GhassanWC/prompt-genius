@@ -15,6 +15,7 @@ import { getPublicFeedback, type Testimonial } from '@/lib/feedback';
 import { createCheckout } from '@/lib/lemon';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import type { Tier } from '@/lib/tiers';
 
 function RedditIcon({ className }: { className?: string }) {
   return (
@@ -34,16 +35,7 @@ export default function LandingPage() {
   const [loadingTestimonials, setLoadingTestimonials] = useState(true);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState<string | null>(null);
   const [featureFilter, setFeatureFilter] = useState<'all' | 'free' | 'plus' | 'pro' | 'plus-pro'>('all');
-  const [tiers, setTiers] = useState<Array<{ id: string; name: string; features: {
-    projectLimit: number;
-    fullPromptGeneration: boolean;
-    publicProjects: boolean;
-    communityAccess: boolean;
-    aiPromptEnhancement: boolean;
-    executionFollowUpAgent: boolean;
-    promptPlayground: boolean;
-    support: 'none' | 'community' | 'priority';
-  }}>>([]);
+  const [tiers, setTiers] = useState<Tier[]>([]);
   const [loadingTiers, setLoadingTiers] = useState(true);
 
   const navLinks = [
@@ -796,7 +788,7 @@ export default function LandingPage() {
                 if (!freeTier && loadingTiers) {
                   return <div className="text-center text-gray-500">Loading...</div>;
                 }
-                const tier = freeTier || { id: 'free', name: 'Hobbyist', features: { projectLimit: 1, fullPromptGeneration: true, publicProjects: false, communityAccess: false, aiPromptEnhancement: false, executionFollowUpAgent: false, promptPlayground: false, support: 'none' } };
+                const tier = freeTier || { id: 'free', name: 'Hobbyist', features: { projectLimit: 1, fullPromptGeneration: true, publicProjects: false, communityAccess: false, aiPromptEnhancement: false, executionFollowUpAgent: false, promptPlayground: false, cloning: false, support: 'none' } } as Tier;
                 const price = getTierPrice('free');
                 return (
                   <Card className="flex flex-col bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group rounded-2xl overflow-hidden">
@@ -860,7 +852,7 @@ export default function LandingPage() {
                 if (!plusTier && loadingTiers) {
                   return <div className="text-center text-gray-500">Loading...</div>;
                 }
-                const tier = plusTier || { id: 'plus', name: 'Plus', features: { projectLimit: 10, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: false, promptPlayground: true, support: 'community' } };
+                const tier = plusTier || { id: 'plus', name: 'Plus', features: { projectLimit: 10, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: false, promptPlayground: true, cloning: true, support: 'community' } } as Tier;
                 const price = getTierPrice('plus');
                 return (
                   <Card className="flex flex-col bg-[#00171f] text-white border-2 border-[#00171f] shadow-2xl shadow-[#00171f]/30 relative scale-105 z-10 rounded-2xl overflow-visible">
@@ -943,7 +935,7 @@ export default function LandingPage() {
                 if (!proTier && loadingTiers) {
                   return <div className="text-center text-gray-500">Loading...</div>;
                 }
-                const tier = proTier || { id: 'pro', name: 'Pro', features: { projectLimit: 30, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: true, promptPlayground: true, support: 'priority' } };
+                const tier = proTier || { id: 'pro', name: 'Pro', features: { projectLimit: 30, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: true, promptPlayground: true, cloning: true, support: 'priority' } } as Tier;
                 const price = getTierPrice('pro');
                 return (
                   <Card className="flex flex-col bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group rounded-2xl overflow-hidden">
@@ -1054,9 +1046,9 @@ export default function LandingPage() {
                         const freeTier = getTierById('free');
                         const plusTier = getTierById('plus');
                         const proTier = getTierById('pro');
-                        const free = freeTier || { id: 'free', name: 'Hobbyist', features: { projectLimit: 1, fullPromptGeneration: true, publicProjects: false, communityAccess: false, aiPromptEnhancement: false, executionFollowUpAgent: false, promptPlayground: false, support: 'none' } };
-                        const plus = plusTier || { id: 'plus', name: 'Plus', features: { projectLimit: 10, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: false, promptPlayground: true, support: 'community' } };
-                        const pro = proTier || { id: 'pro', name: 'Pro', features: { projectLimit: 30, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: true, promptPlayground: true, support: 'priority' } };
+                        const free = freeTier || { id: 'free', name: 'Hobbyist', features: { projectLimit: 1, fullPromptGeneration: true, publicProjects: false, communityAccess: false, aiPromptEnhancement: false, executionFollowUpAgent: false, promptPlayground: false, cloning: false, support: 'none' } } as Tier;
+                        const plus = plusTier || { id: 'plus', name: 'Plus', features: { projectLimit: 10, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: false, promptPlayground: true, cloning: true, support: 'community' } } as Tier;
+                        const pro = proTier || { id: 'pro', name: 'Pro', features: { projectLimit: 30, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: true, promptPlayground: true, cloning: true, support: 'priority' } } as Tier;
                         const renderCell = (hasFeature: boolean) => hasFeature ? <CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" />;
                         return (
                           <>
