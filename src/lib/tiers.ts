@@ -14,6 +14,7 @@ export interface Tier {
     promptPlayground: boolean;
     cloning: boolean;
     support: 'none' | 'community' | 'priority';
+    [key: string]: any; // Allow custom features
   };
 }
 
