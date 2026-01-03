@@ -48,26 +48,7 @@ function NewProjectPageContent() {
     setError(null);
 
     try {
-      const currentPlan = subscriptionPlan || 'free';
-      const tier = await getTier(currentPlan);
-      const planLimit = tier?.features.projectLimit ?? 0;
       const token = await auth.currentUser?.getIdToken();
-
-      const result = await fetch('/api/projects', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        cache: 'no-store',
-      });
-      if (!result.ok) {
-        throw new Error('Failed to fetch existing projects.');
-      }
-      const existingProjects = await result.json();
-      if (existingProjects.length >= planLimit) {
-          throw new Error(`You have reached the ${planLimit}-project limit for the ${currentPlan} plan. Please upgrade to create more projects.`);
-      }
 
       // Call decomposeIdea on the server
       const decomposeRes = await fetch('/api/projects', {
@@ -101,7 +82,16 @@ function NewProjectPageContent() {
       console.log("Create project response:", res);
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to create project.');
+        // API returns { error: message } not { message: ... }
+        // Enhanced error response may include currentCount, limit, tier, tierName
+        let errorMessage = errorData.error || errorData.message || 'Failed to create project.';
+        
+        // If we have detailed limit info, create a more informative message
+        if (errorData.currentCount !== undefined && errorData.limit !== undefined) {
+          errorMessage = errorData.error || `You've reached your project limit (${errorData.currentCount}/${errorData.limit} projects) on the ${errorData.tierName || 'current'} plan. Upgrade to create more projects and unlock additional features.`;
+        }
+        
+        throw new Error(errorMessage);
       }
       const data = await res.json();
       const projectId = data.projectId;
@@ -245,14 +235,21 @@ function NewProjectPageContent() {
           <Alert variant="destructive" className="mt-6 rounded-2xl">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle className="font-semibold">Error Creating Project</AlertTitle>
-            <AlertDescription className="font-medium">
-              {error}
-              {error.includes('limit') && (
-                <Link href="/#pricing" className="block mt-3">
-                  <Button variant="outline" className="rounded-xl">
-                    <Lock className="mr-2 h-4 w-4"/> Upgrade Plan
-                  </Button>
-                </Link>
+            <AlertDescription className="font-medium space-y-3">
+              <p>{error}</p>
+              {(error.includes('limit') || error.includes('reached')) && (
+                <div className="flex flex-col sm:flex-row gap-3 mt-3">
+                  <Link href="/#pricing" className="flex-1">
+                    <Button variant="outline" className="w-full rounded-xl">
+                      <Lock className="mr-2 h-4 w-4"/> Upgrade Plan
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard">
+                    <Button variant="ghost" className="w-full sm:w-auto rounded-xl">
+                      View My Projects
+                    </Button>
+                  </Link>
+                </div>
               )}
             </AlertDescription>
           </Alert>

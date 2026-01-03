@@ -182,9 +182,9 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if (subscriptionPlan) {
-      getTier(subscriptionPlan).then(setTier);
-    }
+    // Always fetch tier - use subscription plan if exists, otherwise use 'free'
+    const plan = subscriptionPlan || 'free';
+    getTier(plan).then(setTier);
   }, [subscriptionPlan]);
 
   useEffect(() => {
@@ -217,45 +217,37 @@ export default function DashboardPage() {
       return;
     }
 
-    // If user is on pro tier, they have access
-    const isProTier = subscriptionPlan === 'pro';
-    
-    if (isProTier) {
-      // Pro tier users always have access - set immediately
-      setHasExecutionFollowUpAccess(true);
-      setCheckingAccess(false);
+    // Check feature access via API - this checks the tiers collection
+    (async () => {
+      try {
+        setCheckingAccess(true);
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch('/api/subscription/features', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          cache: 'no-store',
+          body: JSON.stringify({ 
+            userId: user.uid, 
+            feature: 'executionFollowUpAgent' 
+          }),
+        });
 
-      // Verify via API in background (optional, for logging/debugging)
-      (async () => {
-        try {
-          const token = await auth.currentUser?.getIdToken();
-          const res = await fetch('/api/subscription/features', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            cache: 'no-store',
-            body: JSON.stringify({ 
-              userId: user.uid, 
-              feature: 'executionFollowUpAgent' 
-            }),
-          });
-
-          if (res.ok) {
-            const data: { enabled: boolean } = await res.json();
-            if (!data.enabled) {
-              console.warn('[Execution Follow-Up] User is on pro tier but feature flag is disabled in Firebase.');
-            }
-          }
-        } catch (error) {
-          console.error('[Execution Follow-Up] Error verifying feature access:', error);
+        if (res.ok) {
+          const data: { enabled: boolean } = await res.json();
+          setHasExecutionFollowUpAccess(data.enabled === true);
+        } else {
+          setHasExecutionFollowUpAccess(false);
         }
-      })();
-    } else {
-      setHasExecutionFollowUpAccess(false);
-      setCheckingAccess(false);
-    }
+      } catch (error) {
+        console.error('[Execution Follow-Up] Error checking feature access:', error);
+        setHasExecutionFollowUpAccess(false);
+      } finally {
+        setCheckingAccess(false);
+      }
+    })();
   }, [user, subscriptionPlan, authLoading]);
 
   const openDeleteDialog = (project: Project, e: React.MouseEvent) => {
@@ -438,10 +430,11 @@ export default function DashboardPage() {
   }, [currentClonesPage, clones, clonesPageSize]);
 
   const projectsUsed = displayedProjects.length;
-  const projectLimit = userSubscriptionProjectCount ?? 0;
+  // If project count is null (still loading) or 0, show loading state or default to 1
+  const projectLimit = userSubscriptionProjectCount !== null ? (userSubscriptionProjectCount || 1) : null;
   const usagePercentage =
-    projectLimit > 0 ? (projectsUsed / projectLimit) * 100 : 0;
-  const atLimit = projectLimit > 0 && projectsUsed >= projectLimit;
+    projectLimit && projectLimit > 0 ? (projectsUsed / projectLimit) * 100 : 0;
+  const atLimit = projectLimit && projectLimit > 0 && projectsUsed >= projectLimit;
 
   if (authLoading || !user) {
     return (
@@ -513,16 +506,26 @@ export default function DashboardPage() {
             <CardHeader className="bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
               <CardTitle className="text-xl sm:text-2xl font-bold text-[#00171f] dark:text-white capitalize">{tier.name}</CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">
-                You have created {projectsUsed} of {projectLimit} available projects.
+                {projectLimit !== null ? (
+                  `You have created ${projectsUsed} of ${projectLimit} available projects.`
+                ) : (
+                  'Loading project limit...'
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#00171f] dark:bg-white rounded-full transition-all duration-500"
-                  style={{ width: `${usagePercentage}%` }}
-                />
-              </div>
+              {projectLimit !== null ? (
+                <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#00171f] dark:bg-white rounded-full transition-all duration-500"
+                    style={{ width: `${usagePercentage}%` }}
+                  />
+                </div>
+              ) : (
+                <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                </div>
+              )}
             </CardContent>
             {atLimit && (
               <CardFooter className="bg-amber-50 dark:bg-amber-900/30 border-t border-amber-200 dark:border-amber-800">
@@ -1066,7 +1069,7 @@ export default function DashboardPage() {
       </AlertDialog>
 
       {/* Floating Execution Follow-Up Agent Button */}
-      {!checkingAccess && user && (hasExecutionFollowUpAccess || subscriptionPlan === 'pro') && (
+      {!checkingAccess && user && hasExecutionFollowUpAccess && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

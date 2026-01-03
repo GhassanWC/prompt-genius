@@ -28,10 +28,14 @@ export async function POST(req: NextRequest) {
     
     // Access control check for Prompt Playground
     const subscription = await getSubscriptionByUserId(uid);
-    const tier = subscription ? await getTier(subscription.tier_id) : null;
+    
+    // Determine tier_id: use subscription tier if exists, otherwise use 'free'
+    const tierId = subscription?.tier_id || 'free';
+    const tier = await getTier(tierId);
 
     if (!tier || !tier.features?.promptPlayground) {
-      return jsonError('Prompt Playground is available for Plus and Pro users only. Please upgrade to access this feature.', 402);
+      const tierName = tier?.name || (tierId === 'free' ? 'Hobbyist' : tierId === 'plus' ? 'Plus' : 'Pro');
+      return jsonError(`Prompt Playground is not available on the ${tierName} plan. Please upgrade to access this feature.`, 402);
     }
 
     const body = await req.json();

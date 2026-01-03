@@ -53,10 +53,10 @@ export const PAGE_ACCESS_CONFIG: PageAccessConfig[] = [
   {
     path: '/execution-follow-up',
     name: 'Execution Follow-Up Agent',
-    requiredTier: 'pro',
+    requiredTier: 'free', // Allow free tier, but check feature flag
     requiredFeatures: ['executionFollowUpAgent'],
     redirectTo: '/dashboard',
-    message: 'Execution Follow-Up Agent is only available for Pro tier users'
+    message: 'Execution Follow-Up Agent requires the executionFollowUpAgent feature to be enabled'
   },
   {
     path: '/profile',
@@ -128,7 +128,30 @@ export const canAccessPage = async (
     return { allowed: true };
   }
   
-  // Check tier requirement
+  // Check specific features first (if required) - this allows free tier users with enabled features
+  if (pageConfig.requiredFeatures && tierFeatures) {
+    for (const feature of pageConfig.requiredFeatures) {
+      // Check if feature is enabled (for boolean features, must be true)
+      const featureValue = tierFeatures[feature];
+      if (featureValue === undefined || featureValue === null || featureValue === false) {
+        return {
+          allowed: false,
+          reason: pageConfig.message || `This page requires ${feature} feature which is not available on your current plan`,
+          redirectTo: pageConfig.redirectTo || '/dashboard'
+        };
+      }
+      // For boolean features, must be explicitly true
+      if (typeof featureValue === 'boolean' && featureValue !== true) {
+        return {
+          allowed: false,
+          reason: pageConfig.message || `This page requires ${feature} feature which is not available on your current plan`,
+          redirectTo: pageConfig.redirectTo || '/dashboard'
+        };
+      }
+    }
+  }
+  
+  // Check tier requirement (only if no specific features are required, or as a fallback)
   const tierHierarchy: SubscriptionPlan[] = ['free', 'plus', 'pro'];
   const userTierIndex = tierHierarchy.indexOf(userTier);
   const requiredTierIndex = tierHierarchy.indexOf(pageConfig.requiredTier);
@@ -139,19 +162,6 @@ export const canAccessPage = async (
       reason: pageConfig.message || `This page requires ${pageConfig.requiredTier} plan or higher`,
       redirectTo: pageConfig.redirectTo || '/dashboard'
     };
-  }
-  
-  // Check specific features if required
-  if (pageConfig.requiredFeatures && tierFeatures) {
-    for (const feature of pageConfig.requiredFeatures) {
-      if (!tierFeatures[feature]) {
-        return {
-          allowed: false,
-          reason: `This page requires ${feature} feature which is not available on your current plan`,
-          redirectTo: pageConfig.redirectTo || '/dashboard'
-        };
-      }
-    }
   }
   
   return { allowed: true };

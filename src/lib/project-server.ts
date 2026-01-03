@@ -10,6 +10,7 @@ import { generateImage } from '@/ai/flows/generate-image';
 import type { Project, Prompt, Role, Collaborator, ProjectClone } from '@/lib/projects';
 import { getSubscriptionByUserId } from '@/lib/subscription-server';
 import { isUserAdmin } from '@/lib/auth';
+import { getTier } from '@/lib/tiers-server';
 
 export type SubscriptionPlan = 'free' | 'plus' | 'pro';
 
@@ -399,7 +400,7 @@ export const cloneProjectForUser = async (
 
   const sourceData: any = sourceDoc.data();
 
-  // Only allow cloning if the project is public, the user is already a member, or user is admin
+  // Step 1: Check permission to clone this specific project
   const isMember = !!sourceData.members?.[userId];
   const isPublic = !!sourceData.isPublic;
   const isAdmin = await isUserAdmin(userId);
@@ -408,19 +409,27 @@ export const cloneProjectForUser = async (
     throw new Error("You don't have permission to clone this project.");
   }
 
-  // Enforce subscription limits using denormalized counters (fast!)
-  const [subscription, userCounts] = await Promise.all([
-    getSubscriptionByUserId(userId),
-    getUserProjectCounts(userId),
-  ]);
+  // Step 2: Get user's subscription and tier information
+  const subscription = await getSubscriptionByUserId(userId);
 
-  const totalProjects = userCounts.projectCount + userCounts.clonedProjectCount;
-
-  if (totalProjects >= (subscription?.cumulative_quantity ?? PLAN_LIMITS.free)) {
-    throw new Error(
-      'You have reached the maximum number of projects for your plan. Please upgrade to create more projects.'
-    );
+  // Determine tier_id: use subscription tier if exists, otherwise use 'free'
+  const tierId = subscription?.tier_id || 'free';
+  const tier = await getTier(tierId);
+  
+  if (!tier) {
+    throw new Error('Unable to determine your subscription tier. Please try again.');
   }
+
+  // Step 3: Check if cloning feature is enabled for this tier (from tiers collection)
+  // This is the only check - if cloning is enabled for the tier, user can clone unlimited projects
+  const cloningEnabled = tier.features?.cloning ?? false;
+  
+  if (!cloningEnabled) {
+    const tierName = tier.name || (tierId === 'free' ? 'Hobbyist' : tierId === 'plus' ? 'Plus' : 'Pro');
+    throw new Error(`Project cloning is not available on the ${tierName} plan. Please upgrade to access this feature.`);
+  }
+
+  // Step 4: All checks passed - user can clone the project (no project limit check for cloning)
 
   const cloneRef = col('projects').doc();
   const batch = db.batch();

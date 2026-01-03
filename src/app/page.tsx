@@ -34,6 +34,17 @@ export default function LandingPage() {
   const [loadingTestimonials, setLoadingTestimonials] = useState(true);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState<string | null>(null);
   const [featureFilter, setFeatureFilter] = useState<'all' | 'free' | 'plus' | 'pro' | 'plus-pro'>('all');
+  const [tiers, setTiers] = useState<Array<{ id: string; name: string; features: {
+    projectLimit: number;
+    fullPromptGeneration: boolean;
+    publicProjects: boolean;
+    communityAccess: boolean;
+    aiPromptEnhancement: boolean;
+    executionFollowUpAgent: boolean;
+    promptPlayground: boolean;
+    support: 'none' | 'community' | 'priority';
+  }}>>([]);
+  const [loadingTiers, setLoadingTiers] = useState(true);
 
   const navLinks = [
     { name: 'Features', href: '#features' },
@@ -286,9 +297,83 @@ export default function LandingPage() {
     fetchTestimonials();
   }, []);
 
+  useEffect(() => {
+    const fetchTiers = async () => {
+      setLoadingTiers(true);
+      try {
+        const res = await fetch('/api/tiers', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-store',
+        });
+        if (!res.ok) throw new Error('Failed to fetch tiers');
+        const data = await res.json();
+        setTiers(data.tiers || []);
+      } catch (error) {
+        console.error("Failed to fetch tiers:", error);
+        // Fallback to empty array on error
+        setTiers([]);
+      } finally {
+        setLoadingTiers(false);
+      }
+    };
+    fetchTiers();
+  }, []);
+
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
     return name.charAt(0).toUpperCase();
+  }
+
+  // Predefined feature keys
+  const PREDEFINED_FEATURES = [
+    'projectLimit',
+    'fullPromptGeneration',
+    'publicProjects',
+    'communityAccess',
+    'aiPromptEnhancement',
+    'executionFollowUpAgent',
+    'promptPlayground',
+    'support',
+  ];
+
+  // Helper function to get tier by ID
+  const getTierById = (tierId: string) => {
+    return tiers.find(t => t.id === tierId);
+  }
+
+  // Helper function to get price display for tier
+  const getTierPrice = (tierId: string) => {
+    switch (tierId) {
+      case 'free':
+        return 'Free';
+      case 'plus':
+        return '$7';
+      case 'pro':
+        return '$15';
+      default:
+        return 'Free';
+    }
+  }
+
+  // Helper function to get custom features (not in predefined list)
+  const getCustomFeatures = (features: any) => {
+    return Object.keys(features)
+      .filter(key => !PREDEFINED_FEATURES.includes(key))
+      .map(key => ({ key, value: features[key] }));
+  }
+
+  // Helper function to format feature value for display
+  const formatFeatureValue = (value: any) => {
+    if (typeof value === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+    if (typeof value === 'number') {
+      return value.toString();
+    }
+    return String(value);
   }
 
   const handleCheckout = async (plan: 'plus' | 'pro') => {
@@ -706,124 +791,223 @@ export default function LandingPage() {
             </div>
             <div className="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto overflow-visible">
               {/* Hobbyist */}
-              <Card className="flex flex-col bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group rounded-2xl overflow-hidden">
-                <CardHeader className="text-center">
-                  <CardTitle className="font-headline text-2xl text-[#00171f] dark:text-white font-bold">Hobbyist</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">Perfect for getting started and trying out ideas.</CardDescription>
-                  <p className="text-5xl font-bold pt-6 text-[#00171f] dark:text-white">Free</p>
-                </CardHeader>
-                <CardContent className="flex-grow space-y-4">
-                  <div className="space-y-3">
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold">1 project</span></p>
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Convert ideas into projects</p>
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Step-by-step prompts & AI roles</p>
-                  </div>
-                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-3">
-                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> Share projects with team</p>
-                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> Public projects</p>
-                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> Prompt Playground & Live Testing</p>
-                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> AI Prompt Enhancement</p>
-                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> Execution Follow-Up Agent</p>
-                    <p className="flex items-center text-gray-400 dark:text-gray-500 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" /> No Support</p>
-                  </div>
-                </CardContent>
-                <div className="p-6 pt-0">
-                  <Button asChild className="w-full bg-white dark:bg-[#00171f] hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-semibold py-3 rounded-full transition-all duration-200 hover:shadow-lg">
-                    <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
-                      {user ? subscriptionPlan == 'free' ? 'Go to Dashboard' : `You are subscribed to ${subscriptionPlan} plan` : 'Get Started'}
-                    </Link>
-                  </Button>
-                </div>
-              </Card>
+              {(() => {
+                const freeTier = getTierById('free');
+                if (!freeTier && loadingTiers) {
+                  return <div className="text-center text-gray-500">Loading...</div>;
+                }
+                const tier = freeTier || { id: 'free', name: 'Hobbyist', features: { projectLimit: 1, fullPromptGeneration: true, publicProjects: false, communityAccess: false, aiPromptEnhancement: false, executionFollowUpAgent: false, promptPlayground: false, support: 'none' } };
+                const price = getTierPrice('free');
+                return (
+                  <Card className="flex flex-col bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group rounded-2xl overflow-hidden">
+                    <CardHeader className="text-center">
+                      <CardTitle className="font-headline text-2xl text-[#00171f] dark:text-white font-bold">{tier.name}</CardTitle>
+                      <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">Perfect for getting started and trying out ideas.</CardDescription>
+                      <p className="text-5xl font-bold pt-6 text-[#00171f] dark:text-white">{price}</p>
+                    </CardHeader>
+                    <CardContent className="flex-grow space-y-4">
+                      <div className="space-y-3">
+                        <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold">{tier.features.projectLimit} project{tier.features.projectLimit > 1 ? 's' : ''}</span></p>
+                        <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Convert ideas into projects</p>
+                        <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Step-by-step prompts & AI roles</p>
+                      </div>
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                        <p className={`flex items-center font-medium ${tier.features.publicProjects ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.publicProjects ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} Share projects with team
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.publicProjects ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.publicProjects ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} Public projects
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.promptPlayground ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.promptPlayground ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} Prompt Playground & Live Testing
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.aiPromptEnhancement ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.aiPromptEnhancement ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} AI Prompt Enhancement
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.executionFollowUpAgent ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.executionFollowUpAgent ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} Execution Follow-Up Agent
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.support !== 'none' ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.support !== 'none' ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} {tier.features.support === 'none' ? 'No Support' : tier.features.support === 'community' ? 'Community Support' : 'Priority Support'}
+                        </p>
+                        {/* Custom Features - Display inline with predefined features */}
+                        {getCustomFeatures(tier.features).map(({ key, value }) => {
+                          const displayName = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+                          const valueType = typeof value;
+                          const hasFeature = valueType === 'boolean' ? value === true : value !== undefined && value !== null && value !== '';
+                          return (
+                            <p key={key} className={`flex items-center font-medium ${hasFeature ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                              {hasFeature ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} {displayName}{valueType !== 'boolean' && `: ${formatFeatureValue(value)}`}
+                            </p>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                    <div className="p-6 pt-0">
+                      <Button asChild className="w-full bg-white dark:bg-[#00171f] hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-semibold py-3 rounded-full transition-all duration-200 hover:shadow-lg">
+                        <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
+                          {user ? subscriptionPlan == 'free' ? 'Go to Dashboard' : `You are subscribed to ${subscriptionPlan} plan` : 'Get Started'}
+                        </Link>
+                      </Button>
+                    </div>
+                  </Card>
+                );
+              })()}
               
               {/* Plus (highlighted) */}
-              <Card className="flex flex-col bg-[#00171f] text-white border-2 border-[#00171f] shadow-2xl shadow-[#00171f]/30 relative scale-105 z-10 rounded-2xl overflow-visible">
-                <div className="absolute top-0 right-0 left-0 h-1 bg-white/30 rounded-t-2xl" />
-                {/* Most Popular Badge - Positioned outside card to avoid clipping */}
-                <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-30">
-                  <div className="text-xs font-bold uppercase text-white bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2.5 rounded-full shadow-2xl border-2 border-white/30 whitespace-nowrap">
-                    Most Popular
-                  </div>
-                </div>
-                <CardHeader className="text-center relative pt-8">
-                  <CardTitle className="font-headline text-2xl text-white font-bold">Plus</CardTitle>
-                  <CardDescription className="text-gray-300 font-medium">For individuals and small teams shipping projects.</CardDescription>
-                  <p className="pt-6">
-                    <span className="text-5xl font-bold text-white">$7</span>
-                    <span className="text-gray-300 font-medium">/month</span>
-                  </p>
-                </CardHeader>
-                <CardContent className="flex-grow space-y-4">
-                  <div className="space-y-3">
-                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">10+ projects per month</span></p>
-                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Convert ideas into projects</p>
-                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Step-by-step prompts & AI roles</p>
-                  </div>
-                  <div className="pt-2 border-t border-white/20 space-y-3">
-                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">Share projects with team</span></p>
-                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">Public projects & sharing</span></p>
-                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">Prompt Playground & Live Testing</span></p>
-                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">AI Prompt Enhancement</span></p>
-                    <p className="flex items-center text-gray-400 font-medium"><XCircle className="h-5 w-5 mr-3 text-gray-500" /> Execution Follow-Up Agent</p>
-                    <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Community Support</p>
-                  </div>
-                </CardContent>
-                <div className="p-6 pt-0">
-                  <Button onClick={() => {
-                    if (user && subscriptionPlan == 'plus') {
-                      router.push('/dashboard');
-                    } else {
-                      handleCheckout('plus');
-                    }
-                  }} className="w-full bg-white hover:bg-gray-100 text-[#00171f] border-0 shadow-lg font-semibold py-3 rounded-full transition-all duration-200" disabled={isCheckoutLoading === 'plus'}>
-                    {isCheckoutLoading === 'plus' ? <Loader2 className="animate-spin" /> :
-                      user ? subscriptionPlan == 'plus' ? 'Go to Dashboard' :
-                        subscriptionPlan == 'pro' ?
-                          `You are subscribed to ${subscriptionPlan} plan`
-                          : 'Get Plus'
-                        : 'Get Started'}
-                  </Button>
-                </div>
-              </Card>
+              {(() => {
+                const plusTier = getTierById('plus');
+                if (!plusTier && loadingTiers) {
+                  return <div className="text-center text-gray-500">Loading...</div>;
+                }
+                const tier = plusTier || { id: 'plus', name: 'Plus', features: { projectLimit: 10, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: false, promptPlayground: true, support: 'community' } };
+                const price = getTierPrice('plus');
+                return (
+                  <Card className="flex flex-col bg-[#00171f] text-white border-2 border-[#00171f] shadow-2xl shadow-[#00171f]/30 relative scale-105 z-10 rounded-2xl overflow-visible">
+                    <div className="absolute top-0 right-0 left-0 h-1 bg-white/30 rounded-t-2xl" />
+                    {/* Most Popular Badge - Positioned outside card to avoid clipping */}
+                    <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-30">
+                      <div className="text-xs font-bold uppercase text-white bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2.5 rounded-full shadow-2xl border-2 border-white/30 whitespace-nowrap">
+                        Most Popular
+                      </div>
+                    </div>
+                    <CardHeader className="text-center relative pt-8">
+                      <CardTitle className="font-headline text-2xl text-white font-bold">{tier.name}</CardTitle>
+                      <CardDescription className="text-gray-300 font-medium">For individuals and small teams shipping projects.</CardDescription>
+                      <p className="pt-6">
+                        <span className="text-5xl font-bold text-white">{price}</span>
+                        <span className="text-gray-300 font-medium">/month</span>
+                      </p>
+                    </CardHeader>
+                    <CardContent className="flex-grow space-y-4">
+                      <div className="space-y-3">
+                        <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> <span className="font-semibold text-white">{tier.features.projectLimit}+ projects per month</span></p>
+                        <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Convert ideas into projects</p>
+                        <p className="flex items-center text-gray-200 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-white" /> Step-by-step prompts & AI roles</p>
+                      </div>
+                      <div className="pt-2 border-t border-white/20 space-y-3">
+                        <p className={`flex items-center font-medium ${tier.features.publicProjects ? 'text-gray-200' : 'text-gray-400'}`}>
+                          {tier.features.publicProjects ? <CheckCircle className="h-5 w-5 mr-3 text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-500" />} <span className={tier.features.publicProjects ? 'font-semibold text-white' : ''}>Share projects with team</span>
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.publicProjects ? 'text-gray-200' : 'text-gray-400'}`}>
+                          {tier.features.publicProjects ? <CheckCircle className="h-5 w-5 mr-3 text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-500" />} <span className={tier.features.publicProjects ? 'font-semibold text-white' : ''}>Public projects & sharing</span>
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.promptPlayground ? 'text-gray-200' : 'text-gray-400'}`}>
+                          {tier.features.promptPlayground ? <CheckCircle className="h-5 w-5 mr-3 text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-500" />} <span className={tier.features.promptPlayground ? 'font-semibold text-white' : ''}>Prompt Playground & Live Testing</span>
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.aiPromptEnhancement ? 'text-gray-200' : 'text-gray-400'}`}>
+                          {tier.features.aiPromptEnhancement ? <CheckCircle className="h-5 w-5 mr-3 text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-500" />} <span className={tier.features.aiPromptEnhancement ? 'font-semibold text-white' : ''}>AI Prompt Enhancement</span>
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.executionFollowUpAgent ? 'text-gray-200' : 'text-gray-400'}`}>
+                          {tier.features.executionFollowUpAgent ? <CheckCircle className="h-5 w-5 mr-3 text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-500" />} Execution Follow-Up Agent
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.support !== 'none' ? 'text-gray-200' : 'text-gray-400'}`}>
+                          {tier.features.support !== 'none' ? <CheckCircle className="h-5 w-5 mr-3 text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-500" />} {tier.features.support === 'none' ? 'No Support' : tier.features.support === 'community' ? 'Community Support' : 'Priority Support'}
+                        </p>
+                        {/* Custom Features - Display inline with predefined features */}
+                        {getCustomFeatures(tier.features).map(({ key, value }) => {
+                          const displayName = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+                          const valueType = typeof value;
+                          const hasFeature = valueType === 'boolean' ? value === true : value !== undefined && value !== null && value !== '';
+                          return (
+                            <p key={key} className={`flex items-center font-medium ${hasFeature ? 'text-gray-200' : 'text-gray-400'}`}>
+                              {hasFeature ? <CheckCircle className="h-5 w-5 mr-3 text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-500" />} <span className={hasFeature ? 'font-semibold text-white' : ''}>{displayName}{valueType !== 'boolean' && `: ${formatFeatureValue(value)}`}</span>
+                            </p>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                    <div className="p-6 pt-0">
+                      <Button onClick={() => {
+                        if (user && subscriptionPlan == 'plus') {
+                          router.push('/dashboard');
+                        } else {
+                          handleCheckout('plus');
+                        }
+                      }} className="w-full bg-white hover:bg-gray-100 text-[#00171f] border-0 shadow-lg font-semibold py-3 rounded-full transition-all duration-200" disabled={isCheckoutLoading === 'plus'}>
+                        {isCheckoutLoading === 'plus' ? <Loader2 className="animate-spin" /> :
+                          user ? subscriptionPlan == 'plus' ? 'Go to Dashboard' :
+                            subscriptionPlan == 'pro' ?
+                              `You are subscribed to ${subscriptionPlan} plan`
+                              : 'Get Plus'
+                            : 'Get Started'}
+                      </Button>
+                    </div>
+                  </Card>
+                );
+              })()}
               
               {/* Pro */}
-              <Card className="flex flex-col bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group rounded-2xl overflow-hidden">
-                <CardHeader className="text-center">
-                  <CardTitle className="font-headline text-2xl text-[#00171f] dark:text-white font-bold">Pro</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">For serious builders who want to ship faster.</CardDescription>
-                  <p className="pt-6">
-                    <span className="text-5xl font-bold text-[#00171f] dark:text-white">$15</span>
-                    <span className="text-gray-500 dark:text-gray-400 font-medium">/month</span>
-                  </p>
-                </CardHeader>
-                <CardContent className="flex-grow space-y-4">
-                  <div className="space-y-3">
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold">30+ projects per month</span></p>
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Convert ideas into projects</p>
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Step-by-step prompts & AI roles</p>
-                  </div>
-                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-3">
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Share projects with team</p>
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Public projects & sharing</p>
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold text-[#00171f] dark:text-white">Prompt Playground & Live Testing</span></p>
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> AI Prompt Enhancement</p>
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold text-[#00171f] dark:text-white">Execution Follow-Up Agent</span></p>
-                    <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold text-[#00171f] dark:text-white">Priority Support</span></p>
-                  </div>
-                </CardContent>
-                <div className="p-6 pt-0">
-                  <Button onClick={() => {
-                    if (user && subscriptionPlan == 'pro') {
-                      router.push('/dashboard');
-                    } else {
-                      handleCheckout('pro');
-                    }
-                  }} className="w-full bg-white dark:bg-[#00171f] hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-semibold py-3 rounded-full transition-all duration-200 hover:shadow-lg" disabled={isCheckoutLoading === 'pro'}>
-                    {isCheckoutLoading === 'pro' ? <Loader2 className="animate-spin" /> :
-                      user && subscriptionPlan == 'pro' ? 'Go to Dashboard' : `Get Pro`}
-                  </Button>
-                </div>
-              </Card>
+              {(() => {
+                const proTier = getTierById('pro');
+                if (!proTier && loadingTiers) {
+                  return <div className="text-center text-gray-500">Loading...</div>;
+                }
+                const tier = proTier || { id: 'pro', name: 'Pro', features: { projectLimit: 30, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: true, promptPlayground: true, support: 'priority' } };
+                const price = getTierPrice('pro');
+                return (
+                  <Card className="flex flex-col bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group rounded-2xl overflow-hidden">
+                    <CardHeader className="text-center">
+                      <CardTitle className="font-headline text-2xl text-[#00171f] dark:text-white font-bold">{tier.name}</CardTitle>
+                      <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">For serious builders who want to ship faster.</CardDescription>
+                      <p className="pt-6">
+                        <span className="text-5xl font-bold text-[#00171f] dark:text-white">{price}</span>
+                        <span className="text-gray-500 dark:text-gray-400 font-medium">/month</span>
+                      </p>
+                    </CardHeader>
+                    <CardContent className="flex-grow space-y-4">
+                      <div className="space-y-3">
+                        <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> <span className="font-semibold">{tier.features.projectLimit}+ projects per month</span></p>
+                        <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Convert ideas into projects</p>
+                        <p className="flex items-center text-gray-600 dark:text-gray-300 font-medium"><CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> Step-by-step prompts & AI roles</p>
+                      </div>
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                        <p className={`flex items-center font-medium ${tier.features.publicProjects ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.publicProjects ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} Share projects with team
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.publicProjects ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.publicProjects ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} Public projects & sharing
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.promptPlayground ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.promptPlayground ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} <span className={tier.features.promptPlayground ? 'font-semibold text-[#00171f] dark:text-white' : ''}>Prompt Playground & Live Testing</span>
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.aiPromptEnhancement ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.aiPromptEnhancement ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} AI Prompt Enhancement
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.executionFollowUpAgent ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.executionFollowUpAgent ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} <span className={tier.features.executionFollowUpAgent ? 'font-semibold text-[#00171f] dark:text-white' : ''}>Execution Follow-Up Agent</span>
+                        </p>
+                        <p className={`flex items-center font-medium ${tier.features.support !== 'none' ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {tier.features.support !== 'none' ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} <span className={tier.features.support === 'priority' ? 'font-semibold text-[#00171f] dark:text-white' : ''}>{tier.features.support === 'none' ? 'No Support' : tier.features.support === 'community' ? 'Community Support' : 'Priority Support'}</span>
+                        </p>
+                        {/* Custom Features - Display inline with predefined features */}
+                        {getCustomFeatures(tier.features).map(({ key, value }) => {
+                          const displayName = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+                          const valueType = typeof value;
+                          const hasFeature = valueType === 'boolean' ? value === true : value !== undefined && value !== null && value !== '';
+                          return (
+                            <p key={key} className={`flex items-center font-medium ${hasFeature ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                              {hasFeature ? <CheckCircle className="h-5 w-5 mr-3 text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mr-3 text-gray-300 dark:text-gray-600" />} <span className={hasFeature ? 'font-semibold text-[#00171f] dark:text-white' : ''}>{displayName}{valueType !== 'boolean' && `: ${formatFeatureValue(value)}`}</span>
+                            </p>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                    <div className="p-6 pt-0">
+                      <Button onClick={() => {
+                        if (user && subscriptionPlan == 'pro') {
+                          router.push('/dashboard');
+                        } else {
+                          handleCheckout('pro');
+                        }
+                      }} className="w-full bg-white dark:bg-[#00171f] hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-semibold py-3 rounded-full transition-all duration-200 hover:shadow-lg" disabled={isCheckoutLoading === 'pro'}>
+                        {isCheckoutLoading === 'pro' ? <Loader2 className="animate-spin" /> :
+                          user && subscriptionPlan == 'pro' ? 'Go to Dashboard' : `Get Pro`}
+                      </Button>
+                    </div>
+                  </Card>
+                );
+              })()}
             </div>
             
             {/* Feature Comparison Table */}
@@ -842,71 +1026,146 @@ export default function LandingPage() {
                     <thead>
                       <tr className="border-b-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                         <th className="text-left p-4 font-headline font-bold text-[#00171f] dark:text-white">Feature</th>
-                        <th className="text-center p-4 font-headline font-bold text-[#00171f] dark:text-white">Hobbyist</th>
+                        <th className="text-center p-4 font-headline font-bold text-[#00171f] dark:text-white">
+                          {(() => {
+                            const freeTier = getTierById('free');
+                            return freeTier?.name || 'Hobbyist';
+                          })()}
+                        </th>
                         <th className="text-center p-4 font-headline font-bold text-[#00171f] dark:text-white relative">
                           <div className="flex items-center justify-center gap-2">
-                            Plus
+                            {(() => {
+                              const plusTier = getTierById('plus');
+                              return plusTier?.name || 'Plus';
+                            })()}
                             <span className="text-xs font-bold uppercase text-white bg-[#00171f] dark:bg-white dark:text-[#00171f] px-2 py-1 rounded-full">Most Popular</span>
                           </div>
                         </th>
-                        <th className="text-center p-4 font-headline font-bold text-[#00171f] dark:text-white">Pro</th>
+                        <th className="text-center p-4 font-headline font-bold text-[#00171f] dark:text-white">
+                          {(() => {
+                            const proTier = getTierById('pro');
+                            return proTier?.name || 'Pro';
+                          })()}
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Projects per month</td>
-                        <td className="p-4 text-center text-gray-600 dark:text-gray-400">1</td>
-                        <td className="p-4 text-center text-[#00171f] dark:text-white font-semibold">10+</td>
-                        <td className="p-4 text-center text-[#00171f] dark:text-white font-semibold">30+</td>
-                      </tr>
-                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Convert ideas into projects</td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                      </tr>
-                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Step-by-step prompts & AI roles</td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                      </tr>
-                      <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
-                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Share projects with team</td>
-                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                      </tr>
-                      <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
-                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Public projects & sharing</td>
-                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                      </tr>
-                      <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
-                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Prompt Playground & Live Testing</td>
-                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                      </tr>
-                      <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
-                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">AI Prompt Enhancement</td>
-                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                      </tr>
-                      <tr className="hover:bg-blue-50/50 dark:hover:bg-blue-900/30 transition-colors bg-blue-50/30 dark:bg-blue-900/20">
-                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Execution Follow-Up Agent</td>
-                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
-                        <td className="p-4 text-center"><XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" /></td>
-                        <td className="p-4 text-center"><CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /></td>
-                      </tr>
-                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                        <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Support</td>
-                        <td className="p-4 text-center text-gray-400 dark:text-gray-500">None</td>
-                        <td className="p-4 text-center text-[#00171f] dark:text-white font-medium">Community</td>
-                        <td className="p-4 text-center text-[#00171f] dark:text-white font-semibold">Priority</td>
-                      </tr>
+                      {(() => {
+                        const freeTier = getTierById('free');
+                        const plusTier = getTierById('plus');
+                        const proTier = getTierById('pro');
+                        const free = freeTier || { id: 'free', name: 'Hobbyist', features: { projectLimit: 1, fullPromptGeneration: true, publicProjects: false, communityAccess: false, aiPromptEnhancement: false, executionFollowUpAgent: false, promptPlayground: false, support: 'none' } };
+                        const plus = plusTier || { id: 'plus', name: 'Plus', features: { projectLimit: 10, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: false, promptPlayground: true, support: 'community' } };
+                        const pro = proTier || { id: 'pro', name: 'Pro', features: { projectLimit: 30, fullPromptGeneration: true, publicProjects: true, communityAccess: true, aiPromptEnhancement: true, executionFollowUpAgent: true, promptPlayground: true, support: 'priority' } };
+                        const renderCell = (hasFeature: boolean) => hasFeature ? <CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" /> : <XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" />;
+                        return (
+                          <>
+                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                              <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Projects per month</td>
+                              <td className="p-4 text-center text-gray-600 dark:text-gray-400">{free.features.projectLimit}</td>
+                              <td className="p-4 text-center text-[#00171f] dark:text-white font-semibold">{plus.features.projectLimit}+</td>
+                              <td className="p-4 text-center text-[#00171f] dark:text-white font-semibold">{pro.features.projectLimit}+</td>
+                            </tr>
+                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                              <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Convert ideas into projects</td>
+                              <td className="p-4 text-center">{renderCell(free.features.fullPromptGeneration)}</td>
+                              <td className="p-4 text-center">{renderCell(plus.features.fullPromptGeneration)}</td>
+                              <td className="p-4 text-center">{renderCell(pro.features.fullPromptGeneration)}</td>
+                            </tr>
+                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                              <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Step-by-step prompts & AI roles</td>
+                              <td className="p-4 text-center">{renderCell(free.features.fullPromptGeneration)}</td>
+                              <td className="p-4 text-center">{renderCell(plus.features.fullPromptGeneration)}</td>
+                              <td className="p-4 text-center">{renderCell(pro.features.fullPromptGeneration)}</td>
+                            </tr>
+                            <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
+                              <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Share projects with team</td>
+                              <td className="p-4 text-center">{renderCell(free.features.publicProjects)}</td>
+                              <td className="p-4 text-center">{renderCell(plus.features.publicProjects)}</td>
+                              <td className="p-4 text-center">{renderCell(pro.features.publicProjects)}</td>
+                            </tr>
+                            <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
+                              <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Public projects & sharing</td>
+                              <td className="p-4 text-center">{renderCell(free.features.publicProjects)}</td>
+                              <td className="p-4 text-center">{renderCell(plus.features.publicProjects)}</td>
+                              <td className="p-4 text-center">{renderCell(pro.features.publicProjects)}</td>
+                            </tr>
+                            <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
+                              <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Prompt Playground & Live Testing</td>
+                              <td className="p-4 text-center">{renderCell(free.features.promptPlayground)}</td>
+                              <td className="p-4 text-center">{renderCell(plus.features.promptPlayground)}</td>
+                              <td className="p-4 text-center">{renderCell(pro.features.promptPlayground)}</td>
+                            </tr>
+                            <tr className="hover:bg-amber-50/50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/30 dark:bg-amber-900/20">
+                              <td className="p-4 font-medium text-gray-700 dark:text-gray-300">AI Prompt Enhancement</td>
+                              <td className="p-4 text-center">{renderCell(free.features.aiPromptEnhancement)}</td>
+                              <td className="p-4 text-center">{renderCell(plus.features.aiPromptEnhancement)}</td>
+                              <td className="p-4 text-center">{renderCell(pro.features.aiPromptEnhancement)}</td>
+                            </tr>
+                            <tr className="hover:bg-blue-50/50 dark:hover:bg-blue-900/30 transition-colors bg-blue-50/30 dark:bg-blue-900/20">
+                              <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Execution Follow-Up Agent</td>
+                              <td className="p-4 text-center">{renderCell(free.features.executionFollowUpAgent)}</td>
+                              <td className="p-4 text-center">{renderCell(plus.features.executionFollowUpAgent)}</td>
+                              <td className="p-4 text-center">{renderCell(pro.features.executionFollowUpAgent)}</td>
+                            </tr>
+                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                              <td className="p-4 font-medium text-gray-700 dark:text-gray-300">Support</td>
+                              <td className="p-4 text-center text-gray-400 dark:text-gray-500">{free.features.support === 'none' ? 'None' : free.features.support === 'community' ? 'Community' : 'Priority'}</td>
+                              <td className="p-4 text-center text-[#00171f] dark:text-white font-medium">{plus.features.support === 'none' ? 'None' : plus.features.support === 'community' ? 'Community' : 'Priority'}</td>
+                              <td className="p-4 text-center text-[#00171f] dark:text-white font-semibold">{pro.features.support === 'none' ? 'None' : pro.features.support === 'community' ? 'Community' : 'Priority'}</td>
+                            </tr>
+                            {/* Custom Features Rows */}
+                            {(() => {
+                              const freeCustom = getCustomFeatures(free.features);
+                              const plusCustom = getCustomFeatures(plus.features);
+                              const proCustom = getCustomFeatures(pro.features);
+                              const allCustomKeys = Array.from(new Set([
+                                ...freeCustom.map(f => f.key),
+                                ...plusCustom.map(f => f.key),
+                                ...proCustom.map(f => f.key),
+                              ]));
+                              
+                              return allCustomKeys.map(customKey => {
+                                const freeValue = free.features[customKey];
+                                const plusValue = plus.features[customKey];
+                                const proValue = pro.features[customKey];
+                                const displayName = customKey.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+                                
+                                // Helper to render cell value based on type
+                                const renderCustomCell = (value: any) => {
+                                  if (value === undefined || value === null) {
+                                    return <span className="text-gray-400 dark:text-gray-500">—</span>;
+                                  }
+                                  const valueType = typeof value;
+                                  if (valueType === 'boolean') {
+                                    return value ? (
+                                      <CheckCircle className="h-5 w-5 mx-auto text-[#00171f] dark:text-white" />
+                                    ) : (
+                                      <XCircle className="h-5 w-5 mx-auto text-gray-300 dark:text-gray-600" />
+                                    );
+                                  }
+                                  return <span>{formatFeatureValue(value)}</span>;
+                                };
+                                
+                                return (
+                                  <tr key={customKey} className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors border-t border-gray-200 dark:border-gray-700">
+                                    <td className="p-4 font-medium text-gray-700 dark:text-gray-300 capitalize">{displayName}</td>
+                                    <td className="p-4 text-center text-gray-600 dark:text-gray-400">
+                                      {renderCustomCell(freeValue)}
+                                    </td>
+                                    <td className="p-4 text-center text-[#00171f] dark:text-white">
+                                      {renderCustomCell(plusValue)}
+                                    </td>
+                                    <td className="p-4 text-center text-[#00171f] dark:text-white">
+                                      {renderCustomCell(proValue)}
+                                    </td>
+                                  </tr>
+                                );
+                              });
+                            })()}
+                          </>
+                        );
+                      })()}
                     </tbody>
                   </table>
                 </div>

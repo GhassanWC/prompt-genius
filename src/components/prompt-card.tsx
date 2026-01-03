@@ -37,8 +37,29 @@ export function PromptCard({
   const router = useRouter();
   const [hasCopied, setHasCopied] = useState(false);
   const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
   
-  const hasAccess = subscriptionPlan === 'plus' || subscriptionPlan === 'pro';
+  // Check promptPlayground feature from tiers collection
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (!user || !subscriptionPlan) {
+        setHasAccess(false);
+        return;
+      }
+      
+      try {
+        const { getTier } = await import('@/lib/tiers');
+        const tier = await getTier(subscriptionPlan || 'free');
+        const hasPlaygroundAccess = tier?.features?.promptPlayground === true;
+        setHasAccess(hasPlaygroundAccess);
+      } catch (error) {
+        console.error('Error checking prompt playground access:', error);
+        setHasAccess(false);
+      }
+    };
+    
+    checkAccess();
+  }, [user, subscriptionPlan]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(userPrompt);

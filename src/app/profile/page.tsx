@@ -34,6 +34,11 @@ import {
   BadgeCheck,
   Rocket,
   Ban,
+  CreditCard,
+  Calendar,
+  Building2,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { UserNav } from "@/components/user-nav";
@@ -72,6 +77,8 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [isPortalLoading, setIsPortalLoading] = useState(false);
+  const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
+  const [loadingSubscription, setLoadingSubscription] = useState(true);
 
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -121,6 +128,44 @@ export default function ProfilePage() {
       fetchUserData();
     }
   }, [user, profileForm]);
+
+  useEffect(() => {
+    if (user) {
+      const fetchSubscriptionDetails = async () => {
+        try {
+          setLoadingSubscription(true);
+          const token = await auth.currentUser?.getIdToken();
+          const res = await fetch('/api/subscription/details', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            cache: 'no-store',
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            console.log('Subscription details fetched:', data);
+            setSubscriptionDetails(data.subscription);
+          } else {
+            const errorData = await res.json().catch(() => ({}));
+            console.error('Failed to fetch subscription details:', res.status, errorData);
+            setSubscriptionDetails(null);
+          }
+        } catch (err) {
+          console.error('Error fetching subscription details:', err);
+          setSubscriptionDetails(null);
+        } finally {
+          setLoadingSubscription(false);
+        }
+      };
+      fetchSubscriptionDetails();
+    } else {
+      setSubscriptionDetails(null);
+      setLoadingSubscription(false);
+    }
+  }, [user]);
 
   async function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
     setError(null);
@@ -467,6 +512,18 @@ export default function ProfilePage() {
                     <p className="text-2xl font-bold text-[#00171f] dark:text-white capitalize">
                       {subscriptionPlan || "Free"}
                     </p>
+                    {subscriptionDetails && (
+                      <div className="flex items-center gap-2 mt-2">
+                        {subscriptionDetails.status === 'active' ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-500" />
+                        )}
+                        <span className="text-xs text-gray-600 dark:text-gray-400 capitalize">
+                          {subscriptionDetails.status_formatted || subscriptionDetails.status}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <Badge
                     variant="outline"
@@ -476,6 +533,119 @@ export default function ProfilePage() {
                     {subscriptionPlan || "Free"}
                   </Badge>
                 </div>
+
+                {/* Subscription Details */}
+                {loadingSubscription ? (
+                  <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] rounded-2xl overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-center">
+                        <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+                        <span className="ml-2 text-gray-600 dark:text-gray-400">Loading subscription details...</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : subscriptionDetails ? (
+                  <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] rounded-2xl overflow-hidden">
+                    <CardHeader className="border-b border-gray-200 dark:border-gray-800">
+                      <CardTitle className="font-headline text-xl font-bold text-[#00171f] dark:text-white">
+                        Subscription Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                      {subscriptionDetails.renews_at && (
+                        <div className="flex items-start gap-3">
+                          <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                              Next Renewal Date
+                            </p>
+                            <p className="text-base font-semibold text-[#00171f] dark:text-white">
+                              {new Date(subscriptionDetails.renews_at).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {subscriptionDetails.card_brand && subscriptionDetails.card_last_four && (
+                        <div className="flex items-start gap-3">
+                          <CreditCard className="h-5 w-5 text-gray-500 dark:text-gray-400 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                              Payment Method
+                            </p>
+                            <p className="text-base font-semibold text-[#00171f] dark:text-white capitalize">
+                              {subscriptionDetails.card_brand} •••• {subscriptionDetails.card_last_four}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {subscriptionDetails.payment_processor && (
+                        <div className="flex items-start gap-3">
+                          <Building2 className="h-5 w-5 text-gray-500 dark:text-gray-400 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                              Payment Provider
+                            </p>
+                            <p className="text-base font-semibold text-[#00171f] dark:text-white capitalize">
+                              {subscriptionDetails.payment_processor}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {subscriptionDetails.product_name && (
+                        <div className="flex items-start gap-3">
+                          <BadgeCheck className="h-5 w-5 text-gray-500 dark:text-gray-400 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                              Plan Details
+                            </p>
+                            <p className="text-base font-semibold text-[#00171f] dark:text-white">
+                              {subscriptionDetails.product_name}
+                              {subscriptionDetails.variant_name && ` - ${subscriptionDetails.variant_name}`}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {subscriptionDetails.ends_at && subscriptionDetails.cancelled && (
+                        <div className="flex items-start gap-3">
+                          <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                              Subscription Ends
+                            </p>
+                            <p className="text-base font-semibold text-red-600 dark:text-red-400">
+                              {new Date(subscriptionDetails.ends_at).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#00171f] rounded-2xl overflow-hidden">
+                    <CardHeader className="border-b border-gray-200 dark:border-gray-800">
+                      <CardTitle className="font-headline text-xl font-bold text-[#00171f] dark:text-white">
+                        Subscription Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <p className="text-gray-600 dark:text-gray-400">
+                        No active subscription found. You are currently on the {subscriptionPlan || 'Free'} plan.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {subscriptionPlan === "free" ? (
                   <Card className="border-2 border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 rounded-2xl overflow-hidden">

@@ -32,6 +32,11 @@ import {
   Trash2,
   ToggleLeft,
   ToggleRight,
+  Layers,
+  Save,
+  CheckCircle2,
+  XCircle,
+  Plus,
 } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
@@ -44,6 +49,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { auth } from '@/lib/firebase';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -51,6 +57,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -128,8 +142,597 @@ interface AdminFeedback {
   } | null;
 }
 
+interface Tier {
+  id: string;
+  name: string;
+  features: {
+    projectLimit: number;
+    fullPromptGeneration: boolean;
+    publicProjects: boolean;
+    communityAccess: boolean;
+    aiPromptEnhancement: boolean;
+    executionFollowUpAgent: boolean;
+    promptPlayground: boolean;
+    cloning: boolean;
+    support: 'none' | 'community' | 'priority';
+    [key: string]: any; // Allow custom features
+  };
+}
+
 const formatDate = (value?: Date | null) =>
   value ? new Date(value).toLocaleDateString() : '—';
+
+// Predefined feature keys that should be handled specially
+const PREDEFINED_FEATURES = [
+  'projectLimit',
+  'fullPromptGeneration',
+  'publicProjects',
+  'communityAccess',
+  'aiPromptEnhancement',
+  'executionFollowUpAgent',
+  'promptPlayground',
+  'cloning',
+  'support',
+];
+
+// Add Feature Dialog Component - Adds feature to all tiers
+function AddFeatureDialog({
+  open,
+  onOpenChange,
+  onAddComplete,
+  existingFeatureKeys,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAddComplete: () => void;
+  existingFeatureKeys: string[];
+}) {
+  const [fieldName, setFieldName] = useState('');
+  const [type, setType] = useState('string');
+  const [stringValue, setStringValue] = useState('');
+  const [numberValue, setNumberValue] = useState('');
+  const [booleanValue, setBooleanValue] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+
+  const handleAdd = async () => {
+    if (!fieldName.trim()) {
+      return;
+    }
+
+    if (existingFeatureKeys.includes(fieldName.trim())) {
+      return;
+    }
+
+    let value: any;
+    switch (type) {
+      case 'string':
+        value = stringValue;
+        break;
+      case 'number':
+        value = parseFloat(numberValue) || 0;
+        break;
+      case 'boolean':
+        value = booleanValue;
+        break;
+      default:
+        value = stringValue;
+    }
+
+    setIsAdding(true);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch('/api/admin/tiers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          fieldName: fieldName.trim(),
+          type,
+          defaultValue: value,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Failed to add feature' }));
+        throw new Error(errorData.error || 'Failed to add feature');
+      }
+
+      const result = await res.json();
+      console.log('Feature added successfully:', result);
+
+      setFieldName('');
+      setStringValue('');
+      setNumberValue('');
+      setBooleanValue(false);
+      onOpenChange(false);
+      await onAddComplete();
+    } catch (error: any) {
+      console.error('Error adding feature:', error);
+      // Error will be shown via toast in onAddComplete
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!open) {
+      setFieldName('');
+      setStringValue('');
+      setNumberValue('');
+      setBooleanValue(false);
+      setType('string');
+    }
+  }, [open]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800">
+        <DialogHeader>
+          <DialogTitle>Add New Feature to All Tiers</DialogTitle>
+          <DialogDescription>
+            Add a new feature field to all tiers (Free, Plus, Pro). You can adjust the value for each tier after adding.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="field-name">Field Name</Label>
+            <Input
+              id="field-name"
+              value={fieldName}
+              onChange={(e) => setFieldName(e.target.value)}
+              placeholder="e.g., customFeature"
+              className="border-gray-200 dark:border-gray-700 focus:border-[#00171f] dark:focus:border-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="field-type">Type</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger id="field-type" className="border-gray-200 dark:border-gray-700">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="string">string</SelectItem>
+                <SelectItem value="number">number</SelectItem>
+                <SelectItem value="boolean">boolean</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="field-value">
+              Default Value ({type === 'string' ? 'String' : type === 'number' ? 'Number' : 'Boolean'})
+            </Label>
+            {type === 'string' && (
+              <Input
+                id="field-value"
+                value={stringValue}
+                onChange={(e) => setStringValue(e.target.value)}
+                placeholder="Enter default string value"
+                className="border-gray-200 dark:border-gray-700 focus:border-[#00171f] dark:focus:border-white"
+              />
+            )}
+            {type === 'number' && (
+              <Input
+                id="field-value"
+                type="number"
+                value={numberValue}
+                onChange={(e) => setNumberValue(e.target.value)}
+                placeholder="Enter default number value"
+                className="border-gray-200 dark:border-gray-700 focus:border-[#00171f] dark:focus:border-white"
+              />
+            )}
+            {type === 'boolean' && (
+              <Select
+                value={booleanValue.toString()}
+                onValueChange={(val) => setBooleanValue(val === 'true')}
+              >
+                <SelectTrigger id="field-value" className="border-gray-200 dark:border-gray-700">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">true</SelectItem>
+                  <SelectItem value="false">false</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isAdding}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAdd}
+            disabled={!fieldName.trim() || existingFeatureKeys.includes(fieldName.trim()) || isAdding}
+            className="bg-[#00171f] hover:bg-[#00171f]/90 text-white dark:bg-white dark:text-[#00171f] dark:hover:bg-gray-100"
+          >
+            {isAdding ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              'Add to All Tiers'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Tier Card Component
+function TierCard({
+  tier,
+  onUpdate,
+  saving,
+}: {
+  tier: Tier;
+  onUpdate: (tierId: string, updates: Partial<Tier['features']> & { name?: string }) => Promise<void>;
+  saving: string | null;
+}) {
+  const [localTier, setLocalTier] = useState<Tier>(tier);
+
+  // Update local tier when prop changes
+  useEffect(() => {
+    setLocalTier(tier);
+  }, [tier]);
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Get custom features (not in predefined list)
+  const customFeatures = Object.keys(localTier.features).filter(
+    (key) => !PREDEFINED_FEATURES.includes(key)
+  );
+
+  // Debug: Log custom features
+  useEffect(() => {
+    if (customFeatures.length > 0) {
+      console.log(`[TierCard ${tier.id}] Custom features found:`, customFeatures);
+    }
+  }, [customFeatures, tier.id]);
+
+  return (
+    <Card className="bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 shadow-lg hover:shadow-xl transition-shadow">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-xl font-semibold text-[#00171f] dark:text-white flex items-center gap-2">
+              <Badge
+                className={
+                  tier.id === 'pro'
+                    ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white border-0'
+                    : tier.id === 'plus'
+                    ? 'bg-primary text-primary-foreground border-0'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+                }
+              >
+                {tier.name || tier.id.toUpperCase()}
+              </Badge>
+            </CardTitle>
+            <CardDescription className="mt-1.5 text-sm">Manage features for {tier.id} tier</CardDescription>
+          </div>
+          {!isEditing ? (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setLocalTier(tier);
+                setIsEditing(true);
+              }}
+              className="hover:bg-gray-50 dark:hover:bg-gray-800 h-10 px-5"
+            >
+              Edit
+            </Button>
+          ) : (
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsEditing(false);
+                  setLocalTier(tier);
+                }}
+                className="hover:bg-gray-50 dark:hover:bg-gray-800 h-10 px-5"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  await onUpdate(tier.id, {
+                    name: localTier.name,
+                    ...localTier.features,
+                  });
+                  setIsEditing(false);
+                }}
+                disabled={saving === tier.id}
+                className="bg-[#00171f] hover:bg-[#00171f]/90 text-white dark:bg-white dark:text-[#00171f] dark:hover:bg-gray-100 h-10 px-5"
+              >
+                {saving === tier.id ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6 pt-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Tier Name */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-[#00171f] dark:text-white block">Tier Name</label>
+            {isEditing ? (
+              <Input
+                value={localTier.name}
+                onChange={(e) => setLocalTier({ ...localTier, name: e.target.value })}
+                className="border-gray-200 dark:border-gray-700 focus:border-[#00171f] dark:focus:border-white transition-colors h-10"
+              />
+            ) : (
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 py-2.5 px-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 min-h-[40px] flex items-center">{tier.name}</p>
+            )}
+          </div>
+
+          {/* Project Limit */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-[#00171f] dark:text-white block">Project Limit</label>
+            {isEditing ? (
+              <Input
+                type="number"
+                min="0"
+                value={localTier.features.projectLimit}
+                onChange={(e) =>
+                  setLocalTier({
+                    ...localTier,
+                    features: {
+                      ...localTier.features,
+                      projectLimit: parseInt(e.target.value) || 0,
+                    },
+                  })
+                }
+                className="border-gray-200 dark:border-gray-700 focus:border-[#00171f] dark:focus:border-white transition-colors h-10"
+              />
+            ) : (
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 py-2.5 px-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 min-h-[40px] flex items-center">{tier.features.projectLimit}</p>
+            )}
+          </div>
+
+          {/* Boolean Features */}
+          {[
+            { key: 'fullPromptGeneration', label: 'Full Prompt Generation' },
+            { key: 'publicProjects', label: 'Public Projects' },
+            { key: 'communityAccess', label: 'Community Access' },
+            { key: 'aiPromptEnhancement', label: 'AI Prompt Enhancement' },
+            { key: 'executionFollowUpAgent', label: 'Execution Follow-Up Agent' },
+            { key: 'promptPlayground', label: 'Prompt Playground' },
+            { key: 'cloning', label: 'Cloning' },
+          ].map(({ key, label }) => {
+            const isEnabled = localTier.features[key as keyof typeof localTier.features] as boolean;
+            const currentValue = tier.features[key as keyof typeof tier.features] as boolean;
+            return (
+              <div key={key} className="space-y-3">
+                <label className="text-sm font-medium text-[#00171f] dark:text-white block">{label}</label>
+                {isEditing ? (
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLocalTier({
+                          ...localTier,
+                          features: {
+                            ...localTier.features,
+                            [key]: !isEnabled,
+                          },
+                        })
+                      }
+                      className={`
+                        relative inline-flex h-11 w-20 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00171f] focus:ring-offset-2 dark:focus:ring-white
+                        ${isEnabled 
+                          ? 'bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700' 
+                          : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
+                        }
+                      `}
+                    >
+                      <span
+                        className={`
+                          inline-block h-8 w-8 transform rounded-full bg-white shadow-lg transition-transform duration-200 ease-in-out
+                          ${isEnabled ? 'translate-x-11' : 'translate-x-1'}
+                        `}
+                      />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    {currentValue ? (
+                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                        <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+                        <span className="text-sm font-medium text-green-700 dark:text-green-400">Enabled</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-md bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                        <XCircle className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Disabled</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Support Level */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-[#00171f] dark:text-white block">Support Level</label>
+            {isEditing ? (
+              <Select
+                value={localTier.features.support}
+                onValueChange={(value: 'none' | 'community' | 'priority') =>
+                  setLocalTier({
+                    ...localTier,
+                    features: {
+                      ...localTier.features,
+                      support: value,
+                    },
+                  })
+                }
+              >
+                <SelectTrigger className="border-gray-200 dark:border-gray-700 focus:border-[#00171f] dark:focus:border-white transition-colors h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="community">Community</SelectItem>
+                  <SelectItem value="priority">Priority</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="flex items-center">
+                <Badge
+                  className={
+                    tier.features.support === 'priority'
+                      ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-700 px-4 py-2.5 text-sm font-medium'
+                      : tier.features.support === 'community'
+                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700 px-4 py-2.5 text-sm font-medium'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 px-4 py-2.5 text-sm font-medium'
+                  }
+                >
+                  {tier.features.support.charAt(0).toUpperCase() + tier.features.support.slice(1)}
+                </Badge>
+              </div>
+            )}
+          </div>
+
+          {/* Custom Features - Display as editable fields like predefined features */}
+          {customFeatures.map((key) => {
+            const value = localTier.features[key];
+            const valueType = typeof value;
+            const displayLabel = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+            const currentValue = tier.features[key];
+            
+            return (
+              <div key={key} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-[#00171f] dark:text-white block">{displayLabel}</label>
+                  {isEditing && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const newFeatures = { ...localTier.features };
+                        delete newFeatures[key];
+                        setLocalTier({ ...localTier, features: newFeatures });
+                      }}
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      title="Delete feature"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                {isEditing ? (
+                  valueType === 'boolean' ? (
+                    <div className="flex items-center">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setLocalTier({
+                            ...localTier,
+                            features: {
+                              ...localTier.features,
+                              [key]: !value,
+                            },
+                          })
+                        }
+                        className={`
+                          relative inline-flex h-11 w-20 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00171f] focus:ring-offset-2 dark:focus:ring-white
+                          ${value 
+                            ? 'bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700' 
+                            : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
+                          }
+                        `}
+                      >
+                        <span
+                          className={`
+                            inline-block h-8 w-8 transform rounded-full bg-white shadow-lg transition-transform duration-200 ease-in-out
+                            ${value ? 'translate-x-11' : 'translate-x-1'}
+                          `}
+                        />
+                      </button>
+                    </div>
+                  ) : valueType === 'number' ? (
+                    <Input
+                      type="number"
+                      value={value as number}
+                      onChange={(e) =>
+                        setLocalTier({
+                          ...localTier,
+                          features: {
+                            ...localTier.features,
+                            [key]: parseFloat(e.target.value) || 0,
+                          },
+                        })
+                      }
+                      className="border-gray-200 dark:border-gray-700 focus:border-[#00171f] dark:focus:border-white transition-colors h-10"
+                    />
+                  ) : (
+                    <Input
+                      value={String(value)}
+                      onChange={(e) =>
+                        setLocalTier({
+                          ...localTier,
+                          features: {
+                            ...localTier.features,
+                            [key]: e.target.value,
+                          },
+                        })
+                      }
+                      className="border-gray-200 dark:border-gray-700 focus:border-[#00171f] dark:focus:border-white transition-colors h-10"
+                    />
+                  )
+                ) : (
+                  // View mode - display with appropriate UI elements
+                  valueType === 'boolean' ? (
+                    <div className="flex items-center">
+                      {currentValue ? (
+                        <div className="flex items-center gap-2 px-4 py-2.5 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                          <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+                          <span className="text-sm font-medium text-green-700 dark:text-green-400">Enabled</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 px-4 py-2.5 rounded-md bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                          <XCircle className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Disabled</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : valueType === 'number' ? (
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 py-2.5 px-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 min-h-[40px] flex items-center">
+                      {String(value)}
+                    </p>
+                  ) : (
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 py-2.5 px-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 min-h-[40px] flex items-center">
+                      {String(value)}
+                    </p>
+                  )
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function AdminDashboardPage() {
   const { user, loading: authLoading, isAdmin } = useAuth();
@@ -139,9 +742,12 @@ export default function AdminDashboardPage() {
   const [projects, setProjects] = useState<AdminProject[]>([]);
   const [subscriptions, setSubscriptions] = useState<AdminSubscription[]>([]);
   const [feedbacks, setFeedbacks] = useState<AdminFeedback[]>([]);
+  const [tiers, setTiers] = useState<Tier[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
+  const [addFeatureDialogOpen, setAddFeatureDialogOpen] = useState(false);
+  const [savingTier, setSavingTier] = useState<string | null>(null);
 
   // Search and filter states
   const [userSearch, setUserSearch] = useState('');
@@ -215,7 +821,7 @@ export default function AdminDashboardPage() {
       try {
         const token = await auth.currentUser?.getIdToken();
 
-        const [usersRes, projectsRes, subscriptionsRes, feedbacksRes] = await Promise.all([
+        const [usersRes, projectsRes, subscriptionsRes, feedbacksRes, tiersRes] = await Promise.all([
           fetch('/api/admin?type=users', {
             method: 'GET',
             headers: {
@@ -248,20 +854,81 @@ export default function AdminDashboardPage() {
             },
             cache: 'no-store',
           }),
+          fetch('/api/admin/tiers', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            cache: 'no-store',
+          }),
         ]);
 
-        if (!usersRes.ok || !projectsRes.ok || !subscriptionsRes.ok || !feedbacksRes.ok) {
-          if (usersRes.status === 403 || projectsRes.status === 403 || subscriptionsRes.status === 403 || feedbacksRes.status === 403) {
-            setError('Unauthorized: Admin access required');
-            return;
-          }
-          throw new Error('Failed to fetch admin data');
+        // Check for 403 errors first
+        if (usersRes.status === 403 || projectsRes.status === 403 || subscriptionsRes.status === 403 || feedbacksRes.status === 403 || tiersRes.status === 403) {
+          setError('Unauthorized: Admin access required');
+          return;
         }
 
-        const usersData = await usersRes.json();
-        const projectsData = await projectsRes.json();
-        const subscriptionsData = await subscriptionsRes.json();
-        const feedbacksData = await feedbacksRes.json();
+        // Parse responses individually to handle partial failures
+        let usersData: any = { users: [] };
+        let projectsData: any = { projects: [] };
+        let subscriptionsData: any = { subscriptions: [] };
+        let feedbacksData: any = { feedbacks: [] };
+        let tiersData: any = { tiers: [] };
+
+        try {
+          if (usersRes.ok) {
+            usersData = await usersRes.json();
+          } else {
+            console.error('[Admin Dashboard] Failed to fetch users:', usersRes.status, usersRes.statusText);
+          }
+        } catch (e) {
+          console.error('[Admin Dashboard] Error parsing users response:', e);
+        }
+
+        try {
+          if (projectsRes.ok) {
+            projectsData = await projectsRes.json();
+          } else {
+            console.error('[Admin Dashboard] Failed to fetch projects:', projectsRes.status, projectsRes.statusText);
+          }
+        } catch (e) {
+          console.error('[Admin Dashboard] Error parsing projects response:', e);
+        }
+
+        try {
+          if (subscriptionsRes.ok) {
+            subscriptionsData = await subscriptionsRes.json();
+          } else {
+            console.error('[Admin Dashboard] Failed to fetch subscriptions:', subscriptionsRes.status, subscriptionsRes.statusText);
+          }
+        } catch (e) {
+          console.error('[Admin Dashboard] Error parsing subscriptions response:', e);
+        }
+
+        try {
+          if (feedbacksRes.ok) {
+            feedbacksData = await feedbacksRes.json();
+          } else {
+            console.error('[Admin Dashboard] Failed to fetch feedbacks:', feedbacksRes.status, feedbacksRes.statusText);
+          }
+        } catch (e) {
+          console.error('[Admin Dashboard] Error parsing feedbacks response:', e);
+        }
+
+        try {
+          if (tiersRes.ok) {
+            tiersData = await tiersRes.json();
+            console.log('[Admin Dashboard] Tiers response:', tiersData);
+            console.log('[Admin Dashboard] Tiers count:', tiersData.tiers?.length || 0);
+          } else {
+            const errorText = await tiersRes.text();
+            console.error('[Admin Dashboard] Failed to fetch tiers:', tiersRes.status, tiersRes.statusText, errorText);
+          }
+        } catch (e) {
+          console.error('[Admin Dashboard] Error parsing tiers response:', e);
+        }
 
         console.log('[Admin Dashboard] Subscriptions response:', subscriptionsData);
         console.log('[Admin Dashboard] Subscriptions count:', subscriptionsData.subscriptions?.length || 0);
@@ -270,6 +937,7 @@ export default function AdminDashboardPage() {
         setProjects(projectsData.projects || []);
         setSubscriptions(subscriptionsData.subscriptions || []);
         setFeedbacks(feedbacksData.feedbacks || []);
+        setTiers(tiersData.tiers || []);
       } catch (err: any) {
         console.error('Fetch error:', err);
         setError(err.message || 'Failed to load admin data');
@@ -342,6 +1010,63 @@ export default function AdminDashboardPage() {
       });
     } finally {
       setTogglingAdmin(false);
+    }
+  };
+
+  // Handler to update tier
+  const handleUpdateTier = async (tierId: string, updates: Partial<Tier['features']> & { name?: string }) => {
+    setSavingTier(tierId);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      
+      // Extract name from updates, rest are features
+      const { name, ...features } = updates;
+      
+      const res = await fetch('/api/admin/tiers', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          tierId,
+          ...(name !== undefined && { name }),
+          features,
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to update tier');
+      }
+
+      // Refresh tiers
+      const tiersRes = await fetch('/api/admin/tiers', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        cache: 'no-store',
+      });
+
+      if (tiersRes.ok) {
+        const tiersData = await tiersRes.json();
+        setTiers(tiersData.tiers || []);
+      }
+
+      toast({
+        title: 'Tier Updated',
+        description: `${tierId.toUpperCase()} tier features have been updated successfully.`,
+      });
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Update Failed',
+        description: err.message || 'Failed to update tier',
+      });
+    } finally {
+      setSavingTier(null);
     }
   };
 
@@ -889,6 +1614,13 @@ export default function AdminDashboardPage() {
             >
               <MessageSquare className="h-4 w-4 mr-2" />
               Feedbacks ({feedbacks.length})
+            </TabsTrigger>
+            <TabsTrigger
+              value="tiers"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00171f] dark:data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:text-[#00171f] dark:data-[state=active]:text-white hover:text-[#00171f] dark:hover:text-white transition-colors"
+            >
+              <Layers className="h-4 w-4 mr-2" />
+              Tiers ({tiers.length})
             </TabsTrigger>
           </TabsList>
 
@@ -1546,8 +2278,129 @@ export default function AdminDashboardPage() {
               </div>
             )}
           </TabsContent>
+
+          <TabsContent value="tiers" className="mt-4">
+            <div className="mb-4 flex justify-between items-center">
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    setLoading(true);
+                    const token = await auth.currentUser?.getIdToken();
+                    const tiersRes = await fetch('/api/admin/tiers', {
+                      method: 'GET',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                      },
+                      cache: 'no-store',
+                    });
+
+                    if (tiersRes.ok) {
+                      const tiersData = await tiersRes.json();
+                      setTiers(tiersData.tiers || []);
+                      toast({
+                        title: 'Tiers Refreshed',
+                        description: 'Tier data has been refreshed successfully.',
+                      });
+                    } else {
+                      throw new Error('Failed to refresh tiers');
+                    }
+                  } catch (err: any) {
+                    console.error('Error refreshing tiers:', err);
+                    toast({
+                      variant: 'destructive',
+                      title: 'Refresh Failed',
+                      description: err.message || 'Failed to refresh tier data.',
+                    });
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+                className="hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <Loader2 className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh Tiers
+              </Button>
+              <Button
+                onClick={() => setAddFeatureDialogOpen(true)}
+                className="bg-[#00171f] hover:bg-[#00171f]/90 text-white dark:bg-white dark:text-[#00171f] dark:hover:bg-gray-100"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Feature to All Tiers
+              </Button>
+            </div>
+            {loading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-64 rounded-2xl bg-gray-100 dark:bg-gray-800" />
+                ))}
+              </div>
+            ) : tiers.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-8 text-center">
+                <Layers className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+                <p className="mt-4 text-lg font-semibold text-[#00171f] dark:text-white">No tiers found</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {tiers.map((tier) => (
+                  <TierCard key={tier.id} tier={tier} onUpdate={handleUpdateTier} saving={savingTier} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </main>
+
+      {/* Add Feature Dialog */}
+      <AddFeatureDialog
+        open={addFeatureDialogOpen}
+        onOpenChange={setAddFeatureDialogOpen}
+        onAddComplete={async () => {
+          // Refresh tiers data
+          try {
+            const token = await auth.currentUser?.getIdToken();
+            const tiersRes = await fetch('/api/admin/tiers', {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+              cache: 'no-store',
+            });
+
+            if (tiersRes.ok) {
+              const tiersData = await tiersRes.json();
+              setTiers(tiersData.tiers || []);
+              toast({
+                title: 'Feature Added',
+                description: 'The feature has been added to all tiers successfully.',
+              });
+            } else {
+              toast({
+                variant: 'destructive',
+                title: 'Refresh Failed',
+                description: 'Failed to refresh tier data. Please refresh the page.',
+              });
+            }
+          } catch (err) {
+            console.error('Error refreshing tiers:', err);
+            toast({
+              variant: 'destructive',
+              title: 'Error',
+              description: 'An error occurred while refreshing tier data.',
+            });
+          }
+        }}
+        existingFeatureKeys={(() => {
+          const allKeys = new Set<string>();
+          tiers.forEach(tier => {
+            Object.keys(tier.features).forEach(key => allKeys.add(key));
+          });
+          return Array.from(allKeys);
+        })()}
+      />
 
       {/* Admin Toggle Dialog */}
       <AlertDialog open={adminToggleDialogOpen} onOpenChange={setAdminToggleDialogOpen}>

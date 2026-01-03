@@ -20,17 +20,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Check if user has access to this feature
     const subscription = await getSubscriptionByUserId(userId);
-    if (!subscription?.tier_id) {
-      return NextResponse.json(
-        { error: "Subscription not found. Please upgrade to Pro tier to access this feature." },
-        { status: 403 }
-      );
-    }
-
-    const tier = await getTier(subscription.tier_id);
+    
+    // Determine tier_id: use subscription tier if exists, otherwise use 'free'
+    const tierId = subscription?.tier_id || 'free';
+    const tier = await getTier(tierId);
+    
     if (!tier?.features?.executionFollowUpAgent) {
       return NextResponse.json(
-        { error: "This feature is only available for Pro tier users. Please upgrade to access the Execution Follow-Up Agent." },
+        { error: "This feature is not available for your current plan. Please upgrade to access the Execution Follow-Up Agent." },
         { status: 403 }
       );
     }

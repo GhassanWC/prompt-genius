@@ -16,6 +16,7 @@ type FeatureKey =
   | "aiPromptEnhancement"
   | "executionFollowUpAgent"
   | "promptPlayground"
+  | "cloning"
   | "support";
 
 interface Payload {
@@ -39,14 +40,22 @@ export async function GET(req: NextRequest) {
       }
       // Use server-side Firebase Admin SDK for proper Firebase App Hosting support
       const subscription = await getSubscriptionByUserId(userId);
-      if (subscription === null) {
-        return NextResponse.json({
-          count: 1,
-        });
+      
+      // Determine tier_id: use subscription tier if exists, otherwise use 'free'
+      const tierId = subscription?.tier_id || 'free';
+      const tier = await getTier(tierId);
+      
+      // Get project limit: from subscription cumulative_quantity if exists, otherwise from tier's projectLimit
+      let projectLimit: number;
+      if (subscription?.cumulative_quantity) {
+        projectLimit = subscription.cumulative_quantity;
+      } else {
+        // No subscription or no cumulative_quantity - get project limit from tiers collection
+        projectLimit = tier?.features?.projectLimit ?? 1;
       }
 
       return NextResponse.json({
-        count: subscription.cumulative_quantity,
+        count: projectLimit,
       });
     }
 
@@ -73,18 +82,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Subscription lookup
     const subs = await getSubscriptionByUserId(userId);
-    if (!subs?.tier_id) {
-      return NextResponse.json({ enabled: false });
-    }
-
-    // Tier + features lookup
-    const tier = await getTier(subs.tier_id);
+    
+    // Determine tier_id: use subscription tier if exists, otherwise use 'free'
+    const tierId = subs?.tier_id || 'free';
+    
+    // Tier + features lookup from tiers collection based on subscription plan
+    const tier = await getTier(tierId);
     if (!tier?.features) {
       return NextResponse.json({ enabled: false });
     }
     const { features } = tier;
 
     // Feature checks (same logic, clearer guards)
+    // Handle predefined features
     switch (feature) {
       case "projectLimit": {
         const projects = await getProjectsForUser(userId);
@@ -130,6 +140,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
         break;
 
+      case "cloning":
+        if (features.cloning !== true) {
+          return NextResponse.json({ enabled: false });
+        }
+        break;
+
       case "support":
         if (features.support !== "priority") {
           return NextResponse.json({ enabled: false });
@@ -137,7 +153,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         break;
 
       default:
-        return NextResponse.json({ enabled: false });
+        // Handle custom features - check if the feature exists and is truthy
+        const featureValue = features[feature];
+        if (featureValue === undefined || featureValue === null || featureValue === false) {
+          return NextResponse.json({ enabled: false });
+        }
+        // For boolean custom features, check if true
+        if (typeof featureValue === 'boolean' && featureValue !== true) {
+          return NextResponse.json({ enabled: false });
+        }
+        // For other types (string, number), if they exist and are truthy, allow access
+        break;
     }
 
     return NextResponse.json({ enabled: true });

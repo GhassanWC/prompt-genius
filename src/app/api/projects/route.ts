@@ -170,9 +170,31 @@ export async function POST(req: NextRequest) {
         ]);
 
         const totalProjects = userCounts.projectCount;
+        
+        // Get project limit: from subscription if exists, otherwise from free tier
+        let projectLimit: number;
+        if (userSubscription?.cumulative_quantity) {
+          projectLimit = userSubscription.cumulative_quantity;
+        } else {
+          // No subscription - get free tier's projectLimit from tiers collection
+          const { getTier } = await import('@/lib/tiers-server');
+          const freeTier = await getTier('free');
+          projectLimit = freeTier?.features?.projectLimit ?? 1;
+        }
 
-        if (totalProjects >= (userSubscription?.cumulative_quantity ?? 1)) {
-          return jsonError('You have reached the maximum number of projects for your plan. Please upgrade to create more projects.', 402);  
+        if (totalProjects >= projectLimit) {
+          const tierId = userSubscription?.tier_id || 'free';
+          const tierName = tierId === 'free' ? 'Hobbyist' : tierId === 'plus' ? 'Plus' : 'Pro';
+          return NextResponse.json(
+            { 
+              error: `You've reached your project limit (${totalProjects}/${projectLimit} projects) on the ${tierName} plan. Upgrade to create more projects and unlock additional features.`,
+              currentCount: totalProjects,
+              limit: projectLimit,
+              tier: tierId,
+              tierName: tierName
+            },
+            { status: 402 }
+          );
         }
 
         if (!projectName || !plan) return jsonError('projectName and plan are required');
@@ -204,8 +226,18 @@ export async function POST(req: NextRequest) {
       case 'cloneProject': {
         const { sourceProjectId } = body;
         if (!sourceProjectId) return jsonError('sourceProjectId is required');
-        const cloneProjectId = await cloneProjectForUser(uid, sourceProjectId);
-        return NextResponse.json({ cloneProjectId });
+        try {
+          const cloneProjectId = await cloneProjectForUser(uid, sourceProjectId);
+          return NextResponse.json({ cloneProjectId });
+        } catch (cloneError: any) {
+          // Pass through the actual error message from cloneProjectForUser
+          const isLimitError = cloneError?.message?.includes('not available') || 
+                              cloneError?.message?.includes('upgrade') || 
+                              cloneError?.message?.includes('reached your project limit') ||
+                              cloneError?.message?.includes('maximum number of projects');
+          const statusCode = isLimitError ? 402 : 400;
+          return jsonError(cloneError?.message || 'Failed to clone project.', statusCode);
+        }
       }
 
       default:
@@ -213,7 +245,8 @@ export async function POST(req: NextRequest) {
     }
   } catch (e: any) {
     if (e?.message === '__unauthorized__') return jsonError('Unauthorized', 401);
-    return jsonError('Unexpected error', 500);
+    console.error('[projects POST] Error:', e?.message || e, e?.stack);
+    return jsonError(e?.message || 'Unexpected error', 500);
   }
 }
 
