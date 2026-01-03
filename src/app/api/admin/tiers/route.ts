@@ -92,6 +92,7 @@ export async function GET(req: NextRequest) {
             aiPromptEnhancement: tierId !== 'free',
             executionFollowUpAgent: tierId === 'pro',
             promptPlayground: tierId !== 'free',
+            cloning: tierId !== 'free',
             support: tierId === 'free' ? 'none' : tierId === 'plus' ? 'community' : 'priority',
           },
         });
