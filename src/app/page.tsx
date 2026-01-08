@@ -34,7 +34,6 @@ export default function LandingPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loadingTestimonials, setLoadingTestimonials] = useState(true);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState<string | null>(null);
-  const [featureFilter, setFeatureFilter] = useState<'all' | 'free' | 'plus' | 'pro' | 'plus-pro'>('all');
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [loadingTiers, setLoadingTiers] = useState(true);
 
@@ -485,7 +484,7 @@ export default function LandingPage() {
         {/* Divider */}
         <div className="h-px w-32 mx-auto bg-[#00171f]/20 dark:bg-white/20 mb-12" />
 
-        {/* COMPREHENSIVE FEATURES SECTION */}
+        {/* STORYTELLING FEATURES SECTION */}
         <section id="features" className="py-20 sm:py-24 lg:py-32 relative overflow-hidden">
           {/* Animated background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -496,196 +495,299 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="text-center mb-16">
               <h2 className="font-headline text-2xl font-bold sm:text-3xl md:text-4xl lg:text-5xl text-[#00171f] dark:text-white mb-4">
-                Powerful Features for Every Builder
+                Your Journey from Idea to Reality
               </h2>
               <p className="mt-6 max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 font-medium">
-                Everything you need to turn ideas into reality. From AI-powered decomposition to community collaboration, we've got you covered.
+                Every builder starts somewhere. Here's how Prompt Genius grows with you at every step.
               </p>
             </div>
-            
-            {/* Filter Buttons */}
-            <div className="mb-12">
-              <div className="flex flex-wrap items-center justify-center gap-3 mb-4">
-                <Button
-                  variant={featureFilter === 'all' ? 'default' : 'outline'}
-                  onClick={() => setFeatureFilter('all')}
-                  className={`rounded-full transition-all duration-200 font-medium ${
-                    featureFilter === 'all'
-                      ? 'bg-[#00171f] dark:bg-white dark:text-[#00171f] text-white shadow-lg'
-                      : 'bg-white dark:bg-[#00171f] border-gray-200 dark:border-gray-700 hover:border-[#00171f] dark:hover:border-white'
-                  }`}
-                >
-                  All Features
-                </Button>
-                <Button
-                  variant={featureFilter === 'free' ? 'default' : 'outline'}
-                  onClick={() => setFeatureFilter('free')}
-                  className={`rounded-full transition-all duration-200 font-medium ${
-                    featureFilter === 'free'
-                      ? 'bg-emerald-500 text-white shadow-lg'
-                      : 'bg-white dark:bg-[#00171f] border-gray-200 dark:border-gray-700 hover:border-emerald-500'
-                  }`}
-                >
-                  Free
-                </Button>
-                <Button
-                  variant={featureFilter === 'plus' ? 'default' : 'outline'}
-                  onClick={() => setFeatureFilter('plus')}
-                  className={`rounded-full transition-all duration-200 font-medium ${
-                    featureFilter === 'plus'
-                      ? 'bg-purple-500 text-white shadow-lg'
-                      : 'bg-white dark:bg-[#00171f] border-gray-200 dark:border-gray-700 hover:border-purple-500'
-                  }`}
-                >
-                  Plus
-                </Button>
-                <Button
-                  variant={featureFilter === 'plus-pro' ? 'default' : 'outline'}
-                  onClick={() => setFeatureFilter('plus-pro')}
-                  className={`rounded-full transition-all duration-200 font-medium ${
-                    featureFilter === 'plus-pro'
-                      ? 'bg-purple-500 text-white shadow-lg'
-                      : 'bg-white dark:bg-[#00171f] border-gray-200 dark:border-gray-700 hover:border-purple-500'
-                  }`}
-                >
-                  Plus & Pro
-                </Button>
-                <Button
-                  variant={featureFilter === 'pro' ? 'default' : 'outline'}
-                  onClick={() => setFeatureFilter('pro')}
-                  className={`rounded-full transition-all duration-200 font-medium ${
-                    featureFilter === 'pro'
-                      ? 'bg-amber-500 text-white shadow-lg'
-                      : 'bg-white dark:bg-[#00171f] border-gray-200 dark:border-gray-700 hover:border-amber-500'
-                  }`}
-                >
-                  Pro Only
-                </Button>
+
+            {/* FREE TIER STORY */}
+            <div className="mb-24">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 shadow-lg">
+                  <Lightbulb className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-headline text-2xl sm:text-3xl font-bold text-[#00171f] dark:text-white">
+                    The Hobbyist: Start Building Today
+                  </h3>
+                  <p className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold mt-1">FREE TIER</p>
+                </div>
               </div>
-              {useMemo(() => {
-                const filteredFeatures = allFeatures.filter((feature) => {
-                  if (featureFilter === 'all') return true;
-                  if (featureFilter === 'free') return feature.badge === 'FREE';
-                  if (featureFilter === 'plus') return feature.badge === 'PLUS & PRO' || feature.badge === 'ALL TIERS';
-                  if (featureFilter === 'plus-pro') return feature.badge === 'PLUS & PRO';
-                  if (featureFilter === 'pro') return feature.badge === 'PRO ONLY';
-                  return true;
-                });
-                return (
-                  <p className="text-center text-sm text-gray-500 dark:text-gray-400 font-medium">
-                    Showing {filteredFeatures.length} feature{filteredFeatures.length !== 1 ? 's' : ''}
+
+              <div className="bg-white dark:bg-[#00171f] border-2 border-emerald-200 dark:border-emerald-900 rounded-2xl p-8 sm:p-10 shadow-xl">
+                <div className="prose prose-lg dark:prose-invert max-w-none">
+                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                    You have an idea. Maybe it's a todo app, a personal blog, or a side project you've been dreaming about. 
+                    But where do you start? The blank page stares back at you, and you're not sure how to break down your vision into actionable steps.
                   </p>
-                );
-              }, [featureFilter])}
-            </div>
-            
-            {useMemo(() => {
-              const filteredFeatures = allFeatures.filter((feature) => {
-                if (featureFilter === 'all') return true;
-                if (featureFilter === 'free') return feature.badge === 'FREE';
-                if (featureFilter === 'plus') return feature.badge === 'PLUS & PRO' || feature.badge === 'ALL TIERS';
-                if (featureFilter === 'plus-pro') return feature.badge === 'PLUS & PRO';
-                if (featureFilter === 'pro') return feature.badge === 'PRO ONLY';
-                return true;
-              });
-              
-              if (filteredFeatures.length === 0) {
-                return (
-                  <div className="col-span-full text-center py-20 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-3xl bg-gray-50 dark:bg-gray-900">
-                    <p className="text-lg font-bold text-[#00171f] dark:text-white mb-2">No features found</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Try selecting a different filter option.
-                    </p>
-                  </div>
-                );
-              }
-              
-              return (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredFeatures.map((feature, i) => {
-                const Icon = feature.icon;
-                const isPro = feature.badge === 'PRO ONLY';
-                const isPlusPro = feature.badge === 'PLUS & PRO';
-                const isFree = feature.badge === 'FREE';
-                
-                return (
-                  <Card
-                    key={i}
-                    className="group relative bg-white dark:bg-[#00171f] border-2 border-gray-100 dark:border-gray-800 hover:border-[#00171f]/30 dark:hover:border-white/30 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden"
-                  >
-                    {/* Badge */}
-                    <div className="absolute top-4 right-4 z-10">
-                      <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                        isPro 
-                          ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-white' 
-                          : isPlusPro
-                          ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white'
-                          : isFree
-                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white'
-                          : 'bg-gray-500 text-white'
-                      } shadow-lg`}>
-                        {feature.badge}
-                      </span>
+                  
+                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                    <strong className="text-[#00171f] dark:text-white">With Prompt Genius Free, you get:</strong>
+                  </p>
+
+                  <div className="grid md:grid-cols-2 gap-6 mb-8">
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
+                      <div className="flex items-start gap-4">
+                        <Lightbulb className="h-6 w-6 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">AI-Powered Idea Decomposition</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Transform your product idea into a structured development plan with AI-generated prompts. 
+                            No more blank page syndrome—get complete project breakdowns in seconds.
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Decorative gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#00171f]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
-                    <CardHeader className="pb-4 pr-28">
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
                       <div className="flex items-start gap-4">
-                        {/* Icon */}
-                        <div className="relative flex-shrink-0">
-                          <div className="bg-gradient-to-br from-[#00171f] to-[#00171f]/80 dark:from-white dark:to-white/80 rounded-xl p-3 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <Icon className="h-6 w-6 text-white dark:text-[#00171f]" />
-                          </div>
-                        </div>
-                        
-                        {/* Title */}
-                        <div className="flex-1 min-w-0 pr-4">
-                          <CardTitle className="text-xl font-bold font-headline text-[#00171f] dark:text-white mb-1 leading-tight break-words">
-                            {feature.title}
-                          </CardTitle>
+                        <ListChecks className="h-6 w-6 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Step-by-Step Development Plans</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Get sequential roadmaps with atomic, actionable prompts. Each step includes acceptance criteria 
+                            so you know exactly what "done" looks like.
+                          </p>
                         </div>
                       </div>
-                    </CardHeader>
-                    
-                    <CardContent className="space-y-4">
-                      {/* Description */}
-                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
-                        {feature.description}
-                      </p>
-                      
-                      {/* Example */}
-                      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-800">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
-                          Example
-                        </p>
-                        <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
-                          {feature.example}
-                        </p>
+                    </div>
+
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
+                      <div className="flex items-start gap-4">
+                        <Shield className="h-6 w-6 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">AI Role & Persona Management</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Define custom AI roles with coding style, architecture, and best practices. 
+                            Maintain consistent outputs across your entire project.
+                          </p>
+                        </div>
                       </div>
-                      
-                      {/* Advantages */}
-                      <div>
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
-                          Advantages
-                        </p>
-                        <ul className="space-y-1.5">
-                          {feature.advantages.map((advantage, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300">
-                              <CheckCircle className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
-                              <span>{advantage}</span>
-                            </li>
-                          ))}
-                        </ul>
+                    </div>
+
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
+                      <div className="flex items-start gap-4">
+                        <BookOpen className="h-6 w-6 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Project Templates Library</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Start faster with pre-built templates for common app types. 
+                            Jumpstart your projects and learn from proven structures.
+                          </p>
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-                  })}
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 rounded-xl p-6 border-l-4 border-emerald-500">
+                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 italic leading-relaxed">
+                      "I had this idea for a todo app, but I didn't know where to start. Prompt Genius broke it down into 
+                      12 clear steps—from authentication to CRUD operations. I was building in minutes, not hours."
+                    </p>
+                  </div>
                 </div>
-              );
-            }, [featureFilter])}
+              </div>
+            </div>
+
+            {/* PLUS TIER STORY */}
+            <div className="mb-24">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 shadow-lg">
+                  <Rocket className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-headline text-2xl sm:text-3xl font-bold text-[#00171f] dark:text-white">
+                    The Builder: Ship Faster, Build Better
+                  </h3>
+                  <p className="text-sm text-purple-600 dark:text-purple-400 font-semibold mt-1">PLUS TIER - $7/MONTH</p>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-[#00171f] border-2 border-purple-200 dark:border-purple-900 rounded-2xl p-8 sm:p-10 shadow-xl">
+                <div className="prose prose-lg dark:prose-invert max-w-none">
+                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                    You're not just experimenting anymore. You're shipping real projects, and you need tools that keep up with your pace. 
+                    You want to test prompts before using them, refine them for clarity, and share your work with the world.
+                  </p>
+                  
+                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                    <strong className="text-[#00171f] dark:text-white">With Prompt Genius Plus, you unlock:</strong>
+                  </p>
+
+                  <div className="grid md:grid-cols-2 gap-6 mb-8">
+                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-start gap-4">
+                        <Play className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Prompt Playground & Live Testing</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Test your prompts in real-time and see AI responses instantly. No context switching—build trust 
+                            in prompt quality before using them in production.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-start gap-4">
+                        <SparklesIcon className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">AI Prompt Enhancement</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Transform rough prompts into clear, specific instructions. Improve AI understanding automatically 
+                            and save hours on prompt refinement.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-start gap-4">
+                        <Globe className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Public Projects & Showcase</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Make your projects public to showcase your work, get feedback, and inspire others. 
+                            Build your developer portfolio and get discovered.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-start gap-4">
+                        <Users className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Community Access</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Discover trending projects, learn from community examples, and find inspiration. 
+                            Connect with other builders and see what works.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-start gap-4">
+                        <Layers className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Project Collections</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Organize projects into collections like playlists. Group related projects, 
+                            share curated collections, and build themed portfolios.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-start gap-4">
+                        <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Trending & Discovery</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            See what's hot in the community. Sort by trending, most liked, or most cloned. 
+                            Find popular project patterns and get inspired.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-xl p-6 border-l-4 border-purple-500">
+                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 italic leading-relaxed">
+                      "The Prompt Playground changed everything. I test every prompt before using it, and the AI Enhancement 
+                      feature turns my rough ideas into professional-grade instructions. I'm shipping projects twice as fast now."
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* PRO TIER STORY */}
+            <div>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-4 shadow-lg">
+                  <Zap className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-headline text-2xl sm:text-3xl font-bold text-[#00171f] dark:text-white">
+                    The Professional: When Perfection Matters
+                  </h3>
+                  <p className="text-sm text-amber-600 dark:text-amber-400 font-semibold mt-1">PRO TIER - $15/MONTH</p>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-[#00171f] border-2 border-amber-200 dark:border-amber-900 rounded-2xl p-8 sm:p-10 shadow-xl">
+                <div className="prose prose-lg dark:prose-invert max-w-none">
+                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                    You're building mission-critical projects. When AI tools drift from your instructions, you can't afford to waste time 
+                    debugging. You need an agent that watches your back, analyzes execution gaps, and generates corrective prompts instantly.
+                  </p>
+                  
+                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                    <strong className="text-[#00171f] dark:text-white">With Prompt Genius Pro, you get everything in Plus, plus:</strong>
+                  </p>
+
+                  <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-8 border-2 border-amber-200 dark:border-amber-800 mb-8">
+                    <div className="flex items-start gap-6">
+                      <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-4 shadow-lg flex-shrink-0">
+                        <Bot className="h-8 w-8 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-2xl text-[#00171f] dark:text-white mb-3">Execution Follow-Up Agent</h4>
+                        <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                          When AI tools don't follow your instructions, this agent analyzes the gap between what you asked for 
+                          and what you got. It identifies why prompts failed in execution and generates corrective prompts that 
+                          restate constraints, lock decisions, remove ambiguity, and realign the AI with your original intent.
+                        </p>
+                        <div className="bg-white dark:bg-[#00171f] rounded-lg p-4 border border-amber-200 dark:border-amber-800">
+                          <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Example</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                            AI built something wrong → Paste the output → Agent identifies the gap → Generates fix prompts → Get back on track.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6 mb-8">
+                    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800">
+                      <div className="flex items-start gap-4">
+                        <CheckCircle className="h-6 w-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Fix Broken Implementations</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Realign AI with your intent when things go wrong. Save hours on corrections and maintain project quality.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800">
+                      <div className="flex items-start gap-4">
+                        <CheckCircle className="h-6 w-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Priority Support</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Get priority support when you need help. We're here to ensure your projects succeed.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 rounded-xl p-6 border-l-4 border-amber-500">
+                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 italic leading-relaxed">
+                      "I was building a complex SaaS dashboard, and the AI kept missing key requirements. The Execution Follow-Up Agent 
+                      saved me days of debugging. It analyzed the gap, generated perfect corrective prompts, and got me back on track in minutes."
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
