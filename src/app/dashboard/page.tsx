@@ -64,6 +64,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ToastAction } from "@/components/ui/toast";
 import { Progress } from "@/components/ui/progress";
 import { getTier, Tier } from "@/lib/tiers";
 import { auth } from "@/lib/firebase";
@@ -253,6 +254,22 @@ export default function DashboardPage() {
   const openDeleteDialog = (project: Project, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Check if user is on free tier
+    if (!subscriptionPlan || subscriptionPlan === 'free') {
+      toast({
+        variant: 'destructive',
+        title: 'Upgrade Required',
+        description: 'Project deletion is not available on the free plan. Upgrade to Plus or Pro to delete projects and unlock additional features.',
+        action: (
+          <ToastAction altText="Upgrade" onClick={() => router.push('/#pricing')}>
+            Upgrade
+          </ToastAction>
+        ),
+      });
+      return;
+    }
+    
     setProjectToDelete(project);
     setDialogOpen(true);
   };
@@ -274,7 +291,23 @@ export default function DashboardPage() {
         body: JSON.stringify({ action: "deleteProject", projectId }),
       });
       if (!res.ok) {
-        throw new Error(`Could not delete project "${projectToDelete.name}".`);
+        const errorData = await res.json().catch(() => ({}));
+        if (res.status === 402) {
+          // Payment required - upgrade needed
+          toast({
+            variant: 'destructive',
+            title: 'Upgrade Required',
+            description: errorData.error || 'Project deletion is not available on the free plan. Upgrade to Plus or Pro to delete projects.',
+            action: (
+              <ToastAction altText="Upgrade" onClick={() => router.push('/#pricing')}>
+                Upgrade
+              </ToastAction>
+            ),
+          });
+          setDialogOpen(false);
+          return;
+        }
+        throw new Error(errorData.error || `Could not delete project "${projectToDelete.name}".`);
       }
       toast({
         title: "Project Deleted",
@@ -646,13 +679,31 @@ export default function DashboardPage() {
                                 )}
                               </DropdownMenuItem>
                               <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-800" />
-                              <DropdownMenuItem
-                                className="text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/30 focus:text-red-700 dark:focus:text-red-300 rounded-lg transition-colors duration-200"
-                                onClick={(e) => openDeleteDialog(project, e)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Delete</span>
-                              </DropdownMenuItem>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="w-full">
+                                      <DropdownMenuItem
+                                        className={`rounded-lg transition-colors duration-200 ${
+                                          !subscriptionPlan || subscriptionPlan === 'free'
+                                            ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                                            : 'text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/30 focus:text-red-700 dark:focus:text-red-300'
+                                        }`}
+                                        onClick={(e) => openDeleteDialog(project, e)}
+                                        disabled={!subscriptionPlan || subscriptionPlan === 'free'}
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <span>Delete</span>
+                                      </DropdownMenuItem>
+                                    </div>
+                                  </TooltipTrigger>
+                                  {(!subscriptionPlan || subscriptionPlan === 'free') && (
+                                    <TooltipContent>
+                                      <p>Upgrade to Plus or Pro to delete projects</p>
+                                    </TooltipContent>
+                                  )}
+                                </Tooltip>
+                              </TooltipProvider>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
@@ -772,13 +823,31 @@ export default function DashboardPage() {
                                     )}
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-800" />
-                                  <DropdownMenuItem
-                                    className="text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/30 focus:text-red-700 dark:focus:text-red-300 rounded-lg transition-colors duration-200"
-                                    onClick={(e) => openDeleteDialog(project, e)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    <span>Delete</span>
-                                  </DropdownMenuItem>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="w-full">
+                                          <DropdownMenuItem
+                                            className={`rounded-lg transition-colors duration-200 ${
+                                              !subscriptionPlan || subscriptionPlan === 'free'
+                                                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                                                : 'text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/30 focus:text-red-700 dark:focus:text-red-300'
+                                            }`}
+                                            onClick={(e) => openDeleteDialog(project, e)}
+                                            disabled={!subscriptionPlan || subscriptionPlan === 'free'}
+                                          >
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            <span>Delete</span>
+                                          </DropdownMenuItem>
+                                        </div>
+                                      </TooltipTrigger>
+                                      {(!subscriptionPlan || subscriptionPlan === 'free') && (
+                                        <TooltipContent>
+                                          <p>Upgrade to Plus or Pro to delete projects</p>
+                                        </TooltipContent>
+                                      )}
+                                    </Tooltip>
+                                  </TooltipProvider>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             )}

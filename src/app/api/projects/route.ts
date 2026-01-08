@@ -346,6 +346,18 @@ export async function DELETE(req: NextRequest) {
       case 'deleteProject': {
         const { projectId } = body;
         if (!projectId) return jsonError('projectId is required');
+        
+        // Check if user is on free tier - block deletion for free users
+        const userSubscription = await getSubscriptionByUserId(uid);
+        const tierId = userSubscription?.tier_id || 'free';
+        
+        if (tierId === 'free') {
+          return jsonError(
+            'Project deletion is not available on the free plan. Upgrade to Plus or Pro to delete projects and unlock additional features.',
+            402
+          );
+        }
+        
         await deleteProject(uid, projectId);
         return NextResponse.json({ ok: true });
       }
