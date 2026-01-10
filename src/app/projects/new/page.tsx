@@ -23,6 +23,24 @@ import type { DecomposeIdeaOutput } from '@/ai/flows/decompose-idea';
 
 type Step = 'input' | 'clarify' | 'features' | 'review' | 'creating';
 
+// Helper function to validate and convert feature categories
+function validateFeatureCategories(
+  categories: DecomposeIdeaOutput['featureCategories'] | undefined
+): FeatureCategory[] {
+  if (!categories || !Array.isArray(categories)) return [];
+  return categories.filter((f): f is FeatureCategory => {
+    return (
+      typeof f === 'object' &&
+      f !== null &&
+      typeof f.id === 'string' &&
+      typeof f.name === 'string' &&
+      typeof f.description === 'string' &&
+      ['essential', 'important', 'optional'].includes(f.priority as string) &&
+      typeof f.estimatedSteps === 'number'
+    );
+  });
+}
+
 function NewProjectPageContent() {
   const { user, loading: authLoading, subscriptionPlan } = useAuth();
   const router = useRouter();
@@ -189,12 +207,12 @@ function NewProjectPageContent() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({
+          body: JSON.stringify({
           action: 'generatePlanFromFeatures',
           enhancedIdea: initialPlan.enhancedIdea,
           aiRole: initialPlan.aiRole,
           selectedFeatureIds,
-          allFeatures: initialPlan.featureCategories || [],
+          allFeatures: validateFeatureCategories(initialPlan.featureCategories),
           customFeatures: customFeatures.length > 0 ? customFeatures : undefined,
         }),
       });
@@ -473,7 +491,7 @@ function NewProjectPageContent() {
             </Card>
 
             <FeatureSelector
-              features={initialPlan.featureCategories || []}
+              features={validateFeatureCategories(initialPlan.featureCategories)}
               selectedFeatureIds={selectedFeatureIds}
               onSelectionChange={setSelectedFeatureIds}
               customFeatures={customFeatures}
