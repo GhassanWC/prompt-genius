@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
           // Build features object with predefined defaults and all custom features
           const allFeatures = {
             projectLimit: dbFeatures.projectLimit ?? (tierId === 'free' ? 1 : tierId === 'plus' ? 5 : 10),
+            featureLimit: dbFeatures.featureLimit ?? (tierId === 'free' ? 8 : tierId === 'plus' ? 16 : 32),
             fullPromptGeneration: dbFeatures.fullPromptGeneration ?? true,
             publicProjects: dbFeatures.publicProjects ?? (tierId !== 'free'),
             communityAccess: dbFeatures.communityAccess ?? (tierId !== 'free'),
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest) {
             support: dbFeatures.support || (tierId === 'free' ? 'none' : tierId === 'plus' ? 'community' : 'priority'),
             // Include all custom features (any keys not in predefined list)
             ...Object.keys(dbFeatures).reduce((acc, key) => {
-              if (!['projectLimit', 'fullPromptGeneration', 'publicProjects', 'communityAccess', 'aiPromptEnhancement', 'executionFollowUpAgent', 'promptPlayground', 'cloning', 'support'].includes(key)) {
+              if (!['projectLimit', 'featureLimit', 'fullPromptGeneration', 'publicProjects', 'communityAccess', 'aiPromptEnhancement', 'executionFollowUpAgent', 'promptPlayground', 'cloning', 'support'].includes(key)) {
                 acc[key] = dbFeatures[key];
               }
               return acc;
@@ -67,6 +68,7 @@ export async function GET(req: NextRequest) {
             name: tierId === 'free' ? 'Hobbyist' : tierId === 'plus' ? 'Plus' : 'Pro',
             features: {
               projectLimit: tierId === 'free' ? 1 : tierId === 'plus' ? 5 : 10,
+              featureLimit: tierId === 'free' ? 8 : tierId === 'plus' ? 16 : 32,
               fullPromptGeneration: true,
               publicProjects: tierId !== 'free',
               communityAccess: tierId !== 'free',
@@ -86,6 +88,7 @@ export async function GET(req: NextRequest) {
           name: tierId === 'free' ? 'Hobbyist' : tierId === 'plus' ? 'Plus' : 'Pro',
           features: {
             projectLimit: tierId === 'free' ? 1 : tierId === 'plus' ? 5 : 10,
+            featureLimit: tierId === 'free' ? 8 : tierId === 'plus' ? 16 : 32,
             fullPromptGeneration: true,
             publicProjects: tierId !== 'free',
             communityAccess: tierId !== 'free',
@@ -150,6 +153,13 @@ export async function PATCH(req: NextRequest) {
       updateData['features.projectLimit'] = features.projectLimit;
     }
 
+    if (features.featureLimit !== undefined) {
+      if (typeof features.featureLimit !== 'number' || features.featureLimit < 1) {
+        return NextResponse.json({ error: 'featureLimit must be a positive number (at least 1)' }, { status: 400 });
+      }
+      updateData['features.featureLimit'] = features.featureLimit;
+    }
+
     if (features.fullPromptGeneration !== undefined) {
       if (typeof features.fullPromptGeneration !== 'boolean') {
         return NextResponse.json({ error: 'fullPromptGeneration must be a boolean' }, { status: 400 });
@@ -206,22 +216,23 @@ export async function PATCH(req: NextRequest) {
       updateData['features.support'] = features.support;
     }
 
-    // If tier doesn't exist, create it with default values first
-    if (!tierDoc.exists) {
-      const defaultTier: any = {
-        name: tierId === 'free' ? 'Hobbyist' : tierId === 'plus' ? 'Plus' : 'Pro',
-        features: {
-          projectLimit: tierId === 'free' ? 1 : tierId === 'plus' ? 5 : 10,
-          fullPromptGeneration: true,
-          publicProjects: tierId !== 'free',
-          communityAccess: tierId !== 'free',
-          aiPromptEnhancement: tierId !== 'free',
-          executionFollowUpAgent: tierId === 'pro',
-          promptPlayground: tierId !== 'free',
-          cloning: tierId !== 'free',
-          support: tierId === 'free' ? 'none' : tierId === 'plus' ? 'community' : 'priority',
-        },
-      };
+      // If tier doesn't exist, create it with default values first
+      if (!tierDoc.exists) {
+        const defaultTier: any = {
+          name: tierId === 'free' ? 'Hobbyist' : tierId === 'plus' ? 'Plus' : 'Pro',
+          features: {
+            projectLimit: tierId === 'free' ? 1 : tierId === 'plus' ? 5 : 10,
+            featureLimit: tierId === 'free' ? 8 : tierId === 'plus' ? 16 : 32,
+            fullPromptGeneration: true,
+            publicProjects: tierId !== 'free',
+            communityAccess: tierId !== 'free',
+            aiPromptEnhancement: tierId !== 'free',
+            executionFollowUpAgent: tierId === 'pro',
+            promptPlayground: tierId !== 'free',
+            cloning: tierId !== 'free',
+            support: tierId === 'free' ? 'none' : tierId === 'plus' ? 'community' : 'priority',
+          },
+        };
 
       // Merge with updates
       if (updateData.name) defaultTier.name = updateData.name;
@@ -244,6 +255,7 @@ export async function PATCH(req: NextRequest) {
       const mergedFeatures: Record<string, any> = {
         // Always include predefined features (use provided value or keep current or default)
         projectLimit: features.projectLimit !== undefined ? features.projectLimit : (currentFeatures.projectLimit ?? (tierId === 'free' ? 1 : tierId === 'plus' ? 5 : 10)),
+        featureLimit: features.featureLimit !== undefined ? features.featureLimit : (currentFeatures.featureLimit ?? (tierId === 'free' ? 8 : tierId === 'plus' ? 16 : 32)),
         fullPromptGeneration: features.fullPromptGeneration !== undefined ? features.fullPromptGeneration : (currentFeatures.fullPromptGeneration ?? true),
         publicProjects: features.publicProjects !== undefined ? features.publicProjects : (currentFeatures.publicProjects ?? (tierId !== 'free')),
         communityAccess: features.communityAccess !== undefined ? features.communityAccess : (currentFeatures.communityAccess ?? (tierId !== 'free')),
@@ -256,7 +268,7 @@ export async function PATCH(req: NextRequest) {
 
       // Add custom features that are in the request (this will replace the entire features object, removing deleted ones)
       Object.keys(features).forEach((key) => {
-        if (!['projectLimit', 'fullPromptGeneration', 'publicProjects', 'communityAccess', 'aiPromptEnhancement', 'executionFollowUpAgent', 'promptPlayground', 'cloning', 'support'].includes(key)) {
+        if (!['projectLimit', 'featureLimit', 'fullPromptGeneration', 'publicProjects', 'communityAccess', 'aiPromptEnhancement', 'executionFollowUpAgent', 'promptPlayground', 'cloning', 'support'].includes(key)) {
           mergedFeatures[key] = features[key];
         }
       });
@@ -336,6 +348,7 @@ export async function POST(req: NextRequest) {
           name: tierId === 'free' ? 'Hobbyist' : tierId === 'plus' ? 'Plus' : 'Pro',
           features: {
             projectLimit: tierId === 'free' ? 1 : tierId === 'plus' ? 5 : 10,
+            featureLimit: tierId === 'free' ? 8 : tierId === 'plus' ? 16 : 32,
             fullPromptGeneration: true,
             publicProjects: tierId !== 'free',
             communityAccess: tierId !== 'free',
