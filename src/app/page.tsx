@@ -38,7 +38,7 @@ export default function LandingPage() {
   const [loadingTiers, setLoadingTiers] = useState(true);
 
   const navLinks = [
-    { name: 'Features', href: '#features' },
+    { name: 'How It Works', href: '#workflow' },
     { name: 'Templates', href: '/templates' },
     { name: 'Community', href: '/community' },
     { name: 'Reviews', href: '#testimonials' },
@@ -400,11 +400,19 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#00171f] text-[#00171f] dark:text-white relative overflow-x-hidden">
-      {/* Subtle geometric background pattern */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02] dark:opacity-[0.05]">
+      {/* Dotted grid background pattern matching the image */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.03] dark:opacity-[0.05]">
         <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300171f' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundImage: `radial-gradient(circle, #00171f 1px, transparent 1px)`,
+          backgroundSize: '24px 24px',
         }} />
+      </div>
+      
+      {/* Large circular outlines for visual interest */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-20 left-10 w-64 h-64 border border-gray-200 dark:border-gray-700 rounded-full opacity-20" />
+        <div className="absolute top-40 right-20 w-80 h-80 border border-gray-200 dark:border-gray-700 rounded-full opacity-15" />
+        <div className="absolute bottom-40 left-1/4 w-72 h-72 border border-gray-200 dark:border-gray-700 rounded-full opacity-15" />
       </div>
 
       {/* Modern header */}
@@ -448,429 +456,122 @@ export default function LandingPage() {
       </header>
 
       <main className="relative z-10">
-        {/* HERO SECTION */}
-        <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24 text-center relative">
-          {/* Decorative elements */}
-          <div className="absolute top-20 left-10 w-20 h-20 border border-gray-200 dark:border-gray-700 rounded-full animate-float opacity-50" />
-          <div className="absolute bottom-20 right-10 w-32 h-32 border border-gray-200 dark:border-gray-700 rounded-full animate-float delay-300 opacity-50" />
-          <div className="absolute top-40 right-20 w-3 h-3 bg-[#00171f] dark:bg-white rounded-full animate-subtle-pulse" />
-          <div className="absolute bottom-40 left-20 w-2 h-2 bg-[#00171f] dark:bg-white rounded-full animate-subtle-pulse delay-200" />
-          
-          <h1 className="animate-fade-in-up font-headline text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-[#00171f] dark:text-white leading-tight">
+        {/* HERO SECTION - Marketing Focused */}
+        <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 sm:pt-20 sm:pb-24 lg:pt-24 lg:pb-28 text-center relative">
+          <h1 className="animate-fade-in-up font-headline text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl text-[#00171f] dark:text-white leading-tight mb-6">
             Build Your First Project Now<br />
-            <span className="relative">
-              With Ready-to-Use AI Prompts
-              <svg className="absolute -bottom-2 left-0 w-full h-3 text-[#00171f]/20 dark:text-white/20" viewBox="0 0 200 8" preserveAspectRatio="none">
-                <path d="M0 7 Q50 0 100 7 T200 7" stroke="currentColor" strokeWidth="2" fill="none"/>
-              </svg>
-            </span>
+            <span className="text-[#00171f] dark:text-white">With Ready-to-Use AI Prompts</span>
           </h1>
-          <p className="mt-6 mx-auto max-w-3xl text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 leading-relaxed animate-fade-in-up delay-100">
-            Stop staring at blank pages. Turn your product idea into step-by-step AI prompts in seconds — copy, paste, and build faster than ever.
+          <p className="mt-6 mx-auto max-w-3xl text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed animate-fade-in-up delay-100 font-medium">
+            Give us your idea. We plan it, let you customize it, generate brilliant features, and deliver one ready-to-use prompt. Copy, paste into your AI coding agent, and start building — all in seconds.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in-up delay-200">
-            <Button asChild size="lg" className="w-full sm:w-auto bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-xl shadow-[#00171f]/20 group active:scale-95 transition-all duration-200 font-semibold px-6 py-2.5 sm:px-8 sm:py-3 md:px-10 md:py-4 rounded-full text-sm sm:text-base md:text-lg">
+            <Button asChild size="lg" className="w-full sm:w-auto bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-xl shadow-[#00171f]/20 group active:scale-95 transition-all duration-200 font-semibold px-8 py-3 sm:px-10 sm:py-4 rounded-full text-base sm:text-lg">
               <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
                 Start Free Trial
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform inline-block" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white hover:bg-[#00171f] dark:hover:bg-white hover:text-white dark:hover:text-[#00171f] transition-all duration-200 font-medium px-6 py-2.5 sm:px-8 sm:py-3 md:px-8 md:py-4 rounded-full text-sm sm:text-base md:text-lg">
-              <Link href="#features">See How It Works</Link>
+            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white hover:bg-[#00171f] dark:hover:bg-white hover:text-white dark:hover:text-[#00171f] transition-all duration-200 font-medium px-8 py-3 sm:px-10 sm:py-4 rounded-full text-base sm:text-lg">
+              <Link href="#workflow">See How It Works</Link>
             </Button>
           </div>
         </section>
 
         {/* Divider */}
-        <div className="h-px w-32 mx-auto bg-[#00171f]/20 dark:bg-white/20 mb-12" />
+        <div className="h-px w-32 mx-auto bg-gray-300 dark:bg-gray-600 mb-16" />
 
-        {/* STORYTELLING FEATURES SECTION */}
-        <section id="features" className="py-20 sm:py-24 lg:py-32 relative overflow-hidden">
-          {/* Animated background elements */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 left-10 w-72 h-72 bg-[#00171f]/5 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#00171f]/5 rounded-full blur-3xl animate-pulse delay-1000" />
-          </div>
-          
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* HOW IT WORKS SECTION - Clean & Simple */}
+        <section id="workflow" className="py-20 sm:py-28 relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900/50 dark:to-[#00171f]">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Section Header */}
             <div className="text-center mb-16">
-              <h2 className="font-headline text-2xl font-bold sm:text-3xl md:text-4xl lg:text-5xl text-[#00171f] dark:text-white mb-4">
-                Your Journey from Idea to Reality
+              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] dark:text-white mb-4">
+                How It Works
               </h2>
-              <p className="mt-6 max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 font-medium">
-                Every builder starts somewhere. Here's how Prompt Genius grows with you at every step.
+              <p className="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300">
+                From idea to ready-to-use prompt in 5 simple steps
               </p>
             </div>
 
-            {/* FREE TIER STORY */}
-            <div className="mb-24">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 shadow-lg">
-                  <Lightbulb className="h-8 w-8 text-white" />
+            {/* Steps - Vertical Timeline */}
+            <div className="relative">
+              {/* Vertical Line */}
+              <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#00171f] via-[#00171f]/50 to-[#00171f] dark:from-white dark:via-white/50 dark:to-white hidden sm:block" style={{ transform: 'translateX(-50%)' }} />
+
+              {/* Step 1 */}
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-12">
+                <div className="flex-1 sm:text-right order-2 sm:order-1">
+                  <h3 className="font-headline text-xl font-bold text-[#00171f] dark:text-white mb-2">Share Your Idea</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Describe your project in plain English — a SaaS app, blog, or any vision you have in mind.</p>
                 </div>
-                <div>
-                  <h3 className="font-headline text-2xl sm:text-3xl font-bold text-[#00171f] dark:text-white">
-                    The Hobbyist: Start Building Today
-                  </h3>
-                  <p className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold mt-1">FREE TIER</p>
+                <div className="relative z-10 order-1 sm:order-2">
+                  <div className="w-16 h-16 bg-[#00171f] dark:bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <Lightbulb className="h-7 w-7 text-white dark:text-[#00171f]" />
+                  </div>
+                </div>
+                <div className="flex-1 order-3 hidden sm:block" />
+              </div>
+
+              {/* Step 2 */}
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-12">
+                <div className="flex-1 order-3 hidden sm:block" />
+                <div className="relative z-10 order-1 sm:order-2">
+                  <div className="w-16 h-16 bg-[#00171f] dark:bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <ClipboardCheck className="h-7 w-7 text-white dark:text-[#00171f]" />
+                  </div>
+                </div>
+                <div className="flex-1 sm:text-left order-2 sm:order-3">
+                  <h3 className="font-headline text-xl font-bold text-[#00171f] dark:text-white mb-2">We Plan It For You</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Our AI analyzes your idea and creates a comprehensive development plan with feature categories.</p>
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-[#00171f] border-2 border-emerald-200 dark:border-emerald-900 rounded-2xl p-8 sm:p-10 shadow-xl">
-                <div className="prose prose-lg dark:prose-invert max-w-none">
-                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                    You have an idea. Maybe it's a todo app, a personal blog, or a side project you've been dreaming about. 
-                    But where do you start? The blank page stares back at you, and you're not sure how to break down your vision into actionable steps.
-                  </p>
-                  
-                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                    <strong className="text-[#00171f] dark:text-white">With Prompt Genius Free, you get:</strong>
-                  </p>
-
-                  <div className="grid md:grid-cols-2 gap-6 mb-8">
-                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
-                      <div className="flex items-start gap-4">
-                        <Lightbulb className="h-6 w-6 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">AI-Powered Idea Decomposition</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Transform your product idea into a structured development plan with AI-generated prompts. 
-                            No more blank page syndrome—get complete project breakdowns in seconds.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
-                      <div className="flex items-start gap-4">
-                        <ListChecks className="h-6 w-6 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Step-by-Step Development Plans</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Get sequential roadmaps with atomic, actionable prompts. Each step includes acceptance criteria 
-                            so you know exactly what "done" looks like.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
-                      <div className="flex items-start gap-4">
-                        <Shield className="h-6 w-6 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">AI Role & Persona Management</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Define custom AI roles with coding style, architecture, and best practices. 
-                            Maintain consistent outputs across your entire project.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
-                      <div className="flex items-start gap-4">
-                        <BookOpen className="h-6 w-6 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Project Templates Library</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Start faster with pre-built templates for common app types. 
-                            Jumpstart your projects and learn from proven structures.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 rounded-xl p-6 border-l-4 border-emerald-500">
-                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 italic leading-relaxed">
-                      "I had this idea for a todo app, but I didn't know where to start. Prompt Genius broke it down into 
-                      12 clear steps—from authentication to CRUD operations. I was building in minutes, not hours."
-                    </p>
+              {/* Step 3 */}
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-12">
+                <div className="flex-1 sm:text-right order-2 sm:order-1">
+                  <h3 className="font-headline text-xl font-bold text-[#00171f] dark:text-white mb-2">Customize Your Plan</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Select features, adjust priorities, add custom requirements — tailor it to your exact needs.</p>
+                </div>
+                <div className="relative z-10 order-1 sm:order-2">
+                  <div className="w-16 h-16 bg-[#00171f] dark:bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <Wrench className="h-7 w-7 text-white dark:text-[#00171f]" />
                   </div>
                 </div>
+                <div className="flex-1 order-3 hidden sm:block" />
+              </div>
+
+              {/* Step 4 */}
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-12">
+                <div className="flex-1 order-3 hidden sm:block" />
+                <div className="relative z-10 order-1 sm:order-2">
+                  <div className="w-16 h-16 bg-[#00171f] dark:bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <Sparkles className="h-7 w-7 text-white dark:text-[#00171f]" />
+                  </div>
+                </div>
+                <div className="flex-1 sm:text-left order-2 sm:order-3">
+                  <h3 className="font-headline text-xl font-bold text-[#00171f] dark:text-white mb-2">Generate Brilliant Features</h3>
+                  <p className="text-gray-600 dark:text-gray-400">AI generates detailed, production-ready features with clear specs for each component.</p>
+                </div>
+              </div>
+
+              {/* Step 5 - Highlighted */}
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                <div className="flex-1 sm:text-right order-2 sm:order-1">
+                  <h3 className="font-headline text-xl font-bold text-[#00171f] dark:text-white mb-2">Copy, Paste & Build</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Get one optimized prompt. Paste it into Claude, GPT, Cursor, or any AI coding agent and start building instantly.</p>
+                </div>
+                <div className="relative z-10 order-1 sm:order-2">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                    <Code className="h-7 w-7 text-white" />
+                  </div>
+                </div>
+                <div className="flex-1 order-3 hidden sm:block" />
               </div>
             </div>
 
-            {/* PLUS TIER STORY */}
-            <div className="mb-24">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 shadow-lg">
-                  <Rocket className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-headline text-2xl sm:text-3xl font-bold text-[#00171f] dark:text-white">
-                    The Builder: Ship Faster, Build Better
-                  </h3>
-                  <p className="text-sm text-purple-600 dark:text-purple-400 font-semibold mt-1">PLUS TIER - $7/MONTH</p>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-[#00171f] border-2 border-purple-200 dark:border-purple-900 rounded-2xl p-8 sm:p-10 shadow-xl">
-                <div className="prose prose-lg dark:prose-invert max-w-none">
-                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                    You're not just experimenting anymore. You're shipping real projects, and you need tools that keep up with your pace. 
-                    You want to test prompts before using them, refine them for clarity, and share your work with the world.
-                  </p>
-                  
-                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                    <strong className="text-[#00171f] dark:text-white">With Prompt Genius Plus, you unlock:</strong>
-                  </p>
-
-                  <div className="grid md:grid-cols-2 gap-6 mb-8">
-                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-start gap-4">
-                        <Play className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Prompt Playground & Live Testing</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Test your prompts in real-time and see AI responses instantly. No context switching—build trust 
-                            in prompt quality before using them in production.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-start gap-4">
-                        <SparklesIcon className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">AI Prompt Enhancement</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Transform rough prompts into clear, specific instructions. Improve AI understanding automatically 
-                            and save hours on prompt refinement.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-start gap-4">
-                        <Globe className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Public Projects & Showcase</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Make your projects public to showcase your work, get feedback, and inspire others. 
-                            Build your developer portfolio and get discovered.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-start gap-4">
-                        <Users className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Community Access</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Discover trending projects, learn from community examples, and find inspiration. 
-                            Connect with other builders and see what works.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-start gap-4">
-                        <Layers className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Project Collections</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Organize projects into collections like playlists. Group related projects, 
-                            share curated collections, and build themed portfolios.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-start gap-4">
-                        <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Trending & Discovery</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            See what's hot in the community. Sort by trending, most liked, or most cloned. 
-                            Find popular project patterns and get inspired.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-xl p-6 border-l-4 border-purple-500">
-                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 italic leading-relaxed">
-                      "The Prompt Playground changed everything. I test every prompt before using it, and the AI Enhancement 
-                      feature turns my rough ideas into professional-grade instructions. I'm shipping projects twice as fast now."
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* PRO TIER STORY */}
-            <div>
-              <div className="flex items-center gap-4 mb-8">
-                <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-4 shadow-lg">
-                  <Zap className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-headline text-2xl sm:text-3xl font-bold text-[#00171f] dark:text-white">
-                    The Professional: When Perfection Matters
-                  </h3>
-                  <p className="text-sm text-amber-600 dark:text-amber-400 font-semibold mt-1">PRO TIER - $15/MONTH</p>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-[#00171f] border-2 border-amber-200 dark:border-amber-900 rounded-2xl p-8 sm:p-10 shadow-xl">
-                <div className="prose prose-lg dark:prose-invert max-w-none">
-                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                    You're building mission-critical projects. When AI tools drift from your instructions, you can't afford to waste time 
-                    debugging. You need an agent that watches your back, analyzes execution gaps, and generates corrective prompts instantly.
-                  </p>
-                  
-                  <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                    <strong className="text-[#00171f] dark:text-white">With Prompt Genius Pro, you get everything in Plus, plus:</strong>
-                  </p>
-
-                  <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-8 border-2 border-amber-200 dark:border-amber-800 mb-8">
-                    <div className="flex items-start gap-6">
-                      <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-4 shadow-lg flex-shrink-0">
-                        <Bot className="h-8 w-8 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-2xl text-[#00171f] dark:text-white mb-3">Execution Follow-Up Agent</h4>
-                        <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                          When AI tools don't follow your instructions, this agent analyzes the gap between what you asked for 
-                          and what you got. It identifies why prompts failed in execution and generates corrective prompts that 
-                          restate constraints, lock decisions, remove ambiguity, and realign the AI with your original intent.
-                        </p>
-                        <div className="bg-white dark:bg-[#00171f] rounded-lg p-4 border border-amber-200 dark:border-amber-800">
-                          <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Example</p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            AI built something wrong → Paste the output → Agent identifies the gap → Generates fix prompts → Get back on track.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-6 mb-8">
-                    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800">
-                      <div className="flex items-start gap-4">
-                        <CheckCircle className="h-6 w-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Fix Broken Implementations</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Realign AI with your intent when things go wrong. Save hours on corrections and maintain project quality.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800">
-                      <div className="flex items-start gap-4">
-                        <CheckCircle className="h-6 w-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-bold text-[#00171f] dark:text-white mb-2">Priority Support</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Get priority support when you need help. We're here to ensure your projects succeed.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 rounded-xl p-6 border-l-4 border-amber-500">
-                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 italic leading-relaxed">
-                      "I was building a complex SaaS dashboard, and the AI kept missing key requirements. The Execution Follow-Up Agent 
-                      saved me days of debugging. It analyzed the gap, generated perfect corrective prompts, and got me back on track in minutes."
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
-
-        {/* Divider */}
-        <div className="h-px w-32 mx-auto bg-[#00171f]/20 my-12" />
-
-        {/* TESTIMONIALS SECTION */}
-        <section id="testimonials" className="py-20 sm:py-24 lg:py-32 relative">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] dark:text-white">
-                Loved by Developers and Builders
-              </h2>
-              <p className="mt-6 max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 font-medium">
-                See how developers and builders are shipping products faster with ready-to-use AI prompts.
-              </p>
-              <div className="mt-10">
-                <Button
-                  onClick={() => setIsFeedbackDialogOpen(true)}
-                  className="bg-white dark:bg-[#00171f] hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-medium px-6 py-3 rounded-full transition-all duration-200 hover:shadow-lg"
-                >
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Leave a Review
-                </Button>
-              </div>
-            </div>
-            <div className="mt-16">
-              {loadingTestimonials ? (
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="bg-white border border-gray-200 rounded-2xl shadow-sm">
-                      <CardContent className="pt-6">
-                        <Skeleton className="h-24 w-full rounded-lg" />
-                      </CardContent>
-                      <CardHeader>
-                        <Skeleton className="h-16 w-full rounded-lg" />
-                      </CardHeader>
-                    </Card>
-                  ))}
-                </div>
-              ) : testimonials.length > 0 ? (
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                  {testimonials.map((testimonial) => (
-                    <Card key={testimonial.id} className="relative bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group hover:shadow-xl rounded-2xl overflow-hidden">
-                      <div className="absolute top-4 right-4 text-[#00171f]/10 dark:text-white/10 text-6xl font-serif">"</div>
-                      <CardHeader>
-                        <div className="flex items-center gap-4">
-                          <Avatar className="ring-2 ring-gray-100 group-hover:ring-[#00171f]/20 transition-all duration-300 h-12 w-12">
-                            <AvatarImage src={testimonial.author.photoURL || undefined} alt={testimonial.author.name} />
-                            <AvatarFallback className="bg-[#00171f] text-white font-semibold">
-                              {getInitials(testimonial.author.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <CardTitle className="text-lg font-bold text-[#00171f] dark:text-white">{testimonial.author.name}</CardTitle>
-                            <CardDescription className="text-gray-500 dark:text-gray-400 font-medium">User</CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex gap-1 mb-4">
-                          {[...Array(testimonial.rating)].map((_, i) => (
-                            <Star key={i} className="h-5 w-5 fill-[#00171f] dark:fill-white text-[#00171f] dark:text-white" />
-                          ))}
-                        </div>
-                        <p className="text-gray-700 dark:text-gray-300 italic font-medium leading-relaxed">"{testimonial.comments}"</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-20 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-3xl bg-gray-50 dark:bg-gray-900">
-                  <MessageSquare className="mx-auto h-16 w-16 text-gray-400 dark:text-gray-500" />
-                  <h3 className="mt-6 text-2xl font-bold text-[#00171f] dark:text-white">Be the First to Share Your Story</h3>
-                  <p className="mt-3 text-gray-600 dark:text-gray-300 font-medium">Your feedback helps us improve and inspires other creators.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Divider */}
-        <div className="h-px w-32 mx-auto bg-[#00171f]/20 my-12" />
 
         {/* PRICING SECTION */}
         <section id="pricing" className="py-20 sm:py-24 lg:py-32 bg-gray-50/50 dark:bg-[#00171f]/50 overflow-visible">
@@ -879,9 +580,13 @@ export default function LandingPage() {
               <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] dark:text-white">
                 Simple, Transparent Pricing
               </h2>
-              <p className="mt-6 max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 font-medium">
-                Choose the plan that's right for you. Get started for free, and upgrade when you're ready to build more.
+              <p className="mt-6 max-w-3xl mx-auto text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 font-medium">
+                Start free. No credit card required. Upgrade when you're ready to build more projects and unlock advanced features.
               </p>
+              <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-full">
+                <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Start with Free Tier - No commitment</span>
+              </div>
             </div>
             <div className="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto overflow-visible">
               {/* Hobbyist */}
@@ -1268,6 +973,84 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Divider */}
+        <div className="h-px w-32 mx-auto bg-gray-300 dark:bg-gray-600 my-16" />
+
+        {/* TESTIMONIALS SECTION */}
+        <section id="testimonials" className="py-20 sm:py-24 lg:py-32 relative">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] dark:text-white">
+                Loved by Developers and Builders
+              </h2>
+              <p className="mt-6 max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 font-medium">
+                See how developers and builders are shipping products faster with ready-to-use AI prompts.
+              </p>
+              <div className="mt-10">
+                <Button
+                  onClick={() => setIsFeedbackDialogOpen(true)}
+                  className="bg-white dark:bg-[#00171f] hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-medium px-6 py-3 rounded-full transition-all duration-200 hover:shadow-lg"
+                >
+                  <MessageSquare className="mr-2 h-5 w-5" />
+                  Leave a Review
+                </Button>
+              </div>
+            </div>
+            <div className="mt-16">
+              {loadingTestimonials ? (
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Card key={i} className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                      <CardContent className="pt-6">
+                        <Skeleton className="h-24 w-full rounded-lg" />
+                      </CardContent>
+                      <CardHeader>
+                        <Skeleton className="h-16 w-full rounded-lg" />
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
+              ) : testimonials.length > 0 ? (
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                  {testimonials.map((testimonial) => (
+                    <Card key={testimonial.id} className="relative bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group hover:shadow-xl rounded-2xl overflow-hidden">
+                      <div className="absolute top-4 right-4 text-[#00171f]/10 dark:text-white/10 text-6xl font-serif">"</div>
+                      <CardHeader>
+                        <div className="flex items-center gap-4">
+                          <Avatar className="ring-2 ring-gray-100 group-hover:ring-[#00171f]/20 transition-all duration-300 h-12 w-12">
+                            <AvatarImage src={testimonial.author.photoURL || undefined} alt={testimonial.author.name} />
+                            <AvatarFallback className="bg-[#00171f] text-white font-semibold">
+                              {getInitials(testimonial.author.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <CardTitle className="text-lg font-bold text-[#00171f] dark:text-white">{testimonial.author.name}</CardTitle>
+                            <CardDescription className="text-gray-500 dark:text-gray-400 font-medium">User</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex gap-1 mb-4">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="h-5 w-5 fill-[#00171f] dark:fill-white text-[#00171f] dark:text-white" />
+                          ))}
+                        </div>
+                        <p className="text-gray-700 dark:text-gray-300 italic font-medium leading-relaxed">"{testimonial.comments}"</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-3xl bg-gray-50 dark:bg-gray-900">
+                  <MessageSquare className="mx-auto h-16 w-16 text-gray-400 dark:text-gray-500" />
+                  <h3 className="mt-6 text-2xl font-bold text-[#00171f] dark:text-white">Be the First to Share Your Story</h3>
+                  <p className="mt-3 text-gray-600 dark:text-gray-300 font-medium">Your feedback helps us improve and inspires other creators.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
         {/* CALL TO ACTION SECTION */}
         <section className="py-20 sm:py-24 lg:py-32 relative overflow-hidden bg-[#00171f]">
           {/* Decorative elements */}
@@ -1278,10 +1061,10 @@ export default function LandingPage() {
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-white dark:text-white mb-8">
-              Stop Staring at Blank Pages
+              From Idea to Code in Seconds
             </h2>
             <p className="text-xl sm:text-2xl text-gray-300 dark:text-gray-200 mb-10 max-w-3xl mx-auto font-medium">
-              Join developers and builders who are shipping products faster with ready-to-use AI prompts.
+              Join developers and builders who are turning their ideas into ready-to-use prompts. Copy, paste into any AI coding agent, and start building instantly.
             </p>
             <Button asChild size="lg" className="bg-white hover:bg-gray-100 text-[#00171f] border-0 shadow-xl group active:scale-95 transition-all duration-200 font-bold px-10 py-4 rounded-full text-lg">
               <Link href={loading ? "/login" : user ? "/dashboard" : "/login"}>
