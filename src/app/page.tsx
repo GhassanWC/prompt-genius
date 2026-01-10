@@ -494,79 +494,76 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Steps - Vertical Timeline */}
-            <div className="relative">
-              {/* Vertical Line */}
-              <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#00171f] via-[#00171f]/50 to-[#00171f] dark:from-white dark:via-white/50 dark:to-white hidden sm:block" style={{ transform: 'translateX(-50%)' }} />
-
+            {/* Steps - Clean Card Layout */}
+            <div className="grid gap-6 md:gap-8">
               {/* Step 1 */}
-              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-12">
-                <div className="flex-1 sm:text-right order-2 sm:order-1">
-                  <h3 className="font-headline text-xl font-bold text-[#00171f] dark:text-white mb-2">Share Your Idea</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Describe your project in plain English — a SaaS app, blog, or any vision you have in mind.</p>
+              <div className="flex items-start gap-5 p-6 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex-shrink-0 w-14 h-14 bg-[#00171f] dark:bg-white rounded-xl flex items-center justify-center">
+                  <Lightbulb className="h-6 w-6 text-white dark:text-[#00171f]" />
                 </div>
-                <div className="relative z-10 order-1 sm:order-2">
-                  <div className="w-16 h-16 bg-[#00171f] dark:bg-white rounded-full flex items-center justify-center shadow-lg">
-                    <Lightbulb className="h-7 w-7 text-white dark:text-[#00171f]" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-sm font-semibold text-[#00171f]/50 dark:text-white/50">Step 1</span>
                   </div>
+                  <h3 className="font-headline text-lg font-bold text-[#00171f] dark:text-white mb-1">Share Your Idea</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Describe your project in plain English — a SaaS app, blog, or any vision you have.</p>
                 </div>
-                <div className="flex-1 order-3 hidden sm:block" />
               </div>
 
               {/* Step 2 */}
-              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-12">
-                <div className="flex-1 order-3 hidden sm:block" />
-                <div className="relative z-10 order-1 sm:order-2">
-                  <div className="w-16 h-16 bg-[#00171f] dark:bg-white rounded-full flex items-center justify-center shadow-lg">
-                    <ClipboardCheck className="h-7 w-7 text-white dark:text-[#00171f]" />
-                  </div>
+              <div className="flex items-start gap-5 p-6 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex-shrink-0 w-14 h-14 bg-[#00171f] dark:bg-white rounded-xl flex items-center justify-center">
+                  <ClipboardCheck className="h-6 w-6 text-white dark:text-[#00171f]" />
                 </div>
-                <div className="flex-1 sm:text-left order-2 sm:order-3">
-                  <h3 className="font-headline text-xl font-bold text-[#00171f] dark:text-white mb-2">We Plan It For You</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Our AI analyzes your idea and creates a comprehensive development plan with feature categories.</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-sm font-semibold text-[#00171f]/50 dark:text-white/50">Step 2</span>
+                  </div>
+                  <h3 className="font-headline text-lg font-bold text-[#00171f] dark:text-white mb-1">We Plan It For You</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Our AI creates a comprehensive development plan with organized feature categories.</p>
                 </div>
               </div>
 
               {/* Step 3 */}
-              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-12">
-                <div className="flex-1 sm:text-right order-2 sm:order-1">
-                  <h3 className="font-headline text-xl font-bold text-[#00171f] dark:text-white mb-2">Customize Your Plan</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Select features, adjust priorities, add custom requirements — tailor it to your exact needs.</p>
+              <div className="flex items-start gap-5 p-6 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex-shrink-0 w-14 h-14 bg-[#00171f] dark:bg-white rounded-xl flex items-center justify-center">
+                  <Wrench className="h-6 w-6 text-white dark:text-[#00171f]" />
                 </div>
-                <div className="relative z-10 order-1 sm:order-2">
-                  <div className="w-16 h-16 bg-[#00171f] dark:bg-white rounded-full flex items-center justify-center shadow-lg">
-                    <Wrench className="h-7 w-7 text-white dark:text-[#00171f]" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-sm font-semibold text-[#00171f]/50 dark:text-white/50">Step 3</span>
                   </div>
+                  <h3 className="font-headline text-lg font-bold text-[#00171f] dark:text-white mb-1">Customize Your Plan</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Select features, adjust priorities, add custom requirements to fit your exact needs.</p>
                 </div>
-                <div className="flex-1 order-3 hidden sm:block" />
               </div>
 
               {/* Step 4 */}
-              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-12">
-                <div className="flex-1 order-3 hidden sm:block" />
-                <div className="relative z-10 order-1 sm:order-2">
-                  <div className="w-16 h-16 bg-[#00171f] dark:bg-white rounded-full flex items-center justify-center shadow-lg">
-                    <Sparkles className="h-7 w-7 text-white dark:text-[#00171f]" />
-                  </div>
+              <div className="flex items-start gap-5 p-6 bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex-shrink-0 w-14 h-14 bg-[#00171f] dark:bg-white rounded-xl flex items-center justify-center">
+                  <Sparkles className="h-6 w-6 text-white dark:text-[#00171f]" />
                 </div>
-                <div className="flex-1 sm:text-left order-2 sm:order-3">
-                  <h3 className="font-headline text-xl font-bold text-[#00171f] dark:text-white mb-2">Generate Brilliant Features</h3>
-                  <p className="text-gray-600 dark:text-gray-400">AI generates detailed, production-ready features with clear specs for each component.</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-sm font-semibold text-[#00171f]/50 dark:text-white/50">Step 4</span>
+                  </div>
+                  <h3 className="font-headline text-lg font-bold text-[#00171f] dark:text-white mb-1">Generate Brilliant Features</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">AI generates detailed, production-ready features with clear specs for each component.</p>
                 </div>
               </div>
 
               {/* Step 5 - Highlighted */}
-              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                <div className="flex-1 sm:text-right order-2 sm:order-1">
-                  <h3 className="font-headline text-xl font-bold text-[#00171f] dark:text-white mb-2">Copy, Paste & Build</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Get one optimized prompt. Paste it into Claude, GPT, Cursor, or any AI coding agent and start building instantly.</p>
+              <div className="flex items-start gap-5 p-6 bg-gradient-to-r from-emerald-50 to-emerald-100/50 dark:from-emerald-500/10 dark:to-emerald-500/5 rounded-2xl border border-emerald-200 dark:border-emerald-500/20 shadow-sm">
+                <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                  <Code className="h-6 w-6 text-white" />
                 </div>
-                <div className="relative z-10 order-1 sm:order-2">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                    <Code className="h-7 w-7 text-white" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Final Step</span>
                   </div>
+                  <h3 className="font-headline text-lg font-bold text-[#00171f] dark:text-white mb-1">Copy, Paste & Build</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Get one optimized prompt. Paste it into Claude, GPT, Cursor, or any AI agent and start building.</p>
                 </div>
-                <div className="flex-1 order-3 hidden sm:block" />
               </div>
             </div>
 
