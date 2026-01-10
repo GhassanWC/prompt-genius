@@ -29,6 +29,8 @@ import { getSubscriptionByUserId } from '@/lib/subscription-server';
 import { decomposeIdea } from '@/ai/flows/decompose-idea';
 import { enhanceAiRole } from '@/ai/flows/enhance-ai-role';
 import { enhancePrompt } from '@/ai/flows/enhance-prompt';
+import { generatePlanFromFeatures } from '@/ai/flows/generate-plan-from-features';
+import { getTier } from '@/lib/tiers-server';
 type Json = Record<string, any>;
 
 
@@ -124,6 +126,8 @@ export async function GET(req: NextRequest) {
  *
  * Body actions:
  * - { action: "decomposeIdea", idea }                             -> returns { plan }
+ * - { action: "generatePlanFromFeatures", enhancedIdea, aiRole, selectedFeatureIds, allFeatures, customFeatures } -> returns { developmentPlan }
+ * - { action: "getFeatureLimit" }                                 -> returns { featureLimit }
  * - { action: "enhanceAiRole", role }                             -> returns { enhancedRole }
  * - { action: "enhancePrompt", prompt }                           -> returns { enhancedPrompt }
  * - { action: "createProject", projectName, plan }                -> returns { projectId }
@@ -143,7 +147,37 @@ export async function POST(req: NextRequest) {
         const { idea } = body;
         if (!idea || typeof idea !== 'string') return jsonError('idea is required and must be a string');
         const plan = await decomposeIdea({ idea });
+        // Ensure developmentPlan is empty array
+        if (!plan.developmentPlan) {
+          plan.developmentPlan = [];
+        }
         return NextResponse.json({ plan });
+      }
+
+      case 'generatePlanFromFeatures': {
+        const { enhancedIdea, aiRole, selectedFeatureIds, allFeatures, customFeatures } = body;
+        if (!enhancedIdea || !aiRole || !selectedFeatureIds || !allFeatures) {
+          return jsonError('enhancedIdea, aiRole, selectedFeatureIds, and allFeatures are required');
+        }
+        if (!Array.isArray(selectedFeatureIds) || !Array.isArray(allFeatures)) {
+          return jsonError('selectedFeatureIds and allFeatures must be arrays');
+        }
+        const result = await generatePlanFromFeatures({
+          enhancedIdea,
+          aiRole,
+          selectedFeatureIds,
+          allFeatures,
+          customFeatures: customFeatures || undefined,
+        });
+        return NextResponse.json({ developmentPlan: result.developmentPlan });
+      }
+
+      case 'getFeatureLimit': {
+        const userSubscription = await getSubscriptionByUserId(uid);
+        const tierId = userSubscription?.tier_id || 'free';
+        const tier = await getTier(tierId);
+        const featureLimit = tier?.features?.featureLimit ?? 8;
+        return NextResponse.json({ featureLimit, tierId });
       }
 
       case 'enhanceAiRole': {

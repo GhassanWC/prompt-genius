@@ -6,6 +6,7 @@ export interface Tier {
   name: string;
   features: {
     projectLimit: number;
+    featureLimit: number; // Maximum number of features per project (8 for free, 16 for plus, 32 for pro)
     fullPromptGeneration: boolean;
     publicProjects: boolean;
     communityAccess: boolean;
@@ -33,6 +34,7 @@ export const getTier = async (tierId: string): Promise<Tier | null> => {
       name: 'Hobbyist',
       features: {
         projectLimit: 1,
+        featureLimit: 8,
         fullPromptGeneration: true,
         publicProjects: false,
         communityAccess: false,
