@@ -37,6 +37,9 @@ import {
   CheckCircle2,
   XCircle,
   Plus,
+  Copy,
+  CheckSquare,
+  Square,
 } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
@@ -751,6 +754,7 @@ export default function AdminDashboardPage() {
 
   // Search and filter states
   const [userSearch, setUserSearch] = useState('');
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   const [projectSearch, setProjectSearch] = useState('');
   const [subscriptionSearch, setSubscriptionSearch] = useState('');
   const [feedbackSearch, setFeedbackSearch] = useState('');
@@ -1114,6 +1118,78 @@ export default function AdminDashboardPage() {
       setDeletingProject(false);
     }
   };
+
+  // Handler to toggle user selection
+  const handleToggleUserSelection = (userId: string) => {
+    setSelectedUserIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
+  // Handler to select/deselect all filtered users
+  const handleToggleAllUsers = (filteredUsersList: AdminUser[]) => {
+    const filteredIds = filteredUsersList.map((u) => u.uid);
+    const allSelected = filteredIds.every((id) => selectedUserIds.has(id));
+    
+    if (allSelected) {
+      // Deselect all filtered users
+      setSelectedUserIds((prev) => {
+        const newSet = new Set(prev);
+        filteredIds.forEach((id) => newSet.delete(id));
+        return newSet;
+      });
+    } else {
+      // Select all filtered users
+      setSelectedUserIds((prev) => {
+        const newSet = new Set(prev);
+        filteredIds.forEach((id) => newSet.add(id));
+        return newSet;
+      });
+    }
+  };
+
+  // Handler to copy selected user emails to clipboard
+  const handleCopySelectedEmails = async () => {
+    const selectedEmails = users
+      .filter((u) => selectedUserIds.has(u.uid) && u.email)
+      .map((u) => u.email)
+      .filter(Boolean)
+      .join(', ');
+
+    if (!selectedEmails) {
+      toast({
+        variant: 'destructive',
+        title: 'No Emails to Copy',
+        description: 'Selected users have no email addresses.',
+      });
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(selectedEmails);
+      toast({
+        title: 'Emails Copied',
+        description: `${selectedUserIds.size} email${selectedUserIds.size > 1 ? 's' : ''} copied to clipboard.`,
+      });
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Copy Failed',
+        description: 'Failed to copy emails to clipboard.',
+      });
+    }
+  };
+
+  // Clear selection when user search changes
+  useEffect(() => {
+    setSelectedUserIds(new Set());
+  }, [userSearch]);
 
   // Filtered data using useMemo for performance - MUST be before any early returns
   const filteredUsers = useMemo(() => {
@@ -1645,6 +1721,15 @@ export default function AdminDashboardPage() {
                   </button>
                 )}
               </div>
+              {selectedUserIds.size > 0 && (
+                <Button
+                  onClick={handleCopySelectedEmails}
+                  className="bg-[#00171f] hover:bg-[#00171f]/90 text-white"
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy {selectedUserIds.size} Email{selectedUserIds.size > 1 ? 's' : ''}
+                </Button>
+              )}
             </div>
 
             {loading ? (
@@ -1666,12 +1751,40 @@ export default function AdminDashboardPage() {
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     Showing <span className="font-semibold">{filteredUsers.length}</span> of{' '}
                     <span className="font-semibold">{users.length}</span> users
+                    {selectedUserIds.size > 0 && (
+                      <span className="ml-2 text-[#00171f] dark:text-white font-semibold">
+                        ({selectedUserIds.size} selected)
+                      </span>
+                    )}
                   </p>
+                  {selectedUserIds.size > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedUserIds(new Set())}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      Clear Selection
+                    </Button>
+                  )}
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full table-auto text-sm text-gray-700 dark:text-gray-300">
                     <thead className="bg-gray-50 dark:bg-gray-900">
                       <tr>
+                        <th className="px-4 py-3 text-left">
+                          <button
+                            onClick={() => handleToggleAllUsers(filteredUsers)}
+                            className="flex items-center justify-center hover:opacity-70 transition-opacity"
+                            title={filteredUsers.every((u) => selectedUserIds.has(u.uid)) ? 'Deselect all' : 'Select all'}
+                          >
+                            {filteredUsers.length > 0 && filteredUsers.every((u) => selectedUserIds.has(u.uid)) ? (
+                              <CheckSquare className="h-5 w-5 text-[#00171f] dark:text-white" />
+                            ) : (
+                              <Square className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                            )}
+                          </button>
+                        </th>
                         <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                           User
                         </th>
@@ -1696,17 +1809,31 @@ export default function AdminDashboardPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-[#00171f]">
-                      {filteredUsers.map((user) => (
+                      {filteredUsers.map((adminUser) => (
                         <tr
-                          key={user.uid}
-                          className="border-b border-gray-100 dark:border-gray-800 transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-900"
+                          key={adminUser.uid}
+                          className={`border-b border-gray-100 dark:border-gray-800 transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-900 ${
+                            selectedUserIds.has(adminUser.uid) ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                          }`}
                         >
                           <td className="px-4 py-4">
+                            <button
+                              onClick={() => handleToggleUserSelection(adminUser.uid)}
+                              className="flex items-center justify-center hover:opacity-70 transition-opacity"
+                            >
+                              {selectedUserIds.has(adminUser.uid) ? (
+                                <CheckSquare className="h-5 w-5 text-[#00171f] dark:text-white" />
+                              ) : (
+                                <Square className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                              )}
+                            </button>
+                          </td>
+                          <td className="px-4 py-4">
                             <div className="flex items-center gap-3">
-                              {user.photoURL ? (
+                              {adminUser.photoURL ? (
                                 <Image
-                                  src={user.photoURL}
-                                  alt={user.displayName || 'User'}
+                                  src={adminUser.photoURL}
+                                  alt={adminUser.displayName || 'User'}
                                   width={40}
                                   height={40}
                                   className="h-10 w-10 rounded-full object-cover"
@@ -1718,34 +1845,34 @@ export default function AdminDashboardPage() {
                               )}
                               <div>
                                 <p className="text-sm font-semibold text-[#00171f] dark:text-white">
-                                  {user.displayName || 'No name'}
+                                  {adminUser.displayName || 'No name'}
                                 </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{user.uid}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{adminUser.uid}</p>
                               </div>
                             </div>
                           </td>
                           <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
-                            {user.email || '—'}
+                            {adminUser.email || '—'}
                           </td>
                           <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
-                            {user.createdAt
-                              ? formatDistanceToNow(user.createdAt, { addSuffix: true })
+                            {adminUser.createdAt
+                              ? formatDistanceToNow(adminUser.createdAt, { addSuffix: true })
                               : '—'}
                           </td>
                           <td className="px-4 py-4 text-sm font-semibold text-[#00171f] dark:text-white">
-                            {user.projectCount}
+                            {adminUser.projectCount}
                           </td>
                           <td className="px-4 py-4 text-sm font-semibold text-[#00171f] dark:text-white">
-                            {user.clonedProjectCount}
+                            {adminUser.clonedProjectCount}
                           </td>
                           <td className="px-4 py-4">
                             <div className="flex items-center gap-2">
-                              {user.masterAdmin ? (
+                              {adminUser.masterAdmin ? (
                                 <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shadow-sm px-2.5 py-1 whitespace-nowrap">
                                   <Shield className="h-3.5 w-3.5 mr-1.5" />
                                   <span className="text-xs font-semibold">Master Admin</span>
                                 </Badge>
-                              ) : user.isAdmin ? (
+                              ) : adminUser.isAdmin ? (
                                 <Badge className="bg-amber-100 text-amber-700 border-amber-200 px-2.5 py-1 whitespace-nowrap">
                                   <Shield className="h-3.5 w-3.5 mr-1.5" />
                                   <span className="text-xs font-semibold">Admin</span>
@@ -1756,18 +1883,18 @@ export default function AdminDashboardPage() {
                             </div>
                           </td>
                           <td className="px-4 py-4">
-                            {!user.masterAdmin && (
+                            {!adminUser.masterAdmin && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => {
-                                  setUserToToggle(user);
+                                  setUserToToggle(adminUser);
                                   setAdminToggleDialogOpen(true);
                                 }}
                                 className="h-8 w-8 p-0"
-                                title={user.isAdmin ? 'Remove admin access' : 'Grant admin access'}
+                                title={adminUser.isAdmin ? 'Remove admin access' : 'Grant admin access'}
                               >
-                                {user.isAdmin ? (
+                                {adminUser.isAdmin ? (
                                   <ToggleRight className="h-4 w-4 text-amber-600" />
                                 ) : (
                                   <ToggleLeft className="h-4 w-4 text-gray-400" />
