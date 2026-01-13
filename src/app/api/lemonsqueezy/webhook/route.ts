@@ -10,6 +10,7 @@ import {
   createSubscription,
   getSubscriptionByUserId,
 } from "@/lib/subscription-server";
+import { resetIdeaGenerationCount } from "@/lib/project-server";
 import { addMonths, isEqual } from "date-fns";
 const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET ?? "";
 
@@ -102,6 +103,10 @@ export async function POST(req: NextRequest) {
         ...base,
         cumulative_quantity: quantity > 0 ? quantity : 0,
       });
+      // Reset idea generation count for new Plus/Pro subscriptions
+      if (tierId === 'plus' || tierId === 'pro') {
+        await resetIdeaGenerationCount(userId);
+      }
       return new NextResponse("Created", { status: 200 });
     }
 
@@ -111,6 +116,10 @@ export async function POST(req: NextRequest) {
           ...base,
           cumulative_quantity: stored.cumulative_quantity + (quantity > 0 ? quantity : 0),
         });
+        // Reset idea generation count for new Plus/Pro subscriptions
+        if (tierId === 'plus' || tierId === 'pro') {
+          await resetIdeaGenerationCount(userId);
+        }
         break;
 
       case "subscription_updated":
@@ -120,15 +129,30 @@ export async function POST(req: NextRequest) {
             ...base,
             cumulative_quantity: stored.cumulative_quantity + (quantity > 0 ? quantity : 0),
           });
+          // Reset idea generation count on subscription renewal for Plus/Pro
+          const currentTier = tierId ?? stored?.tier_id;
+          if (currentTier === 'plus' || currentTier === 'pro') {
+            await resetIdeaGenerationCount(userId);
+          }
         }
         break;
 
       case "subscription_cancelled":
       case "subscription_expired":
-      case "subscription_resumed":
       case "subscription_paused":
+        await updateSubscription({ ...base, cumulative_quantity: stored.cumulative_quantity });
+        break;
+
+      case "subscription_resumed":
       case "subscription_unpaused":
         await updateSubscription({ ...base, cumulative_quantity: stored.cumulative_quantity });
+        // Reset idea generation count when subscription is resumed/unpaused for Plus/Pro
+        if (status === "active") {
+          const currentTier = tierId ?? stored?.tier_id;
+          if (currentTier === 'plus' || currentTier === 'pro') {
+            await resetIdeaGenerationCount(userId);
+          }
+        }
         break;
 
       default:

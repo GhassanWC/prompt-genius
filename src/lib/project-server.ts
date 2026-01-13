@@ -955,3 +955,100 @@ export async function getPublicProjectsPage(count = 12, cursor?: string | null, 
 
   return { projects, nextCursor };
 }
+
+// ---------- IDEA GENERATION LIMITS
+
+/** Default idea generation limits (fallback if not set in tiers collection) */
+const DEFAULT_IDEA_LIMITS = {
+  free: { ideasPerRequest: 6, totalIdeaGenerations: 1 },
+  plus: { ideasPerRequest: 30, totalIdeaGenerations: 30 },
+  pro: { ideasPerRequest: 45, totalIdeaGenerations: 40 },
+} as const;
+
+export type IdeaGenerationTier = 'free' | 'plus' | 'pro';
+
+export interface IdeaGenerationUsage {
+  generationCount: number;
+  lastGeneratedAt: Date | null;
+}
+
+/** Get user's idea generation count */
+export async function getIdeaGenerationUsage(userId: string): Promise<IdeaGenerationUsage> {
+  const userDoc = await usersCol().doc(userId).get();
+  const data = userDoc.data() as any;
+  
+  return {
+    generationCount: data?.ideaGenerationCount ?? 0,
+    lastGeneratedAt: data?.lastIdeaGeneratedAt?.toDate() ?? null,
+  };
+}
+
+/** Increment user's idea generation count */
+export async function incrementIdeaGenerationCount(userId: string): Promise<void> {
+  try {
+    await usersCol().doc(userId).update({
+      ideaGenerationCount: FieldValue.increment(1),
+      lastIdeaGeneratedAt: FieldValue.serverTimestamp(),
+    });
+  } catch (err) {
+    // User doc might not exist yet, create it
+    await usersCol().doc(userId).set({
+      ideaGenerationCount: 1,
+      lastIdeaGeneratedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+  }
+}
+
+/** Reset user's idea generation count to 0 (called on subscription renewal) */
+export async function resetIdeaGenerationCount(userId: string): Promise<void> {
+  try {
+    await usersCol().doc(userId).update({
+      ideaGenerationCount: 0,
+      ideaGenerationResetAt: FieldValue.serverTimestamp(),
+    });
+  } catch (err) {
+    // User doc might not exist yet, create it
+    await usersCol().doc(userId).set({
+      ideaGenerationCount: 0,
+      ideaGenerationResetAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+  }
+}
+
+/** Get idea generation limits based on user's subscription - reads from tiers collection */
+export async function getIdeaGenerationLimits(userId: string): Promise<{
+  tier: IdeaGenerationTier;
+  ideasPerRequest: number;
+  totalGenerations: number;
+  usedGenerations: number;
+  remainingGenerations: number;
+}> {
+  const [subscription, usage] = await Promise.all([
+    getSubscriptionByUserId(userId),
+    getIdeaGenerationUsage(userId),
+  ]);
+
+  // Determine tier based on subscription status
+  let tierId: IdeaGenerationTier = 'free';
+  if (subscription?.status === 'active') {
+    tierId = subscription.tier_id as IdeaGenerationTier;
+  }
+
+  // Fetch tier limits from Firestore tiers collection
+  const tier = await getTier(tierId);
+  
+  // Get limits from tier or use defaults
+  const ideasPerRequest = tier?.features?.ideasPerRequest ?? DEFAULT_IDEA_LIMITS[tierId].ideasPerRequest;
+  const totalGenerations = tier?.features?.totalIdeaGenerations ?? DEFAULT_IDEA_LIMITS[tierId].totalIdeaGenerations;
+  
+  const usedGenerations = usage.generationCount;
+  const remainingGenerations = Math.max(0, totalGenerations - usedGenerations);
+
+  return {
+    tier: tierId,
+    ideasPerRequest,
+    totalGenerations,
+    usedGenerations,
+    remainingGenerations,
+  };
+}

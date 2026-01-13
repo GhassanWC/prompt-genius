@@ -24,6 +24,8 @@ import {
   Lock,
   GitFork,
   Sparkles,
+  Lightbulb,
+  Wand2,
 } from "lucide-react";
 import { UserNav } from "@/components/user-nav";
 import { Logo } from "@/components/logo";
@@ -512,15 +514,27 @@ export default function DashboardPage() {
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-[#00171f] dark:text-white">
             Your workspace
           </p>
-          <Link href={atLimit ? "/dashboard" : "/projects/new"}>
-            <Button
-              disabled={atLimit}
-              className="bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 font-semibold px-6 py-3 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <PlusCircle className="mr-2 h-5 w-5" />
-              New Project
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/idea-generator">
+              <Button
+                variant="outline"
+                className="border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 font-semibold px-5 py-3 rounded-full transition-all duration-200"
+              >
+                <Wand2 className="mr-2 h-5 w-5" />
+                <span className="hidden sm:inline">AI Idea Generator</span>
+                <span className="sm:hidden">Ideas</span>
+              </Button>
+            </Link>
+            <Link href={atLimit ? "/dashboard" : "/projects/new"}>
+              <Button
+                disabled={atLimit}
+                className="bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-lg shadow-[#00171f]/20 font-semibold px-6 py-3 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <PlusCircle className="mr-2 h-5 w-5" />
+                New Project
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {error && (
@@ -1136,6 +1150,28 @@ export default function DashboardPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Floating Idea Generator Button */}
+      {user && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link href="/idea-generator">
+                <Button
+                  className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-2xl shadow-violet-500/30 hover:shadow-violet-500/40 border-0 transition-all duration-300 hover:scale-110 group"
+                  size="icon"
+                >
+                  <Lightbulb className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white border-0 shadow-lg">
+              <p className="font-medium">AI Idea Generator</p>
+              <p className="text-xs text-white/80 mt-1">Generate project ideas and auto-create projects</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
 
       {/* Floating Execution Follow-Up Agent Button */}
       {!checkingAccess && user && hasExecutionFollowUpAccess && (

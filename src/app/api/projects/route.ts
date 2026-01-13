@@ -24,12 +24,15 @@ import {
   getPublicProjectsPage,
   cloneProjectForUser,
   getUserProjectCounts,
+  getIdeaGenerationLimits,
+  incrementIdeaGenerationCount,
 } from '@/lib/project-server';
 import { getSubscriptionByUserId } from '@/lib/subscription-server';
 import { decomposeIdea } from '@/ai/flows/decompose-idea';
 import { enhanceAiRole } from '@/ai/flows/enhance-ai-role';
 import { enhancePrompt } from '@/ai/flows/enhance-prompt';
 import { generatePlanFromFeatures } from '@/ai/flows/generate-plan-from-features';
+import { generateIdeas } from '@/ai/flows/generate-ideas';
 import { getTier } from '@/lib/tiers-server';
 type Json = Record<string, any>;
 
@@ -272,6 +275,124 @@ export async function POST(req: NextRequest) {
           const statusCode = isLimitError ? 402 : 400;
           return jsonError(cloneError?.message || 'Failed to clone project.', statusCode);
         }
+      }
+
+      case 'generateIdeas': {
+        const { context } = body;
+        
+        // Get idea generation limits for this user
+        const limits = await getIdeaGenerationLimits(uid);
+        
+        // Check if user has remaining generations
+        if (limits.remainingGenerations <= 0) {
+          return NextResponse.json(
+            { 
+              error: `You've used all your idea generations (${limits.usedGenerations}/${limits.totalGenerations}) on the ${limits.tier === 'free' ? 'Free' : limits.tier === 'plus' ? 'Plus' : 'Pro'} plan. ${limits.tier === 'free' ? 'Upgrade to Plus or Pro for more idea generations.' : limits.tier === 'plus' ? 'Upgrade to Pro for more generations.' : 'Your limit has been reached.'}`,
+              limits,
+            },
+            { status: 402 }
+          );
+        }
+        
+        // Generate ideas with the tier-appropriate count
+        const result = await generateIdeas({ 
+          context: context || undefined, 
+          count: limits.ideasPerRequest,
+        });
+        
+        // Increment the user's generation count
+        await incrementIdeaGenerationCount(uid);
+        
+        // Return ideas with updated limits
+        const updatedLimits = {
+          ...limits,
+          usedGenerations: limits.usedGenerations + 1,
+          remainingGenerations: limits.remainingGenerations - 1,
+        };
+        
+        return NextResponse.json({ 
+          ideas: result.ideas,
+          limits: updatedLimits,
+        });
+      }
+
+      case 'getIdeaGenerationLimits': {
+        const limits = await getIdeaGenerationLimits(uid);
+        return NextResponse.json({ limits });
+      }
+
+      case 'createProjectFromIdea': {
+        // This action takes an idea and automatically creates a full project
+        const { ideaTitle, ideaDescription } = body;
+        if (!ideaTitle || !ideaDescription) {
+          return jsonError('ideaTitle and ideaDescription are required');
+        }
+
+        // Check project limit first
+        const [userSubscription, userCounts] = await Promise.all([
+          getSubscriptionByUserId(uid),
+          getUserProjectCounts(uid),
+        ]);
+
+        const totalProjects = userCounts.projectCount;
+        let projectLimit: number;
+        if (userSubscription?.cumulative_quantity) {
+          projectLimit = userSubscription.cumulative_quantity;
+        } else {
+          const freeTier = await getTier('free');
+          projectLimit = freeTier?.features?.projectLimit ?? 1;
+        }
+
+        if (totalProjects >= projectLimit) {
+          const tierId = userSubscription?.tier_id || 'free';
+          const tierName = tierId === 'free' ? 'Hobbyist' : tierId === 'plus' ? 'Plus' : 'Pro';
+          return NextResponse.json(
+            { 
+              error: `You've reached your project limit (${totalProjects}/${projectLimit} projects) on the ${tierName} plan. Upgrade to create more projects.`,
+              currentCount: totalProjects,
+              limit: projectLimit,
+              tier: tierId,
+              tierName: tierName
+            },
+            { status: 402 }
+          );
+        }
+
+        // Step 1: Decompose the idea
+        const decomposedPlan = await decomposeIdea({ idea: ideaDescription });
+
+        // Step 2: Auto-select all essential and important features
+        const selectedFeatureIds = decomposedPlan.featureCategories
+          .filter(f => f.priority === 'essential' || f.priority === 'important')
+          .map(f => f.id);
+
+        // If no features selected (shouldn't happen), select all
+        if (selectedFeatureIds.length === 0) {
+          selectedFeatureIds.push(...decomposedPlan.featureCategories.map(f => f.id));
+        }
+
+        // Step 3: Generate the development plan from selected features
+        const planResult = await generatePlanFromFeatures({
+          enhancedIdea: decomposedPlan.enhancedIdea,
+          aiRole: decomposedPlan.aiRole,
+          selectedFeatureIds,
+          allFeatures: decomposedPlan.featureCategories,
+        });
+
+        // Step 4: Create the final plan object
+        const finalPlan = {
+          ...decomposedPlan,
+          developmentPlan: planResult.developmentPlan,
+        };
+
+        // Step 5: Create the project
+        const projectId = await createProjectWithPrompts(uid, ideaTitle, finalPlan);
+
+        return NextResponse.json({ 
+          projectId,
+          projectName: ideaTitle,
+          promptCount: planResult.developmentPlan.length,
+        });
       }
 
       default:

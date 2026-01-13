@@ -150,6 +150,8 @@ interface Tier {
   name: string;
   features: {
     projectLimit: number;
+    ideasPerRequest: number;
+    totalIdeaGenerations: number;
     fullPromptGeneration: boolean;
     publicProjects: boolean;
     communityAccess: boolean;
@@ -168,6 +170,8 @@ const formatDate = (value?: Date | null) =>
 // Predefined feature keys that should be handled specially
 const PREDEFINED_FEATURES = [
   'projectLimit',
+  'ideasPerRequest',
+  'totalIdeaGenerations',
   'fullPromptGeneration',
   'publicProjects',
   'communityAccess',
@@ -507,6 +511,54 @@ function TierCard({
               />
             ) : (
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300 py-2.5 px-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 min-h-[40px] flex items-center">{tier.features.projectLimit}</p>
+            )}
+          </div>
+
+          {/* Ideas Per Request */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-[#00171f] dark:text-white block">Ideas Per Request</label>
+            {isEditing ? (
+              <Input
+                type="number"
+                min="1"
+                value={localTier.features.ideasPerRequest ?? 6}
+                onChange={(e) =>
+                  setLocalTier({
+                    ...localTier,
+                    features: {
+                      ...localTier.features,
+                      ideasPerRequest: parseInt(e.target.value) || 6,
+                    },
+                  })
+                }
+                className="border-gray-200 dark:border-gray-700 focus:border-[#00171f] dark:focus:border-white transition-colors h-10"
+              />
+            ) : (
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 py-2.5 px-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 min-h-[40px] flex items-center">{tier.features.ideasPerRequest ?? 6}</p>
+            )}
+          </div>
+
+          {/* Total Idea Generations */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-[#00171f] dark:text-white block">Total Idea Generations</label>
+            {isEditing ? (
+              <Input
+                type="number"
+                min="0"
+                value={localTier.features.totalIdeaGenerations ?? 1}
+                onChange={(e) =>
+                  setLocalTier({
+                    ...localTier,
+                    features: {
+                      ...localTier.features,
+                      totalIdeaGenerations: parseInt(e.target.value) || 1,
+                    },
+                  })
+                }
+                className="border-gray-200 dark:border-gray-700 focus:border-[#00171f] dark:focus:border-white transition-colors h-10"
+              />
+            ) : (
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 py-2.5 px-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 min-h-[40px] flex items-center">{tier.features.totalIdeaGenerations ?? 1}</p>
             )}
           </div>
 
