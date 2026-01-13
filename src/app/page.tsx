@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
-import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageSquare, Rocket, XCircle, Loader2, Mail, Bot, Wrench, Users, Lightbulb, ListChecks, Share2, Twitter, Instagram, Play, Zap, FileText, GitFork, BookOpen, TrendingUp, Shield, Sparkles as SparklesIcon, Layers, Globe } from 'lucide-react';
+import { Star, CheckCircle, Sparkles, ClipboardCheck, Code, ArrowRight, MessageSquare, Rocket, XCircle, Loader2, Mail, Bot, Wrench, Users, Lightbulb, ListChecks, Share2, Twitter, Instagram, Play, Zap, FileText, GitFork, BookOpen, TrendingUp, Shield, Sparkles as SparklesIcon, Layers, Globe, Wand2, MousePointerClick } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserNav } from '@/components/user-nav';
@@ -270,6 +270,20 @@ export default function LandingPage() {
         'Track what you love'
       ],
       badge: 'PLUS & PRO'
+    },
+    {
+      icon: Wand2,
+      title: 'AI Idea Generator',
+      tier: 'All Tiers',
+      description: 'No idea what to build? Let AI generate creative project ideas tailored to your interests. Click once and your project is created automatically.',
+      example: 'Click "Generate Ideas" → AI suggests 6-45 project ideas → Click any idea → Full project with all prompts created instantly.',
+      advantages: [
+        'Never run out of project ideas',
+        'One-click project creation',
+        'Ideas tailored to your interests',
+        'Complete projects in seconds'
+      ],
+      badge: 'ALL TIERS'
     }
   ];
 
@@ -478,8 +492,125 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Divider */}
-        <div className="h-px w-32 mx-auto bg-gray-300 dark:bg-gray-600 mb-16" />
+        {/* AI Idea Generator Feature Highlight */}
+        <section className="py-12 sm:py-16 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-600/5 via-fuchsia-600/5 to-violet-600/5 dark:from-violet-600/10 dark:via-fuchsia-600/10 dark:to-violet-600/10" />
+          <div className="absolute top-0 left-1/4 w-72 h-72 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-fuchsia-500/10 rounded-full blur-3xl" />
+          
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+              {/* Left: Text Content */}
+              <div className="flex-1 text-center lg:text-left">
+                <h2 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold text-[#00171f] dark:text-white mb-6">
+                  No Idea?{' '}
+                  <span className="bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                    Let AI Think For You
+                  </span>
+                </h2>
+                
+                <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-xl mx-auto lg:mx-0">
+                  Don&apos;t know what to build? Our AI Idea Generator creates unique project ideas tailored to your interests. 
+                  <span className="font-semibold text-[#00171f] dark:text-white"> Just click once</span> and your entire project is created automatically with all prompts ready to go.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+                  <Button asChild size="lg" className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white border-0 shadow-xl shadow-violet-500/25 group active:scale-95 transition-all duration-200 font-semibold px-8 py-4 rounded-full text-lg">
+                    <Link href={loading ? "/login" : user ? "/idea-generator" : "/login"}>
+                      <Wand2 className="mr-2 h-5 w-5" />
+                      Try Idea Generator
+                    </Link>
+                  </Button>
+                </div>
+
+                {/* Stats */}
+                <div className="flex flex-wrap justify-center lg:justify-start gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center">
+                      <Zap className="h-4 w-4 text-violet-500" />
+                    </div>
+                    <span className="text-gray-600 dark:text-gray-300"><span className="font-bold text-[#00171f] dark:text-white">6-45</span> ideas per click</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-fuchsia-500/10 flex items-center justify-center">
+                      <MousePointerClick className="h-4 w-4 text-fuchsia-500" />
+                    </div>
+                    <span className="text-gray-600 dark:text-gray-300"><span className="font-bold text-[#00171f] dark:text-white">One-click</span> project creation</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center">
+                      <Rocket className="h-4 w-4 text-violet-500" />
+                    </div>
+                    <span className="text-gray-600 dark:text-gray-300"><span className="font-bold text-[#00171f] dark:text-white">Instant</span> prompts ready</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Visual Demo */}
+              <div className="flex-1 max-w-md w-full">
+                <div className="relative">
+                  {/* Glow effect */}
+                  <div className="absolute -inset-4 bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 rounded-3xl blur-2xl" />
+                  
+                  {/* Card */}
+                  <div className="relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden">
+                    {/* Header */}
+                    <div className="px-6 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                          <Lightbulb className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-white font-semibold">AI Idea Generator</p>
+                          <p className="text-white/70 text-sm">Click an idea to create your project</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Ideas List */}
+                    <div className="p-4 space-y-3">
+                      {[
+                        { emoji: '📸', title: 'CodeSnap', desc: 'Beautiful code screenshots in seconds' },
+                        { emoji: '🤖', title: 'AI Chat Widget', desc: 'Embeddable chatbot for any website' },
+                        { emoji: '📊', title: 'Analytics Dashboard', desc: 'Real-time metrics visualization' },
+                      ].map((idea, i) => (
+                        <div 
+                          key={i} 
+                          className={`p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
+                            i === 0 
+                              ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 scale-[1.02] shadow-lg' 
+                              : 'border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-700'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="text-2xl">{idea.emoji}</span>
+                            <div className="flex-1">
+                              <p className="font-semibold text-[#00171f] dark:text-white">{idea.title}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{idea.desc}</p>
+                            </div>
+                            {i === 0 && (
+                              <div className="flex items-center gap-1 text-xs font-medium text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30 px-2 py-1 rounded-full">
+                                <Zap className="h-3 w-3" />
+                                Creating...
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Footer hint */}
+                    <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 text-center">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="font-medium">Click any idea</span> → Full project created automatically
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* HOW IT WORKS SECTION - Clean & Simple */}
         <section id="workflow" className="py-20 sm:py-28 relative bg-gradient-to-b from-gray-50 to-white dark:from-gray-900/50 dark:to-[#00171f]">
