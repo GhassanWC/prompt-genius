@@ -1151,48 +1151,51 @@ export default function DashboardPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Floating Idea Generator Button */}
+      {/* Floating AI Agents Button Group */}
       {user && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link href="/idea-generator">
-                <Button
-                  className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-2xl shadow-violet-500/30 hover:shadow-violet-500/40 border-0 transition-all duration-300 hover:scale-110 group"
-                  size="icon"
-                >
-                  <Lightbulb className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
-                </Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white border-0 shadow-lg">
-              <p className="font-medium">AI Idea Generator</p>
-              <p className="text-xs text-white/80 mt-1">Generate project ideas and auto-create projects</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col gap-3">
+          {/* Execution Follow-Up Agent Button */}
+          {!checkingAccess && hasExecutionFollowUpAccess && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/execution-follow-up">
+                    <Button
+                      className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-[#00171f] dark:bg-white hover:bg-[#00171f]/90 dark:hover:bg-white/90 text-white dark:text-[#00171f] shadow-xl shadow-[#00171f]/20 dark:shadow-white/20 border-0 transition-all duration-300 hover:scale-110 group"
+                      size="icon"
+                    >
+                      <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300 group-hover:rotate-12" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="bg-[#00171f] dark:bg-white text-white dark:text-[#00171f] border-0 shadow-lg">
+                  <p className="font-medium">Execution Follow-Up Agent</p>
+                  <p className="text-xs text-white/80 dark:text-[#00171f]/70 mt-1">Repair prompts when AI doesn&apos;t follow instructions</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
 
-      {/* Floating Execution Follow-Up Agent Button */}
-      {!checkingAccess && user && hasExecutionFollowUpAccess && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link href="/execution-follow-up">
-                <Button
-                  className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-[#00171f] hover:bg-[#00171f]/90 text-white shadow-2xl shadow-[#00171f]/30 hover:shadow-[#00171f]/40 border-0 transition-all duration-300 hover:scale-110 group"
-                  size="icon"
-                >
-                  <Sparkles className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
-                </Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="left" className="bg-[#00171f] text-white border-0 shadow-lg">
-              <p className="font-medium">Execution Follow-Up Agent</p>
-              <p className="text-xs text-white/80 mt-1">Repair prompts when AI doesn&apos;t follow instructions</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+          {/* Idea Generator Button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="/idea-generator">
+                  <Button
+                    className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-xl shadow-violet-500/30 hover:shadow-violet-500/40 border-0 transition-all duration-300 hover:scale-110 group"
+                    size="icon"
+                  >
+                    <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300 group-hover:rotate-12" />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="left" className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white border-0 shadow-lg">
+                <p className="font-medium">AI Idea Generator</p>
+                <p className="text-xs text-white/80 mt-1">Generate project ideas and auto-create projects</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       )}
     </div>
   );
