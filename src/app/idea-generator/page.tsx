@@ -28,6 +28,12 @@ import {
   Target,
   Crown,
   Lock,
+  Bookmark,
+  BookmarkCheck,
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+  X,
 } from 'lucide-react';
 
 interface ProjectIdea {
@@ -86,6 +92,67 @@ export default function IdeaGeneratorPage() {
   const [hasGenerated, setHasGenerated] = useState(false);
   const [limits, setLimits] = useState<IdeaGenerationLimits | null>(null);
   const [loadingLimits, setLoadingLimits] = useState(true);
+  const [savedIdeas, setSavedIdeas] = useState<ProjectIdea[]>([]);
+  const [isSavedIdeasOpen, setIsSavedIdeasOpen] = useState(false);
+
+  // Load saved ideas from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('savedProjectIdeas');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setSavedIdeas(parsed);
+      } catch (e) {
+        console.error('Failed to parse saved ideas:', e);
+      }
+    }
+  }, []);
+
+  // Save to localStorage whenever savedIdeas changes
+  useEffect(() => {
+    if (savedIdeas.length > 0) {
+      localStorage.setItem('savedProjectIdeas', JSON.stringify(savedIdeas));
+    } else {
+      localStorage.removeItem('savedProjectIdeas');
+    }
+  }, [savedIdeas]);
+
+  const isIdeaSaved = (ideaId: string) => {
+    return savedIdeas.some((saved) => saved.id === ideaId);
+  };
+
+  const handleSaveIdea = (idea: ProjectIdea, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the card click
+    if (isIdeaSaved(idea.id)) {
+      setSavedIdeas(savedIdeas.filter((saved) => saved.id !== idea.id));
+      toast({
+        title: 'Idea Removed',
+        description: `"${idea.title}" removed from saved ideas.`,
+      });
+    } else {
+      setSavedIdeas([...savedIdeas, idea]);
+      toast({
+        title: 'Idea Saved!',
+        description: `"${idea.title}" added to your saved ideas.`,
+      });
+    }
+  };
+
+  const handleRemoveSavedIdea = (ideaId: string, ideaTitle: string) => {
+    setSavedIdeas(savedIdeas.filter((saved) => saved.id !== ideaId));
+    toast({
+      title: 'Idea Removed',
+      description: `"${ideaTitle}" removed from saved ideas.`,
+    });
+  };
+
+  const handleClearAllSaved = () => {
+    setSavedIdeas([]);
+    toast({
+      title: 'All Cleared',
+      description: 'All saved ideas have been removed.',
+    });
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -405,6 +472,106 @@ export default function IdeaGeneratorPage() {
           </div>
         </div>
 
+        {/* Saved Ideas Section */}
+        {savedIdeas.length > 0 && (
+          <div className="mb-8">
+            <div className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 transition-all duration-200">
+              {/* Clickable area for toggle */}
+              <button
+                onClick={() => setIsSavedIdeasOpen(!isSavedIdeasOpen)}
+                className="flex items-center gap-3 flex-1 text-left hover:opacity-80 transition-opacity"
+              >
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                  <BookmarkCheck className="h-5 w-5 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Saved Ideas</h3>
+                  <p className="text-sm text-amber-300/80">{savedIdeas.length} idea{savedIdeas.length !== 1 ? 's' : ''} saved</p>
+                </div>
+              </button>
+              <div className="flex items-center gap-3">
+                {isSavedIdeasOpen && (
+                  <button
+                    onClick={handleClearAllSaved}
+                    className="px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 rounded-lg border border-red-500/20 transition-all"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 inline mr-1" />
+                    Clear All
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsSavedIdeasOpen(!isSavedIdeasOpen)}
+                  className="p-1 hover:bg-white/5 rounded-lg transition-colors"
+                >
+                  {isSavedIdeasOpen ? (
+                    <ChevronUp className="h-5 w-5 text-amber-400" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-amber-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+            
+            {isSavedIdeasOpen && (
+              <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {savedIdeas.map((idea, index) => (
+                  <Card
+                    key={idea.id}
+                    className="group relative overflow-hidden bg-gradient-to-br from-amber-500/[0.08] to-orange-500/[0.05] border-amber-500/20 hover:border-amber-500/40 rounded-2xl transition-all duration-300 hover:scale-[1.01] cursor-pointer"
+                    onClick={() => handleSelectIdea(idea)}
+                  >
+                    {/* Remove button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveSavedIdea(idea.id, idea.title);
+                      }}
+                      className="absolute top-3 right-3 p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all opacity-0 group-hover:opacity-100 z-10"
+                      title="Remove from saved"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">{idea.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-white truncate">{idea.title}</h4>
+                          <p className="text-xs text-amber-300/70 truncate">{idea.tagline}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge 
+                              variant="outline" 
+                              className={`text-[9px] font-semibold uppercase ${difficultyColors[idea.difficulty]}`}
+                            >
+                              {idea.difficulty}
+                            </Badge>
+                            <span className="text-[10px] text-zinc-500">{idea.timeEstimate}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Click to create indicator */}
+                      <div className="flex items-center justify-center gap-2 mt-3 pt-3 border-t border-amber-500/10 text-xs font-medium text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {isCreatingProject === idea.id ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Creating...
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="h-3 w-3" />
+                            Click to Create Project
+                          </>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* How it works - shown before first generation */}
         {!hasGenerated && !isGenerating && (
           <div className="grid md:grid-cols-3 gap-6 mt-16">
@@ -463,12 +630,29 @@ export default function IdeaGeneratorPage() {
                 <CardHeader className="relative pb-2">
                   <div className="flex items-start justify-between mb-3">
                     <span className="text-4xl">{idea.icon}</span>
-                    <Badge 
-                      variant="outline" 
-                      className={`text-[10px] font-semibold uppercase tracking-wider ${difficultyColors[idea.difficulty]}`}
-                    >
-                      {idea.difficulty}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => handleSaveIdea(idea, e)}
+                        className={`p-2 rounded-xl transition-all duration-200 border ${
+                          isIdeaSaved(idea.id)
+                            ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 hover:bg-amber-500/30 shadow-lg shadow-amber-500/10'
+                            : 'bg-white/10 text-zinc-300 border-white/20 hover:bg-amber-500/20 hover:text-amber-400 hover:border-amber-500/40'
+                        }`}
+                        title={isIdeaSaved(idea.id) ? 'Remove from saved' : 'Save idea'}
+                      >
+                        {isIdeaSaved(idea.id) ? (
+                          <BookmarkCheck className="h-5 w-5" />
+                        ) : (
+                          <Bookmark className="h-5 w-5" />
+                        )}
+                      </button>
+                      <Badge 
+                        variant="outline" 
+                        className={`text-[10px] font-semibold uppercase tracking-wider ${difficultyColors[idea.difficulty]}`}
+                      >
+                        {idea.difficulty}
+                      </Badge>
+                    </div>
                   </div>
                   <CardTitle className="text-xl font-bold text-white group-hover:text-violet-200 transition-colors">
                     {idea.title}
