@@ -473,11 +473,15 @@ export default function LandingPage() {
         {/* HERO SECTION - Marketing Focused */}
         <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 sm:pt-20 sm:pb-24 lg:pt-24 lg:pb-28 text-center relative">
           <h1 className="animate-fade-in-up font-headline text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl text-[#00171f] dark:text-white leading-tight mb-6">
-            Build Your First Project Now<br />
-            <span className="text-[#00171f] dark:text-white">With Ready-to-Use AI Prompts</span>
+            Tired of AI Giving You<br />
+            <span className="text-[#00171f] dark:text-white">Mediocre Code?</span>
           </h1>
           <p className="mt-6 mx-auto max-w-3xl text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed animate-fade-in-up delay-100 font-medium">
-            Give us your idea. We plan it, let you customize it, generate brilliant features, and deliver one ready-to-use prompt. Copy, paste into your AI coding agent, and start building — all in seconds.
+            You don't need a better AI. You need better prompts — organized, reusable, and built to perform.
+          </p>
+          <p className="mt-4 mx-auto max-w-3xl text-base sm:text-lg md:text-xl text-[#00171f] dark:text-white leading-relaxed animate-fade-in-up delay-150 font-semibold">
+            Prompt Genius AI is your command center for AI coding prompts.<br />
+            Store them. Improve them. Reuse them. Ship faster.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in-up delay-200">
             <Button asChild size="lg" className="w-full sm:w-auto bg-[#00171f] hover:bg-[#00171f]/90 text-white border-0 shadow-xl shadow-[#00171f]/20 group active:scale-95 transition-all duration-200 font-semibold px-8 py-3 sm:px-10 sm:py-4 rounded-full text-base sm:text-lg">
