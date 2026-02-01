@@ -21,7 +21,7 @@ export function ThemeToggle() {
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="fixed bottom-20 left-6 z-50 h-12 w-12 rounded-full border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-[#00171f]/90 backdrop-blur-sm hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 hover:scale-110 active:scale-95 group shadow-lg hover:shadow-xl"
+            className="fixed bottom-6 left-6 z-50 h-12 w-12 rounded-full border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-[#00171f]/90 backdrop-blur-sm hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 hover:scale-110 active:scale-95 group shadow-lg hover:shadow-xl"
             aria-label="Toggle theme"
           >
             <div className="relative h-5 w-5 flex items-center justify-center">
@@ -31,7 +31,7 @@ export function ThemeToggle() {
             <span className="sr-only">Toggle theme</span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="right">
+        <TooltipContent side="left">
           <p>Switch to {theme === 'light' ? 'dark' : 'light'} mode</p>
         </TooltipContent>
       </Tooltip>

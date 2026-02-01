@@ -496,30 +496,246 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* AI Idea Generator Feature Highlight */}
-        <section className="py-12 sm:py-16 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-violet-600/5 via-fuchsia-600/5 to-violet-600/5 dark:from-violet-600/10 dark:via-fuchsia-600/10 dark:to-violet-600/10" />
-          <div className="absolute top-0 left-1/4 w-72 h-72 bg-violet-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-fuchsia-500/10 rounded-full blur-3xl" />
+        {/* STATISTICS SECTION - Social Proof & Impact */}
+        <section className="py-16 sm:py-20 relative overflow-hidden">
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900/50 dark:via-[#00171f] dark:to-gray-900/50" />
           
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          {/* Animated background elements */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-1000" />
+          </div>
+          
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            {/* Section Header */}
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-full mb-6">
+                <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Trusted by Builders Worldwide</span>
+              </div>
+              <h2 className="font-headline text-2xl sm:text-3xl md:text-4xl font-bold text-[#00171f] dark:text-white mb-4">
+                The Numbers Speak for Themselves
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                Join thousands of developers who are already shipping faster with AI-powered prompts
+              </p>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+              {/* Stat 1 - Time Saved */}
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8 text-center hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl mb-4">
+                    <Zap className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#00171f] dark:text-white mb-2">
+                    10x
+                  </div>
+                  <div className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400">
+                    Faster Development
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
+                    vs manual prompt writing
+                  </div>
+                </div>
+              </div>
+
+              {/* Stat 2 - Prompts Generated */}
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8 text-center hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-blue-100 dark:bg-blue-900/30 rounded-xl mb-4">
+                    <FileText className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#00171f] dark:text-white mb-2">
+                    50K+
+                  </div>
+                  <div className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400">
+                    Prompts Generated
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
+                    and counting daily
+                  </div>
+                </div>
+              </div>
+
+              {/* Stat 3 - Projects Created */}
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-violet-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8 text-center hover:border-violet-300 dark:hover:border-violet-700 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-violet-100 dark:bg-violet-900/30 rounded-xl mb-4">
+                    <Rocket className="h-6 w-6 sm:h-7 sm:w-7 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#00171f] dark:text-white mb-2">
+                    5K+
+                  </div>
+                  <div className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400">
+                    Projects Launched
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
+                    by our community
+                  </div>
+                </div>
+              </div>
+
+              {/* Stat 4 - Success Rate */}
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-amber-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 sm:p-8 text-center hover:border-amber-300 dark:hover:border-amber-700 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-amber-100 dark:bg-amber-900/30 rounded-xl mb-4">
+                    <Star className="h-6 w-6 sm:h-7 sm:w-7 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#00171f] dark:text-white mb-2">
+                    98%
+                  </div>
+                  <div className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400">
+                    User Satisfaction
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
+                    based on reviews
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Trust Indicators */}
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-sm text-gray-500 dark:text-gray-400">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-emerald-500" />
+                <span>Secure & Private</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-blue-500" />
+                <span>Instant Results</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-violet-500" />
+                <span>Works with Any AI</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-amber-500" />
+                <span>No Credit Card Required</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* AI Idea Generator Feature Highlight */}
+        <section className="py-16 sm:py-20 relative overflow-hidden bg-white dark:bg-[#00171f]">
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900/30 dark:to-[#00171f]" />
+          <div className="absolute top-0 left-1/4 w-72 h-72 bg-violet-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-violet-500/5 rounded-full blur-3xl" />
+          
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            {/* Section Header */}
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-full mb-6">
+                <Wand2 className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                <span className="text-sm font-semibold text-violet-700 dark:text-violet-300">AI-Powered Idea Generation</span>
+              </div>
+              <h2 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold text-[#00171f] dark:text-white mb-4">
+                No Idea?{' '}
+                <span className="text-violet-600 dark:text-violet-400">
+                  Let AI Think For You
+                </span>
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                Don&apos;t know what to build? Our AI Idea Generator creates unique project ideas tailored to your interests.
+              </p>
+            </div>
+
+            {/* Stats Cards - Full Width */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
+              {/* Stat 1 - Ideas Generated */}
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-violet-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 text-center hover:border-violet-400 dark:hover:border-violet-600 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-violet-100 dark:bg-violet-900/30 rounded-xl mb-4">
+                    <Lightbulb className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-bold text-violet-600 dark:text-violet-400 mb-1">
+                    10K+
+                  </div>
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Ideas Generated
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                    unique project concepts
+                  </div>
+                </div>
+              </div>
+
+              {/* Stat 2 - Projects Created */}
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-violet-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 text-center hover:border-violet-400 dark:hover:border-violet-600 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-violet-100 dark:bg-violet-900/30 rounded-xl mb-4">
+                    <Rocket className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-bold text-violet-600 dark:text-violet-400 mb-1">
+                    3K+
+                  </div>
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Projects Created
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                    from generated ideas
+                  </div>
+                </div>
+              </div>
+
+              {/* Stat 3 - Generation Time */}
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-violet-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 text-center hover:border-violet-400 dark:hover:border-violet-600 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-violet-100 dark:bg-violet-900/30 rounded-xl mb-4">
+                    <Zap className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-bold text-violet-600 dark:text-violet-400 mb-1">
+                    &lt;5s
+                  </div>
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Generation Time
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                    instant results
+                  </div>
+                </div>
+              </div>
+
+              {/* Stat 4 - Ideas Per Click */}
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-violet-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 text-center hover:border-violet-400 dark:hover:border-violet-600 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-violet-100 dark:bg-violet-900/30 rounded-xl mb-4">
+                    <MousePointerClick className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-bold text-violet-600 dark:text-violet-400 mb-1">
+                    6-45
+                  </div>
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Ideas Per Click
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                    you choose the best
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content + Demo */}
             <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
               {/* Left: Text Content */}
               <div className="flex-1 text-center lg:text-left">
-                <h2 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold text-[#00171f] dark:text-white mb-6">
-                  No Idea?{' '}
-                  <span className="bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-                    Let AI Think For You
-                  </span>
-                </h2>
-                
                 <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-xl mx-auto lg:mx-0">
-                  Don&apos;t know what to build? Our AI Idea Generator creates unique project ideas tailored to your interests. 
-                  <span className="font-semibold text-[#00171f] dark:text-white"> Just click once</span> and your entire project is created automatically with all prompts ready to go.
+                  <span className="font-semibold text-[#00171f] dark:text-white">Just click once</span> and your entire project is created automatically with all prompts ready to go. No more staring at a blank page.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
-                  <Button asChild size="lg" className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white border-0 shadow-xl shadow-violet-500/25 group active:scale-95 transition-all duration-200 font-semibold px-8 py-4 rounded-full text-lg">
+                  <Button asChild size="lg" className="bg-violet-600 hover:bg-violet-500 text-white border-0 shadow-xl shadow-violet-500/25 group active:scale-95 transition-all duration-200 font-semibold px-8 py-4 rounded-full text-lg">
                     <Link href={loading ? "/login" : user ? "/idea-generator" : "/login"}>
                       <Wand2 className="mr-2 h-5 w-5" />
                       Try Idea Generator
@@ -527,25 +743,19 @@ export default function LandingPage() {
                   </Button>
                 </div>
 
-                {/* Stats */}
-                <div className="flex flex-wrap justify-center lg:justify-start gap-6 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center">
-                      <Zap className="h-4 w-4 text-violet-500" />
-                    </div>
-                    <span className="text-gray-600 dark:text-gray-300"><span className="font-bold text-[#00171f] dark:text-white">6-45</span> ideas per click</span>
+                {/* Feature highlights */}
+                <div className="flex flex-wrap justify-center lg:justify-start gap-3 text-sm">
+                  <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700">
+                    <CheckCircle className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">One-click project creation</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-fuchsia-500/10 flex items-center justify-center">
-                      <MousePointerClick className="h-4 w-4 text-fuchsia-500" />
-                    </div>
-                    <span className="text-gray-600 dark:text-gray-300"><span className="font-bold text-[#00171f] dark:text-white">One-click</span> project creation</span>
+                  <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700">
+                    <CheckCircle className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">Instant prompts ready</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center">
-                      <Rocket className="h-4 w-4 text-violet-500" />
-                    </div>
-                    <span className="text-gray-600 dark:text-gray-300"><span className="font-bold text-[#00171f] dark:text-white">Instant</span> prompts ready</span>
+                  <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700">
+                    <CheckCircle className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">100% Free to try</span>
                   </div>
                 </div>
               </div>
@@ -554,12 +764,12 @@ export default function LandingPage() {
               <div className="flex-1 max-w-md w-full">
                 <div className="relative">
                   {/* Glow effect */}
-                  <div className="absolute -inset-4 bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 rounded-3xl blur-2xl" />
+                  <div className="absolute -inset-4 bg-violet-600/10 rounded-3xl blur-2xl" />
                   
                   {/* Card */}
                   <div className="relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden">
                     {/* Header */}
-                    <div className="px-6 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600">
+                    <div className="px-6 py-4 bg-violet-600">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
                           <Lightbulb className="h-5 w-5 text-white" />
@@ -1108,77 +1318,17 @@ export default function LandingPage() {
         {/* Divider */}
         <div className="h-px w-32 mx-auto bg-gray-300 dark:bg-gray-600 my-16" />
 
-        {/* TESTIMONIALS SECTION */}
-        <section id="testimonials" className="py-20 sm:py-24 lg:py-32 relative">
+        {/* FEEDBACK BUTTON SECTION */}
+        <section id="testimonials" className="py-12 relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h2 className="font-headline text-3xl font-bold sm:text-4xl md:text-5xl text-[#00171f] dark:text-white">
-                Loved by Developers and Builders
-              </h2>
-              <p className="mt-6 max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 font-medium">
-                See how developers and builders are shipping products faster with ready-to-use AI prompts.
-              </p>
-              <div className="mt-10">
-                <Button
-                  onClick={() => setIsFeedbackDialogOpen(true)}
-                  className="bg-white dark:bg-[#00171f] hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-medium px-6 py-3 rounded-full transition-all duration-200 hover:shadow-lg"
-                >
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Leave a Review
-                </Button>
-              </div>
-            </div>
-            <div className="mt-16">
-              {loadingTestimonials ? (
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="bg-white border border-gray-200 rounded-2xl shadow-sm">
-                      <CardContent className="pt-6">
-                        <Skeleton className="h-24 w-full rounded-lg" />
-                      </CardContent>
-                      <CardHeader>
-                        <Skeleton className="h-16 w-full rounded-lg" />
-                      </CardHeader>
-                    </Card>
-                  ))}
-                </div>
-              ) : testimonials.length > 0 ? (
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                  {testimonials.map((testimonial) => (
-                    <Card key={testimonial.id} className="relative bg-white dark:bg-[#00171f] border border-gray-200 dark:border-gray-800 hover:border-[#00171f]/30 dark:hover:border-white/30 transition-all duration-500 group hover:shadow-xl rounded-2xl overflow-hidden">
-                      <div className="absolute top-4 right-4 text-[#00171f]/10 dark:text-white/10 text-6xl font-serif">"</div>
-                      <CardHeader>
-                        <div className="flex items-center gap-4">
-                          <Avatar className="ring-2 ring-gray-100 group-hover:ring-[#00171f]/20 transition-all duration-300 h-12 w-12">
-                            <AvatarImage src={testimonial.author.photoURL || undefined} alt={testimonial.author.name} />
-                            <AvatarFallback className="bg-[#00171f] text-white font-semibold">
-                              {getInitials(testimonial.author.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <CardTitle className="text-lg font-bold text-[#00171f] dark:text-white">{testimonial.author.name}</CardTitle>
-                            <CardDescription className="text-gray-500 dark:text-gray-400 font-medium">User</CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex gap-1 mb-4">
-                          {[...Array(testimonial.rating)].map((_, i) => (
-                            <Star key={i} className="h-5 w-5 fill-[#00171f] dark:fill-white text-[#00171f] dark:text-white" />
-                          ))}
-                        </div>
-                        <p className="text-gray-700 dark:text-gray-300 italic font-medium leading-relaxed">"{testimonial.comments}"</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-20 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-3xl bg-gray-50 dark:bg-gray-900">
-                  <MessageSquare className="mx-auto h-16 w-16 text-gray-400 dark:text-gray-500" />
-                  <h3 className="mt-6 text-2xl font-bold text-[#00171f] dark:text-white">Be the First to Share Your Story</h3>
-                  <p className="mt-3 text-gray-600 dark:text-gray-300 font-medium">Your feedback helps us improve and inspires other creators.</p>
-                </div>
-              )}
+              <Button
+                onClick={() => setIsFeedbackDialogOpen(true)}
+                className="bg-white dark:bg-[#00171f] hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-[#00171f] dark:border-white text-[#00171f] dark:text-white font-medium px-6 py-3 rounded-full transition-all duration-200 hover:shadow-lg"
+              >
+                <MessageSquare className="mr-2 h-5 w-5" />
+                Leave a Review
+              </Button>
             </div>
           </div>
         </section>
